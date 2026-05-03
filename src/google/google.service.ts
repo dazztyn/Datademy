@@ -57,4 +57,42 @@ export class GoogleService {
     }
   }
 
+  async copiarPlantillaYGuardar(idPlantilla: string, nombreNuevoFormulario: string) {
+    try {   
+
+      const drive = google.drive({ version: 'v3', auth: this.auth });
+      
+      // Obtenemos el ID de la carpeta maestra desde nuestro archivo secreto .env
+      const idCarpetaDestino = process.env.CARPETA_MAESTRA_ID;
+
+      if (!idCarpetaDestino) {
+        throw new Error('No se ha configurado la CARPETA_MAESTRA_ID en el archivo .env');
+      }
+
+      // Usamos la API de Google para hacer la copia
+      const respuesta = await drive.files.copy({
+        fileId: idPlantilla, // El ID del formulario que la encargada seleccionó
+        requestBody: {
+          name: nombreNuevoFormulario, // El nuevo nombre (Ej: "Formulario Socios - 2026")
+          parents: [idCarpetaDestino], // Le decimos que lo guarde en la carpeta maestra
+        },
+      });
+
+      // Google nos devuelve la información del nuevo archivo creado
+      const nuevoArchivo = respuesta.data;
+
+      return {
+        estado: 'exito',
+        mensaje: 'Plantilla copiada correctamente',
+        nuevo_id_google_form: nuevoArchivo.id, // ¡Este es el ID que mandaremos a MongoDB!
+      };
+
+    } catch (error) {
+      console.error('Error al copiar la plantilla en Drive:', error);
+      throw new Error('Hubo un problema al intentar copiar el formulario de Google.');
+    }
+  }
+
+
+
 }

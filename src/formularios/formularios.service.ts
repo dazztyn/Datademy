@@ -33,7 +33,7 @@ export class FormulariosService {
     try {
       // { new: true } hace que nos devuelva el objeto ya actualizado
       const actualizado = await this.procesoModelo
-        .findByIdAndUpdate(id, datos, { new: true })
+        .findByIdAndUpdate(id, datos, {returnDocument: 'after' })
         .exec();
         
       if (!actualizado) {
