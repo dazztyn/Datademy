@@ -5,6 +5,8 @@ import { FormulariosService } from './formularios.service';
 import { FormulariosController } from './formularios.controller';
 // 1. Importamos el esquema que acabamos de crear
 import { Proceso, ProcesoSchema } from './schemas/proceso.schema';
+import { EstudianteEstrategia } from './estrategias/estudiante.estrategia';
+import { SocioEstrategia } from './estrategias/socio.estrategia';
 
 @Module({
   imports: [
@@ -14,6 +16,10 @@ import { Proceso, ProcesoSchema } from './schemas/proceso.schema';
     ])
   ],
   controllers: [FormulariosController],
-  providers: [FormulariosService],
+  providers: [
+    FormulariosService,
+    EstudianteEstrategia,
+    SocioEstrategia
+  ],
 })
 export class FormulariosModule {}

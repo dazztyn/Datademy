@@ -1,4 +1,24 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param} from '@nestjs/common';
+import { FormulariosService } from './formularios.service';
+import { CrearProcesoDto } from './dto/crear-proceso.dto';
+import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
 
 @Controller('formularios')
-export class FormulariosController {}
+export class FormulariosController {
+  constructor(private readonly formulariosService: FormulariosService) {}
+
+  // Usamos @Post porque estamos "enviando" datos nuevos al servidor
+  @Post('crear')
+  async crearNuevoProceso(@Body() datos: CrearProcesoDto) {
+    // @Body atrapa la información enviada y NestJS la pasa automáticamente por tu DTO
+    return await this.formulariosService.crearProceso(datos);
+  }
+
+  @Patch(':id') // El :id es un parámetro que recibiremos por la URL
+  async actualizarProceso(
+    @Param('id') id: string, 
+    @Body() datos: ActualizarProcesoDto
+  ) {
+    return await this.formulariosService.actualizar(id, datos);
+  }
+}

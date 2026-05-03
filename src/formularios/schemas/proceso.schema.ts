@@ -19,13 +19,13 @@ export class Proceso {
 
   // type: Object permite guardar una estructura con varios datos dentro (los IDs de Google)
   @Prop({ type: Object })
-  formulario_estudiantes!: {
+  formulario_estudiantes?: {
     id_google_form: string;
     id_carpeta_drive: string;
   };
 
   @Prop({ type: Object })
-  formulario_socios!: {
+  formulario_socios?: {
     id_google_form: string;
     id_carpeta_drive: string;
   };

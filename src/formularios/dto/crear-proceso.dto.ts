@@ -1,17 +1,10 @@
 // src/formularios/dto/crear-proceso.dto.ts
-import { IsString, IsNumber, IsNotEmpty, IsObject, ValidateNested } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, IsObject, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
+import { GoogleDatosDto } from './google-datos.dto';
 
 // 1. Creamos un sub-contrato para validar los datos de las carpetas de Google
-class GoogleDatosDto {
-  @IsString({ message: 'El ID del formulario debe ser un texto.' })
-  @IsNotEmpty({ message: 'El ID del formulario es obligatorio.' })
-  id_google_form!: string;
 
-  @IsString({ message: 'El ID de la carpeta debe ser un texto.' })
-  @IsNotEmpty({ message: 'El ID de la carpeta es obligatorio.' })
-  id_carpeta_drive!: strin
-}
 
 // 2. Este es el contrato principal que revisará todo lo que envíe el usuario
 export class CrearProcesoDto {
@@ -26,11 +19,13 @@ export class CrearProcesoDto {
 
   // ValidateNested revisa que el objeto interior también cumpla las reglas
   @IsObject()
+  @IsOptional()
   @ValidateNested()
   @Type(() => GoogleDatosDto) // Convierte los datos entrantes a nuestra clase GoogleDatosDto
   formulario_estudiantes!: GoogleDatosDto;
 
   @IsObject()
+  @IsOptional()
   @ValidateNested()
   @Type(() => GoogleDatosDto)
   formulario_socios!: GoogleDatosDto;
