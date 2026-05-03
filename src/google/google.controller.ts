@@ -1,12 +1,14 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { GoogleService } from './google.service';
 
-@Controller('google') // La URL empezará con /google
+@Controller('google')
 export class GoogleController {
   constructor(private readonly googleService: GoogleService) {}
 
-  @Get('probar') // La URL final será /google/probar
-  async probarDrive() {
-    return await this.googleService.probarConexion();
+  // El decorador @Param atrapa el ID que escribamos en la URL
+  @Get('carpeta/:id') 
+  async verCarpeta(@Param('id') folderId: string) {
+    // Le pasamos el ID a nuestro servicio
+    return await this.googleService.listarArchivosEnCarpeta(folderId);
   }
 }

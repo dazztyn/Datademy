@@ -26,7 +26,7 @@
     "@nestjs/mongoose": "^11.0.4",
     "@nestjs/platform-express": "^11.0.1",
     "googleapis": "^171.4.0",
-    "mongoose": "^9.4.1",
+    "mongoose": "^9.6.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

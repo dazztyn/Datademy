@@ -18,30 +18,43 @@ export class GoogleService {
     scopes: this.SCOPES,
   });
 
-  // 3. Función para probar si podemos ver los archivos de Drive
-  async probarConexion() {
+  // Nueva función que recibe el ID de la carpeta
+  async listarArchivosEnCarpeta(folderId: string) {
     try {
       const drive = google.drive({ version: 'v3', auth: this.auth });
       
-      // Le pedimos a Google que nos de una lista de 5 archivos
       const res = await drive.files.list({
-        pageSize: 5,
-        fields: 'files(id, name)',
+        q: `'${folderId}' in parents and trashed = false`,
+        fields: 'files(id, name, mimeType)',
       });
 
       const archivos = res.data.files;
-
       if (!archivos || archivos.length === 0) {
-        return { mensaje: 'Conectado con éxito, pero el Drive del robot está vacío. ¡Recuerda compartirle una carpeta!' };
+        return { 
+          estado: 'vacio', 
+          mensaje: 'La carpeta existe y tenemos acceso, pero no hay plantillas dentro.' 
+        };
       }
 
       return {
-        mensaje: '¡Conexión exitosa! Estos son los archivos que ve el robot:',
+        estado: 'exito',
+        mensaje: `¡Éxito! Encontramos ${archivos.length} plantillas.`,
         archivos: archivos,
       };
-    } catch (error) {
-      console.error('Error al conectar con Google:', error);
-      throw new InternalServerErrorException('No se pudo conectar con Google Drive');
+
+    } catch (error: any) {
+      // AQUÍ ESTÁ LA MEJORA: Capturamos el error específico de permisos
+      if (error.code === 404 || error.message.includes('not found')) {
+        return {
+          estado: 'error_permisos',
+          mensaje: '¡Ups! El sistema no puede ver esta carpeta. Asegúrate de compartirla con el correo del bot.'
+        };
+      }
+
+      // Si es otro tipo de error, lo reportamos en la consola
+      console.error('Error interno al buscar en Drive:', error);
+      throw new Error('Hubo un problema de conexión con Google Drive.');
     }
   }
+
 }
