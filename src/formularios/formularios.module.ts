@@ -7,7 +7,8 @@ import { FormulariosController } from './formularios.controller';
 import { Proceso, ProcesoSchema } from './schemas/proceso.schema';
 import { EstudianteEstrategia } from './estrategias/estudiante.estrategia';
 import { SocioEstrategia } from './estrategias/socio.estrategia';
-import { GoogleModule } from '../google/google.module';
+import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
+import { GoogleModule } from 'src/google/google.module';
 
 @Module({
   imports: [
@@ -15,13 +16,14 @@ import { GoogleModule } from '../google/google.module';
     MongooseModule.forFeature([
       { name: Proceso.name, schema: ProcesoSchema }
     ]),
-    GoogleModule,
+    GoogleModule
   ],
   controllers: [FormulariosController],
   providers: [
     FormulariosService,
     EstudianteEstrategia,
-    SocioEstrategia
+    SocioEstrategia,
+    FormulariosOrquestadorService
   ],
 })
 export class FormulariosModule {}

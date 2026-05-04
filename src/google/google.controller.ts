@@ -26,7 +26,7 @@ export class GoogleController {
 
     return {
       ...resultado,
-      url_edicion: urlEdicion // Enviamos la URL para que el Frontend redirija
+      url_edicion: urlEdicion
     };
   }
 }

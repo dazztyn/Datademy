@@ -15,7 +15,6 @@ export class FormulariosService {
     private readonly estudianteEstrategia: EstudianteEstrategia,
     private readonly socioEstrategia: SocioEstrategia,
     @InjectModel(Proceso.name) private procesoModelo: Model<ProcesoDocument>,
-    private readonly googleService: GoogleService,
   ) {}
 
 
@@ -81,43 +80,6 @@ export class FormulariosService {
       console.error('Error al guardar en la base de datos:', error);
       throw new Error('No se pudo guardar el proceso en la base de datos.');
     }
-  }
-
-async crearYVincularFormulario(
-    idProceso: string,
-    idPlantilla: string,
-    nombreNuevoFormulario: string,
-    tipoFormulario: 'socios' | 'estudiantes'
-  ) {
-
-    const resultadoCopia = await this.googleService.copiarPlantillaYGuardar(
-      idPlantilla,
-      nombreNuevoFormulario
-    );
-
-    const nuevoFormId = resultadoCopia.nuevo_id_google_form;
-
-    const idCarpeta = process.env.CARPETA_MAESTRA_ID;
-
-    const campoBase = `formulario_${tipoFormulario}`; 
-
-    const datosAActualizar = {
-      [`${campoBase}.id_google_form`]: nuevoFormId,
-      [`${campoBase}.nombre_formulario`]: nombreNuevoFormulario,
-      [`${campoBase}.id_carpeta_drive`]: idCarpeta
-    };
-
-    const resultadoActualizacion = await this.actualizar(idProceso, datosAActualizar);
-
-    const urlEdicion = `https://docs.google.com/forms/d/${nuevoFormId}/edit`;
-
-    return {
-      estado: 'exito',
-      mensaje: 'Formulario vinculado correctamente con código optimizado.',
-      idFormulario: nuevoFormId,
-      urlEdicion: urlEdicion,
-      datosActualizados: resultadoActualizacion.datos
-    };
   }
 
 }
