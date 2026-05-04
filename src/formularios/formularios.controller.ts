@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param} from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Get} from '@nestjs/common';
 import { FormulariosService } from './formularios.service';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
@@ -21,4 +21,25 @@ export class FormulariosController {
   ) {
     return await this.formulariosService.actualizar(id, datos);
   }
+  
+  @Post(':id/vincular-formulario')
+  async vincularFormulario(
+    @Param('id') idProceso: string, 
+    @Body('idPlantilla') idPlantilla: string,
+    @Body('nombreNuevoFormulario') nombreNuevoFormulario: string,
+    @Body('tipoFormulario') tipoFormulario: 'socios' | 'estudiantes',
+  ) {
+    return await this.formulariosService.crearYVincularFormulario(
+      idProceso,
+      idPlantilla,
+      nombreNuevoFormulario,
+      tipoFormulario
+    );
+  }
+
+  @Get('listar')
+  async listarProcesos() {
+    return await this.formulariosService.obtenerTodosLosProcesos();
+  }
+  
 }

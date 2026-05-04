@@ -9,7 +9,7 @@ export class GoogleController {
   @Get('carpeta/:id') 
   async verCarpeta(@Param('id') folderId: string) {
     // Le pasamos el ID a nuestro servicio
-    return await this.googleService.listarArchivosEnCarpeta(folderId);
+    return await this.googleService.listarPlantillas(folderId);
   }
 
   @Post('copiar-plantilla')

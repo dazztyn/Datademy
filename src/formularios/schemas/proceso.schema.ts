@@ -22,12 +22,14 @@ export class Proceso {
   formulario_estudiantes?: {
     id_google_form: string;
     id_carpeta_drive: string;
+    nombre_formulario: string;
   };
 
   @Prop({ type: Object })
   formulario_socios?: {
     id_google_form: string;
     id_carpeta_drive: string;
+    nombre_formulario: string;
   };
 }
 

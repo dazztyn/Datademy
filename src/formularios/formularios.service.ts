@@ -6,6 +6,7 @@ import { Proceso, ProcesoDocument } from './schemas/proceso.schema';
 import { Model } from 'mongoose';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
+import { GoogleService } from 'src/google/google.service';
 
 @Injectable()
 export class FormulariosService {
@@ -14,7 +15,26 @@ export class FormulariosService {
     private readonly estudianteEstrategia: EstudianteEstrategia,
     private readonly socioEstrategia: SocioEstrategia,
     @InjectModel(Proceso.name) private procesoModelo: Model<ProcesoDocument>,
+    private readonly googleService: GoogleService,
   ) {}
+
+
+  async obtenerTodosLosProcesos() {
+    try {
+      // .find() sin parámetros trae todos los documentos de la colección
+      // .sort({ createdAt: -1 }) los ordena de forma descendente (el más reciente arriba)
+      const procesos = await this.procesoModelo.find().sort({ createdAt: -1 }).exec();
+      
+      return {
+        estado: 'exito',
+        mensaje: 'Procesos obtenidos correctamente',
+        datos: procesos
+      };
+    } catch (error) {
+      console.error('Error al obtener los procesos:', error);
+      throw new Error('Hubo un problema al intentar leer la base de datos.');
+    }
+  }
 
   // Esta función decide qué estrategia usar
   ejecutarProcesamiento(tipo: string, datos: any) {
@@ -62,4 +82,42 @@ export class FormulariosService {
       throw new Error('No se pudo guardar el proceso en la base de datos.');
     }
   }
+
+async crearYVincularFormulario(
+    idProceso: string,
+    idPlantilla: string,
+    nombreNuevoFormulario: string,
+    tipoFormulario: 'socios' | 'estudiantes'
+  ) {
+
+    const resultadoCopia = await this.googleService.copiarPlantillaYGuardar(
+      idPlantilla,
+      nombreNuevoFormulario
+    );
+
+    const nuevoFormId = resultadoCopia.nuevo_id_google_form;
+
+    const idCarpeta = process.env.CARPETA_MAESTRA_ID;
+
+    const campoBase = `formulario_${tipoFormulario}`; 
+
+    const datosAActualizar = {
+      [`${campoBase}.id_google_form`]: nuevoFormId,
+      [`${campoBase}.nombre_formulario`]: nombreNuevoFormulario,
+      [`${campoBase}.id_carpeta_drive`]: idCarpeta
+    };
+
+    const resultadoActualizacion = await this.actualizar(idProceso, datosAActualizar);
+
+    const urlEdicion = `https://docs.google.com/forms/d/${nuevoFormId}/edit`;
+
+    return {
+      estado: 'exito',
+      mensaje: 'Formulario vinculado correctamente con código optimizado.',
+      idFormulario: nuevoFormId,
+      urlEdicion: urlEdicion,
+      datosActualizados: resultadoActualizacion.datos
+    };
+  }
+
 }

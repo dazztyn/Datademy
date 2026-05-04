@@ -7,13 +7,15 @@ import { FormulariosController } from './formularios.controller';
 import { Proceso, ProcesoSchema } from './schemas/proceso.schema';
 import { EstudianteEstrategia } from './estrategias/estudiante.estrategia';
 import { SocioEstrategia } from './estrategias/socio.estrategia';
+import { GoogleModule } from '../google/google.module';
 
 @Module({
   imports: [
     // 2. Registramos el esquema en este módulo para poder usarlo en la base de datos
     MongooseModule.forFeature([
       { name: Proceso.name, schema: ProcesoSchema }
-    ])
+    ]),
+    GoogleModule,
   ],
   controllers: [FormulariosController],
   providers: [
