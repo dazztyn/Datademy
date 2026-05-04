@@ -24,10 +24,27 @@ export class FormulariosService {
       // .sort({ createdAt: -1 }) los ordena de forma descendente (el más reciente arriba)
       const procesos = await this.procesoModelo.find().sort({ createdAt: -1 }).exec();
       
+      const procesosFormateados = procesos.map((proceso) => {
+        // Convertimos el documento de Mongoose a un objeto plano de JavaScript
+        const doc = proceso.toObject();
+
+        // Retornamos la nueva estructura limpia
+        return {
+          idProceso: doc._id.toString(), // Convertimos el ObjectId a texto
+          nombreProceso: doc.nombre_proceso,
+          // Agrupamos los formularios dentro del objeto "datos"
+          datos: {
+            // Usamos || null para que, si el formulario aún no se ha creado, devuelva null en vez de dar error
+            formulario_socios: doc.formulario_socios || null,
+            formulario_estudiantes: doc.formulario_estudiantes || null
+          }
+        };
+      });
+
       return {
         estado: 'exito',
         mensaje: 'Procesos obtenidos correctamente',
-        datos: procesos
+        datos: procesosFormateados
       };
     } catch (error) {
       console.error('Error al obtener los procesos:', error);
