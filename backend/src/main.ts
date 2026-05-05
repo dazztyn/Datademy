@@ -5,8 +5,8 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, // Borra cualquier dato extra que un hacker intente enviar
-    forbidNonWhitelisted: true, // Lanza un error si envían datos no permitidos
+    whitelist: true,
+    forbidNonWhitelisted: true, 
   }));
   app.enableCors({
   origin: 'http://localhost:5173',
