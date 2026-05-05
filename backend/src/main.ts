@@ -8,6 +8,10 @@ async function bootstrap() {
     whitelist: true, // Borra cualquier dato extra que un hacker intente enviar
     forbidNonWhitelisted: true, // Lanza un error si envían datos no permitidos
   }));
+  app.enableCors({
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+})
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
