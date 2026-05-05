@@ -120,9 +120,16 @@ export class FormulariosService {
   async obtenerPlantillasCacheadas() 
   {
     const plantillas = await this.plantillaModelo.find().exec();
+    const plantillasFiltradas = plantillas.map((plantilla) => {
+        const doc = plantilla.toObject();
+        return {
+          idPlantilla: doc.id_google_drive.toString(),
+          nombrePlantilla: doc.nombre
+        };
+      });
     return {
       estado: 'exito',
-      datos: plantillas
+      datos: plantillasFiltradas
     };
   }
 
