@@ -6,7 +6,8 @@ import { Proceso, ProcesoDocument } from './schemas/proceso.schema';
 import { Model } from 'mongoose';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
-import { GoogleService } from 'src/google/google.service';
+import { Plantilla, PlantillaDocument } from './schemas/plantilla.schema';
+import { ArchivoGoogleDrive } from 'src/google/interfaces/archivo-google.interface';
 
 @Injectable()
 export class FormulariosService {
@@ -14,6 +15,7 @@ export class FormulariosService {
     private readonly estudianteEstrategia: EstudianteEstrategia,
     private readonly socioEstrategia: SocioEstrategia,
     @InjectModel(Proceso.name) private procesoModelo: Model<ProcesoDocument>,
+    @InjectModel(Plantilla.name) private plantillaModelo: Model<PlantillaDocument>,
   ) {}
 
 
@@ -27,8 +29,8 @@ export class FormulariosService {
           idProceso: doc._id.toString(),
           nombreProceso: doc.nombre_proceso,
           datos: {
-            formulario_socios: doc.formulario_socios || null,
-            formulario_estudiantes: doc.formulario_estudiantes || null
+            formulario_estudiantes: doc.formulario_estudiantes || null,
+            formulario_socios: doc.formulario_socios || null
           }
         };
       });
@@ -81,13 +83,42 @@ export class FormulariosService {
       const nuevoProceso = new this.procesoModelo(datos);
       const procesoGuardado = await nuevoProceso.save();
       return {
-        mensaje: '¡Proceso guardado exitosamente en MongoDB!',
-        datos: procesoGuardado
+        datos: 
+        {
+          idProceso: procesoGuardado._id.toString(), // Convertimos el ObjectId de Mongoose a un string normal
+          nombreProceso: procesoGuardado.nombre_proceso,
+          anio: procesoGuardado.anio
+        }
       };
     } catch (error) {
       console.error('Error al guardar en la base de datos:', error);
       throw new Error('No se pudo guardar el proceso en la base de datos.');
     }
+  }
+
+  async guardarPlantillasEnCache(plantillasDeGoogle: ArchivoGoogleDrive[]) 
+  {
+    await this.plantillaModelo.deleteMany({}).exec();
+
+    const plantillasNuevas = plantillasDeGoogle.map(archivo => ({
+      id_google_drive: archivo.id,
+      nombre: archivo.name
+    }));
+
+    await this.plantillaModelo.insertMany(plantillasNuevas);
+    return plantillasNuevas;
+  }
+
+  /**
+   * Devuelve las plantillas al instante desde MongoDB.
+   */
+  async obtenerPlantillasCacheadas() 
+  {
+    const plantillas = await this.plantillaModelo.find().exec();
+    return {
+      estado: 'exito',
+      datos: plantillas
+    };
   }
 
 }

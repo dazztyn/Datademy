@@ -36,10 +36,32 @@ export class FormulariosOrquestadorService {
 
     return {
       estado: 'exito',
-      mensaje: 'Formulario vinculado correctamente con arquitectura desacoplada.',
       idFormulario: nuevoFormId,
       urlEdicion: `https://docs.google.com/forms/d/${nuevoFormId}/edit`,
       datosActualizados: resultadoActualizacion.datos
     };
   }
+
+  /**
+   * Obtiene archivos de Google Drive y le dice al servicio de formularios que los guarde en caché.
+   */
+  async sincronizarCarpetaPlantillas(idCarpeta: string) 
+  {
+    try 
+    {
+      const archivosEnDrive = await this.googleService.listarPlantillas(idCarpeta);
+
+      const plantillasGuardadas = await this.formulariosService.guardarPlantillasEnCache(archivosEnDrive);
+
+      return {
+        estado: 'exito',
+        mensaje: `Se sincronizaron ${plantillasGuardadas.length} plantillas exitosamente.`,
+        datos: plantillasGuardadas
+      };
+    } catch (error) {
+      console.error("Error en orquestador al sincronizar:", error);
+      throw new Error("No se pudo sincronizar las plantillas con Google Drive.");
+    }
+  }
+
 }

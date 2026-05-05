@@ -8,11 +8,13 @@ import { EstudianteEstrategia } from './estrategias/estudiante.estrategia';
 import { SocioEstrategia } from './estrategias/socio.estrategia';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
 import { GoogleModule } from 'src/google/google.module';
+import { Plantilla, PlantillaSchema } from './schemas/plantilla.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: Proceso.name, schema: ProcesoSchema }
+      { name: Proceso.name, schema: ProcesoSchema },
+      { name: Plantilla.name, schema: PlantillaSchema }
     ]),
     GoogleModule
   ],

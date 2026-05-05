@@ -5,12 +5,6 @@ import { GoogleService } from './google.service';
 export class GoogleController {
   constructor(private readonly googleService: GoogleService) {}
 
-  @Get('carpeta/:id') 
-  async verCarpeta(@Param('id') folderId: string) 
-  {
-    return await this.googleService.listarPlantillas(folderId);
-  }
-
   @Post('copiar-plantilla')
   async copiarPlantilla(
     @Body('idPlantilla') idPlantilla: string,

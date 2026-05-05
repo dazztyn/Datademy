@@ -45,5 +45,17 @@ export class FormulariosController {
   async listarProcesos() {
     return await this.formulariosService.obtenerTodosLosProcesos();
   }
+
+  @Post('sincronizar-plantillas')
+  async sincronizarPlantillas(@Body('idCarpeta') idCarpeta: string) 
+  {
+    return await this.orquestadorService.sincronizarCarpetaPlantillas(idCarpeta);
+  }
+
+  @Get('plantillas')
+  async obtenerPlantillas() 
+  {
+    return await this.formulariosService.obtenerPlantillasCacheadas();
+  }
   
 }

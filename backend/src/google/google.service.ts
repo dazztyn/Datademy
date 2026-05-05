@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
+import { ArchivoGoogleDrive } from './interfaces/archivo-google.interface';
 
 @Injectable()
 export class GoogleService 
@@ -19,7 +20,7 @@ export class GoogleService
     });
   }
 
-  async listarPlantillas(idCarpeta: string) {
+  async listarPlantillas(idCarpeta: string): Promise<ArchivoGoogleDrive[]> {
     try 
     {
       const drive = google.drive({ version: 'v3', auth: this.oauth2Client });
@@ -29,7 +30,7 @@ export class GoogleService
         fields: 'files(id, name, mimeType)',
       });
 
-      return respuesta.data.files;
+      return respuesta.data.files as ArchivoGoogleDrive[];
     } catch (error) {
       console.error('Error al listar archivos:', error);
       throw new Error('Hubo un problema al intentar conectar con Google Drive.');
