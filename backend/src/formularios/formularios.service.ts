@@ -85,7 +85,7 @@ export class FormulariosService {
       return {
         datos: 
         {
-          idProceso: procesoGuardado._id.toString(), // Convertimos el ObjectId de Mongoose a un string normal
+          idProceso: procesoGuardado._id.toString(),
           nombreProceso: procesoGuardado.nombre_proceso,
           anio: procesoGuardado.anio
         }
