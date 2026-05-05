@@ -37,6 +37,8 @@ export class FormulariosOrquestadorService {
     return {
       estado: 'exito',
       idFormulario: nuevoFormId,
+      nombreFormulario: nombreNuevoFormulario,
+      idCarpetaDrive: idCarpeta,
       urlEdicion: `https://docs.google.com/forms/d/${nuevoFormId}/edit`,
       datosActualizados: resultadoActualizacion.datos
     };

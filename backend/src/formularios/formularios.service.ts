@@ -28,7 +28,8 @@ export class FormulariosService {
         return {
           idProceso: doc._id.toString(),
           nombreProceso: doc.nombre_proceso,
-          datos: {
+          anio: doc.anio,
+          formularios: {
             formulario_estudiantes: doc.formulario_estudiantes || null,
             formulario_socios: doc.formulario_socios || null
           }
@@ -37,8 +38,7 @@ export class FormulariosService {
 
       return {
         estado: 'exito',
-        mensaje: 'Procesos obtenidos correctamente',
-        datos: procesosFormateados
+        procesos: procesosFormateados
       };
     } catch (error) {
       console.error('Error al obtener los procesos:', error);
@@ -71,7 +71,12 @@ export class FormulariosService {
 
       return {
         mensaje: '¡Proceso actualizado con éxito!',
-        datos: actualizado
+        datos: 
+        {
+          idProceso: actualizado._id.toString(),
+          nombreProceso: actualizado.nombre_proceso,
+          anio: actualizado.anio
+        }
       };
     } catch (error) {
       throw new Error('Error al actualizar el proceso');
