@@ -4,9 +4,8 @@ import { IProcesadorFormulario } from './formulario.estrategia.interface';
 @Injectable()
 export class SocioEstrategia implements IProcesadorFormulario {
   
-  procesarFormulario(datos: any): string {
-    // Aquí irá la lógica exclusiva para socios comunitarios
-    // Ej: Validar nombre de la organización, rut de empresa, etc.
+  procesarFormulario(datos: any): string 
+  {
     return `Formulario de SOCIO COMUNITARIO procesado correctamente: ${datos.organizacion}`;
   }
 }

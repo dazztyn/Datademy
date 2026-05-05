@@ -12,14 +12,13 @@ export class FormulariosController {
     private readonly orquestadorService: FormulariosOrquestadorService
   ) {}
 
-  // Usamos @Post porque estamos "enviando" datos nuevos al servidor
   @Post('crear')
-  async crearNuevoProceso(@Body() datos: CrearProcesoDto) {
-    // @Body atrapa la información enviada y NestJS la pasa automáticamente por tu DTO
+  async crearNuevoProceso(@Body() datos: CrearProcesoDto) 
+  {
     return await this.formulariosService.crearProceso(datos);
   }
 
-  @Patch(':idProceso') // El :id es un parámetro que recibiremos por la URL
+  @Patch(':idProceso')
   async actualizarProceso(
     @Param('idProceso') id: string, 
     @Body() datos: ActualizarProcesoDto

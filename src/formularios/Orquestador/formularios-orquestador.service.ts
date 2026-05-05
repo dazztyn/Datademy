@@ -1,4 +1,4 @@
-// src/formularios/formularios-orquestador.service.ts
+
 import { Injectable } from '@nestjs/common';
 import { FormulariosService } from '../formularios.service';
 import { GoogleService } from 'src/google/google.service';
@@ -17,7 +17,6 @@ export class FormulariosOrquestadorService {
     nombreNuevoFormulario: string,
     tipoFormulario: 'socios' | 'estudiantes'
   ) {
-    // 1. El orquestador delega el trabajo de la nube a GoogleService
     const resultadoCopia = await this.googleService.copiarPlantillaYGuardar(
       idPlantilla,
       nombreNuevoFormulario
@@ -26,7 +25,6 @@ export class FormulariosOrquestadorService {
     const nuevoFormId = resultadoCopia.nuevo_id_google_form;
     const idCarpeta = process.env.CARPETA_MAESTRA_ID;
 
-    // 2. Preparamos los datos
     const campoBase = `formulario_${tipoFormulario}`; 
     const datosAActualizar = {
       [`${campoBase}.id_google_form`]: nuevoFormId,
@@ -34,7 +32,6 @@ export class FormulariosOrquestadorService {
       [`${campoBase}.id_carpeta_drive`]: idCarpeta 
     };
 
-    // 3. El orquestador delega el trabajo de base de datos a FormulariosService
     const resultadoActualizacion = await this.formulariosService.actualizar(idProceso, datosAActualizar);
 
     return {
