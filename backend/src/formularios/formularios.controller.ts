@@ -50,9 +50,9 @@ export class FormulariosController {
   }
 
   @Get('plantillas')
-  async obtenerPlantillas() 
+  async obtenerPlantillas(@Query('tipo') tipo?: string) 
   {
-    return await this.formulariosService.obtenerPlantillasCacheadas();
+    return await this.formulariosService.obtenerPlantillasCacheadas(tipo);
   }
   
   @Delete(':id')
