@@ -8,6 +8,7 @@ import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
 import { Plantilla, PlantillaDocument } from './schemas/plantilla.schema';
 import { ArchivoGoogleDrive } from 'src/google/interfaces/archivo-google.interface';
+import { Configuracion, ConfiguracionDocument } from './schemas/configuracion.schema';
 
 @Injectable()
 export class FormulariosService {
@@ -16,6 +17,7 @@ export class FormulariosService {
     private readonly socioEstrategia: SocioEstrategia,
     @InjectModel(Proceso.name) private procesoModelo: Model<ProcesoDocument>,
     @InjectModel(Plantilla.name) private plantillaModelo: Model<PlantillaDocument>,
+    @InjectModel(Configuracion.name) private configuracionModelo: Model<ConfiguracionDocument>,
   ) {}
 
 
@@ -131,6 +133,42 @@ export class FormulariosService {
       estado: 'exito',
       datos: plantillasFiltradas
     };
+  }
+
+  /**
+   * Guarda o actualiza la carpeta destino global en MongoDB.
+   */
+  async guardarCarpetaDestino(idCarpeta: string) 
+  {
+    let config = await this.configuracionModelo.findOne().exec();
+
+    if (config) 
+    {
+      config.id_carpeta_destino_formularios = idCarpeta;
+      await config.save();
+    } 
+    else 
+    {
+      config = new this.configuracionModelo({ id_carpeta_destino_formularios: idCarpeta });
+      await config.save();
+    }
+
+    return { estado: 'exito'};
+  }
+
+  /**
+   * Obtiene la carpeta destino actual.
+   */
+  async obtenerCarpetaDestino(): Promise<string> 
+  {
+    const config = await this.configuracionModelo.findOne().exec();
+    
+    if (!config || !config.id_carpeta_destino_formularios) 
+    {
+      throw new Error('No se ha configurado una carpeta de destino. Por favor, asigne una desde el panel principal.');
+    }
+    
+    return config.id_carpeta_destino_formularios;
   }
 
 }

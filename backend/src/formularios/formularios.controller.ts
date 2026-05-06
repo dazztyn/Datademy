@@ -33,15 +33,21 @@ export class FormulariosController {
     );
   }
 
-  @Get('listar')
-  async listarProcesos() {
-    return await this.formulariosService.obtenerTodosLosProcesos();
+  @Post('configurar-carpeta-destino')
+  async configurarCarpetaDestino(@Body('idCarpeta') idCarpeta: string) 
+  {
+    return await this.formulariosService.guardarCarpetaDestino(idCarpeta);
   }
-
+  
   @Post('sincronizar-plantillas')
   async sincronizarPlantillas(@Body('idCarpeta') idCarpeta: string) 
   {
     return await this.orquestadorService.sincronizarCarpetaPlantillas(idCarpeta);
+  }
+
+  @Get('listar')
+  async listarProcesos() {
+    return await this.formulariosService.obtenerTodosLosProcesos();
   }
 
   @Get('plantillas')
