@@ -81,7 +81,6 @@ export class GoogleService
           trashed: true,
         },
       });
-      console.log(`Archivo ${idArchivo} movido a la papelera.`);
     } catch (error) {
       console.error(`Aviso: No se pudo mover el archivo ${idArchivo} a la papelera (es posible que ya no exista).`);
     }
