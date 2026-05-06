@@ -119,9 +119,18 @@ export class FormulariosService {
   /**
    * Devuelve las plantillas al instante desde MongoDB.
    */
-  async obtenerPlantillasCacheadas() 
+  async obtenerPlantillasCacheadas(tipo?: string) 
   {
-    const plantillas = await this.plantillaModelo.find().exec();
+    let filtro = {};
+
+    if (tipo) 
+    {
+      filtro = 
+      { 
+        nombrePlantilla: { $regex: new RegExp(tipo, 'i') } 
+      };
+    }
+    const plantillas = await this.plantillaModelo.find(filtro).exec();
     const plantillasFiltradas = plantillas.map((plantilla) => {
         const doc = plantilla.toObject();
         return {

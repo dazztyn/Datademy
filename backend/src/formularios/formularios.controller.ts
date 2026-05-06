@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param, Get, Delete} from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Get, Delete, Query} from '@nestjs/common';
 import { FormulariosService } from './formularios.service';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
@@ -50,9 +50,9 @@ export class FormulariosController {
   }
 
   @Get('plantillas')
-  async obtenerPlantillas() 
+  async obtenerPlantillas(@Query('tipo') tipo?: string) 
   {
-    return await this.formulariosService.obtenerPlantillasCacheadas();
+    return await this.formulariosService.obtenerPlantillasCacheadas(tipo);
   }
   
   @Delete(':id')
