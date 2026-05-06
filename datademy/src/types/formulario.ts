@@ -17,3 +17,12 @@ export interface Proceso {
 export interface ListarResponse {
   procesos: Proceso[]
 }
+export interface Plantilla {
+  idPlantilla: string
+  nombrePlantilla: string
+}
+
+export interface PlantillasResponse {
+  estado: string
+  datos: Plantilla[]
+}

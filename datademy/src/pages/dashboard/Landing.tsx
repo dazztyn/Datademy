@@ -59,6 +59,7 @@ export default function Landing() {
               }))}
               seleccionado={seleccionado}
               onSeleccionar={setSeleccionado}
+              onRecargar={recargar}
             />
             <BotonVerDetalles
               activo={puedeVer}

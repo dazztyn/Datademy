@@ -12,9 +12,10 @@ interface ListaFormulariosProps {
   periodos: Periodo[]
   seleccionado: string | null
   onSeleccionar: (id: string) => void
+  onRecargar: () => void
 }
 
-export default function ListaFormularios({ periodos, seleccionado, onSeleccionar }: ListaFormulariosProps) {
+export default function ListaFormularios({ periodos, seleccionado, onSeleccionar, onRecargar }: ListaFormulariosProps) {
   return (
     <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800">
       <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
@@ -55,11 +56,23 @@ export default function ListaFormularios({ periodos, seleccionado, onSeleccionar
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3" onClick={e => e.stopPropagation()}>
-                <SlotFormulario label="Estudiantes" asignado={periodo.formularioAlumnos} />
-                <SlotFormulario label="Socios" asignado={periodo.formularioClientes} />
+                <div className="grid grid-cols-2 gap-3 w-full" onClick={e => e.stopPropagation()}>
+                  <SlotFormulario
+                    label="Estudiantes"
+                    asignado={periodo.formularioAlumnos}
+                    idProceso={periodo.id}
+                    tipo="estudiantes"
+                    onAsignado={onRecargar}
+                  />
+                  <SlotFormulario
+                    label="Socios"
+                    asignado={periodo.formularioClientes}
+                    idProceso={periodo.id}
+                    tipo="socios"
+                    onAsignado={onRecargar}
+                  />
+                </div>
               </div>
-            </div>
           )
         })}
       </div>
