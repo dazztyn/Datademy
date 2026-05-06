@@ -17,14 +17,6 @@ export class FormulariosController {
   {
     return await this.formulariosService.crearProceso(datos);
   }
-
-  @Patch(':idProceso')
-  async actualizarProceso(
-    @Param('idProceso') id: string, 
-    @Body() datos: ActualizarProcesoDto
-  ) {
-    return await this.formulariosService.actualizar(id, datos);
-  }
   
   @Post(':idProceso/vincular-formulario')
   async vincularFormulario(
