@@ -67,4 +67,25 @@ export class GoogleService
       throw new Error('Hubo un problema al intentar copiar el formulario de Google.');
     }
   }
+
+  /**
+   * Mueve un archivo específico a la papelera de Google Drive.
+   */
+  async enviarArchivoAPapelera(idArchivo: string): Promise<void> {
+    try {
+      const drive = google.drive({ version: 'v3', auth: this.oauth2Client });
+      
+      await drive.files.update({
+        fileId: idArchivo,
+        requestBody: {
+          trashed: true,
+        },
+      });
+      console.log(`Archivo ${idArchivo} movido a la papelera.`);
+    } catch (error) {
+      console.error(`Aviso: No se pudo mover el archivo ${idArchivo} a la papelera (es posible que ya no exista).`);
+    }
+  }
+
+
 }

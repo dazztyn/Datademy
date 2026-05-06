@@ -68,4 +68,29 @@ export class FormulariosOrquestadorService {
     }
   }
 
+  /**
+   * Orquesta la eliminación completa: Borra archivos de Drive y luego el registro en MongoDB.
+   */
+  async eliminarProcesoCompleto(idProceso: string) 
+  {
+    const proceso = await this.formulariosService.obtenerProcesoInterno(idProceso);
+
+    if (proceso.formulario_socios && proceso.formulario_socios.id_google_form) 
+    {
+      await this.googleService.enviarArchivoAPapelera(proceso.formulario_socios.id_google_form);
+    }
+    
+    if (proceso.formulario_estudiantes && proceso.formulario_estudiantes.id_google_form) 
+    {
+      await this.googleService.enviarArchivoAPapelera(proceso.formulario_estudiantes.id_google_form);
+    }
+
+    await this.formulariosService.eliminarProcesoDeBD(idProceso);
+
+    return {
+      estado: 'exito',
+      idProcesoEliminado: idProceso
+    };
+  }
+
 }

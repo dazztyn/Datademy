@@ -171,4 +171,26 @@ export class FormulariosService {
     return config.id_carpeta_destino_formularios;
   }
 
+  /**
+   * Obtiene un proceso completo por su ID sin formatearlo (para uso interno).
+   */
+  async obtenerProcesoInterno(id: string) 
+  {
+    const proceso = await this.procesoModelo.findById(id).exec();
+    if (!proceso) 
+    {
+      throw new Error('El proceso que intentas eliminar no existe.');
+    }
+    return proceso;
+  }
+
+  /**
+   * Elimina un proceso de MongoDB utilizando su ID.
+   */
+  async eliminarProcesoDeBD(id: string) 
+  {
+    await this.procesoModelo.findByIdAndDelete(id).exec();
+    return { estado: 'exito', mensaje: 'Registro eliminado de la base de datos.' };
+  }
+
 }

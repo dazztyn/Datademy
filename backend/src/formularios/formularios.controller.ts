@@ -1,7 +1,6 @@
-import { Controller, Post, Body, Patch, Param, Get} from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Get, Delete} from '@nestjs/common';
 import { FormulariosService } from './formularios.service';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
-import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
 
 @Controller('formularios')
@@ -38,7 +37,7 @@ export class FormulariosController {
   {
     return await this.formulariosService.guardarCarpetaDestino(idCarpeta);
   }
-  
+
   @Post('sincronizar-plantillas')
   async sincronizarPlantillas(@Body('idCarpeta') idCarpeta: string) 
   {
@@ -56,4 +55,10 @@ export class FormulariosController {
     return await this.formulariosService.obtenerPlantillasCacheadas();
   }
   
+  @Delete(':id')
+  async eliminarProceso(@Param('id') id: string) 
+  {
+    return await this.orquestadorService.eliminarProcesoCompleto(id);
+  }
+
 }
