@@ -16,7 +16,8 @@ export class FormulariosOrquestadorService {
     idPlantilla: string,
     nombreNuevoFormulario: string,
     tipoFormulario: 'socios' | 'estudiantes'
-  ) {
+  ) 
+  {
 
     const idCarpetaDestino = await this.formulariosService.obtenerCarpetaDestino();
     const resultadoCopia = await this.googleService.copiarPlantillaYGuardar(
@@ -27,11 +28,16 @@ export class FormulariosOrquestadorService {
 
     const nuevoFormId = resultadoCopia.nuevo_id_google_form;
 
+    const urlEdicionGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/edit`;
+    const urlRespuestaGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/viewform`;
+
     const campoBase = `formulario_${tipoFormulario}`; 
     const datosAActualizar = {
       [`${campoBase}.id_google_form`]: nuevoFormId,
       [`${campoBase}.nombre_formulario`]: nombreNuevoFormulario,
-      [`${campoBase}.id_carpeta_drive`]: idCarpetaDestino
+      [`${campoBase}.id_carpeta_drive`]: idCarpetaDestino,
+      [`${campoBase}.url_edicion`]: urlEdicionGenerada,
+      [`${campoBase}.url_respuesta`]: urlRespuestaGenerada
     };
 
     const resultadoActualizacion = await this.formulariosService.actualizar(idProceso, datosAActualizar);
@@ -42,6 +48,7 @@ export class FormulariosOrquestadorService {
       nombreFormulario: nombreNuevoFormulario,
       idCarpetaDrive: idCarpetaDestino,
       urlEdicion: `https://docs.google.com/forms/d/${nuevoFormId}/edit`,
+      urlRespuesta: `https://docs.google.com/forms/d/${nuevoFormId}/viewform`,
       datosActualizados: resultadoActualizacion.datos
     };
   }

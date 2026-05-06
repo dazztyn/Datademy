@@ -18,6 +18,8 @@ export class Proceso {
     id_google_form: string;
     id_carpeta_drive: string;
     nombre_formulario: string;
+    url_edicion?: string; 
+    url_respuesta?: string;
   };
 
   @Prop({ type: Object })
@@ -25,6 +27,8 @@ export class Proceso {
     id_google_form: string;
     id_carpeta_drive: string;
     nombre_formulario: string;
+    url_edicion?: string;
+    url_respuesta?: string;
   };
 }
 

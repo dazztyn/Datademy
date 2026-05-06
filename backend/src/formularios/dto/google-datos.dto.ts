@@ -12,4 +12,12 @@ export class GoogleDatosDto {
   @IsString({ message: 'El nombre del formulario debe ser un texto.' })
   @IsOptional()
   nombre_formulario?: string;
+
+  @IsString({ message: 'La URL de edición debe ser un texto.' })
+  @IsOptional()
+  url_edicion?: string;
+
+  @IsString({ message: 'La URL de respuesta debe ser un texto.' })
+  @IsOptional()
+  url_respuesta?: string;
 }
