@@ -47,8 +47,8 @@ export class FormulariosOrquestadorService {
       idFormulario: nuevoFormId,
       nombreFormulario: nombreNuevoFormulario,
       idCarpetaDrive: idCarpetaDestino,
-      urlEdicion: `https://docs.google.com/forms/d/${nuevoFormId}/edit`,
-      urlRespuesta: `https://docs.google.com/forms/d/${nuevoFormId}/viewform`,
+      urlEdicion: urlEdicionGenerada,
+      urlRespuesta: urlRespuestaGenerada,
       datosActualizados: resultadoActualizacion.datos
     };
   }
