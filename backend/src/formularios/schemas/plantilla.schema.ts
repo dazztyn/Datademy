@@ -7,10 +7,10 @@ export type PlantillaDocument = Plantilla & Document;
 @Schema({ timestamps: true })
 export class Plantilla {
   @Prop({ required: true })
-  id_google_drive!: string;
+  idPlantilla!: string;
 
   @Prop({ required: true })
-  nombre!: string;
+  nombrePlantilla!: string;
 }
 
 export const PlantillaSchema = SchemaFactory.createForClass(Plantilla);

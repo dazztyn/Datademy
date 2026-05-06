@@ -108,8 +108,8 @@ export class FormulariosService {
     await this.plantillaModelo.deleteMany({}).exec();
 
     const plantillasNuevas = plantillasDeGoogle.map(archivo => ({
-      id_google_drive: archivo.id,
-      nombre: archivo.name
+      idPlantilla: archivo.id,
+      nombrePlantilla: archivo.name
     }));
 
     await this.plantillaModelo.insertMany(plantillasNuevas);
@@ -125,8 +125,8 @@ export class FormulariosService {
     const plantillasFiltradas = plantillas.map((plantilla) => {
         const doc = plantilla.toObject();
         return {
-          idPlantilla: doc.id_google_drive.toString(),
-          nombrePlantilla: doc.nombre
+          idPlantilla: doc.idPlantilla.toString(),
+          nombrePlantilla: doc.nombrePlantilla
         };
       });
     return {
