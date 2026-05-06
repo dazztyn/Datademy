@@ -6,6 +6,7 @@ import { FormulariosModule } from './formularios/formularios.module';
 import { GoogleModule } from './google/google.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: 
@@ -14,7 +15,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     MongooseModule.forRoot(process.env.MONGODB_URI!),
     UsuariosModule, 
     FormulariosModule, 
-    GoogleModule
+    GoogleModule, AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
