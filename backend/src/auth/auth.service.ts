@@ -17,37 +17,47 @@ export class AuthService {
     console.log('El correo que mandó Google es:', `"${correo}"`);
     console.log('-----------------------------------');
 
-    // buscar si el correo está en la bd
     let usuario = await this.usuariosService.buscarPorCorreo(correo);
 
+    
     if (!usuario) {
-      throw new UnauthorizedException(
-        'Acceso denegado. Tu correo no está registrado en Datademy. Contacta a un administrador.'
-      );
+      // Verificamos si pertenece a la universidad
+      const esDominioValido = correo.endsWith('@ucn.cl') || correo.endsWith('@alumnos.ucn.cl');
+
+      if (esDominioValido) {
+        console.log('Creando nuevo usuario institucional automáticamente...');
+        usuario = await this.usuariosService.crearUsuarioAutomatico(perfilGoogle);
+      } else {
+        throw new UnauthorizedException(
+          'Acceso denegado. Para ingresar a Datademy debes usar tu correo institucional.'
+        );
+      }
     }
 
-    // 3. Si el usuario existe, pero es su primera vez entrando (no tiene googleId guardado) se actualizan los datos 
+    // Si el usuario ya existía desde antes, pero es su primera vez entrando (no tiene googleId)
+    // (Por ejemplo, si los habías registrado manualmente por Postman)
     if (!usuario.googleId) {
-        usuario = await this.usuariosService.vincularCuentaGoogle(usuario._id, {
+      usuario = await this.usuariosService.vincularCuentaGoogle(usuario._id, {
         googleId,
         avatarUrl,
         nombre: usuario.nombre === 'Socia Comunitaria' ? nombre : usuario.nombre 
       });
 
       if (!usuario) {
-        throw new UnauthorizedException('Hubo un error al vincular tu cuenta con la base de datos.');
+        throw new UnauthorizedException('Hubo un error al vincular tu cuenta.');
       }
     }
 
-    // dar acceso
+    // jwt
     const payload = { 
       sub: usuario._id, 
       correo: usuario.correo, 
       rol: usuario.rol 
     };
     
-    const jwt = this.jwtService.sign(payload); //se firma el jwt
+    const jwt = this.jwtService.sign(payload);
 
+    // Devolvemos los tokens al AuthController
     return {
       usuario: {
         nombre: usuario.nombre,
@@ -56,8 +66,8 @@ export class AuthService {
         rol: usuario.rol
       },
       tokens: {
-        backendJwt: jwt, 
-        googleAccessToken: perfilGoogle.accessToken // para google picker
+        backendJwt: jwt,
+        googleAccessToken: perfilGoogle.accessToken
       }
     };
   }
