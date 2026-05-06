@@ -9,12 +9,14 @@ import { SocioEstrategia } from './estrategias/socio.estrategia';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
 import { GoogleModule } from 'src/google/google.module';
 import { Plantilla, PlantillaSchema } from './schemas/plantilla.schema';
+import { Configuracion, ConfiguracionSchema } from './schemas/configuracion.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Proceso.name, schema: ProcesoSchema },
-      { name: Plantilla.name, schema: PlantillaSchema }
+      { name: Plantilla.name, schema: PlantillaSchema },
+      { name: Configuracion.name, schema: ConfiguracionSchema }
     ]),
     GoogleModule
   ],

@@ -17,14 +17,6 @@ export class FormulariosController {
   {
     return await this.formulariosService.crearProceso(datos);
   }
-
-  @Patch(':idProceso')
-  async actualizarProceso(
-    @Param('idProceso') id: string, 
-    @Body() datos: ActualizarProcesoDto
-  ) {
-    return await this.formulariosService.actualizar(id, datos);
-  }
   
   @Post(':idProceso/vincular-formulario')
   async vincularFormulario(
@@ -41,15 +33,21 @@ export class FormulariosController {
     );
   }
 
-  @Get('listar')
-  async listarProcesos() {
-    return await this.formulariosService.obtenerTodosLosProcesos();
+  @Post('configurar-carpeta-destino')
+  async configurarCarpetaDestino(@Body('idCarpeta') idCarpeta: string) 
+  {
+    return await this.formulariosService.guardarCarpetaDestino(idCarpeta);
   }
-
+  
   @Post('sincronizar-plantillas')
   async sincronizarPlantillas(@Body('idCarpeta') idCarpeta: string) 
   {
     return await this.orquestadorService.sincronizarCarpetaPlantillas(idCarpeta);
+  }
+
+  @Get('listar')
+  async listarProcesos() {
+    return await this.formulariosService.obtenerTodosLosProcesos();
   }
 
   @Get('plantillas')

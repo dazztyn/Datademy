@@ -1,21 +1,43 @@
+import { useState } from 'react'
+import ModalAsignarFormulario from './ModalAsignarFormulario'
+
 interface SlotFormularioProps {
   label: string
   asignado: string | null
+  idProceso: string
+  tipo: 'estudiantes' | 'socios'
+  onAsignado: () => void
 }
 
-export default function SlotFormulario({ label, asignado }: SlotFormularioProps) {
+export default function SlotFormulario({ label, asignado, idProceso, tipo, onAsignado }: SlotFormularioProps) {
+  const [modalAbierto, setModalAbierto] = useState(false)
+
   return (
-    <div className="rounded-xl p-3 border border-slate-400 dark:border-slate-700 bg-slate-100 dark:bg-slate-900">
-      <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">{label}</p>
-      {asignado ? (
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
-          {asignado}
-        </p>
-      ) : (
-        <button className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 transition-colors">
-          + Asignar
-        </button>
+    <>
+      <div className="rounded-xl p-3 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">{label}</p>
+        {asignado ? (
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
+            {asignado}
+          </p>
+        ) : (
+          <button
+            onClick={() => setModalAbierto(true)}
+            className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 transition-colors"
+          >
+            + Asignar
+          </button>
+        )}
+      </div>
+
+      {modalAbierto && (
+        <ModalAsignarFormulario
+          idProceso={idProceso}
+          tipoFormulario={tipo}
+          onCerrar={() => setModalAbierto(false)}
+          onAsignado={onAsignado}
+        />
       )}
-    </div>
+    </>
   )
 }

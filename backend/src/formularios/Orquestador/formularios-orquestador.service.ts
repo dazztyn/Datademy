@@ -17,19 +17,21 @@ export class FormulariosOrquestadorService {
     nombreNuevoFormulario: string,
     tipoFormulario: 'socios' | 'estudiantes'
   ) {
+
+    const idCarpetaDestino = await this.formulariosService.obtenerCarpetaDestino();
     const resultadoCopia = await this.googleService.copiarPlantillaYGuardar(
       idPlantilla,
-      nombreNuevoFormulario
+      nombreNuevoFormulario,
+      idCarpetaDestino
     );
 
     const nuevoFormId = resultadoCopia.nuevo_id_google_form;
-    const idCarpeta = process.env.CARPETA_MAESTRA_ID;
 
     const campoBase = `formulario_${tipoFormulario}`; 
     const datosAActualizar = {
       [`${campoBase}.id_google_form`]: nuevoFormId,
       [`${campoBase}.nombre_formulario`]: nombreNuevoFormulario,
-      [`${campoBase}.id_carpeta_drive`]: idCarpeta 
+      [`${campoBase}.id_carpeta_drive`]: idCarpetaDestino
     };
 
     const resultadoActualizacion = await this.formulariosService.actualizar(idProceso, datosAActualizar);
@@ -38,7 +40,7 @@ export class FormulariosOrquestadorService {
       estado: 'exito',
       idFormulario: nuevoFormId,
       nombreFormulario: nombreNuevoFormulario,
-      idCarpetaDrive: idCarpeta,
+      idCarpetaDrive: idCarpetaDestino,
       urlEdicion: `https://docs.google.com/forms/d/${nuevoFormId}/edit`,
       datosActualizados: resultadoActualizacion.datos
     };

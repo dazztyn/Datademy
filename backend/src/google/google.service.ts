@@ -37,14 +37,13 @@ export class GoogleService
     }
   }
 
-  async copiarPlantillaYGuardar(idPlantilla: string, nombreNuevoFormulario: string) {
+  async copiarPlantillaYGuardar(idPlantilla: string, nombreNuevoFormulario: string, idCarpetaDestino: string) {
     try 
     {
       const drive = google.drive({ version: 'v3', auth: this.oauth2Client });
-      const idCarpetaDestino = process.env.CARPETA_MAESTRA_ID;
 
       if (!idCarpetaDestino) {
-        throw new Error('No se ha configurado la CARPETA_MAESTRA_ID en el archivo .env');
+        throw new Error('No se ha proporcionado una carpeta de destino válida.');
       }
 
       const respuesta = await drive.files.copy({
