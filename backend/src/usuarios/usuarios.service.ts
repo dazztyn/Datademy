@@ -26,7 +26,7 @@ export class UsuariosService {
     ).exec();
   }
 
-  // 3. Función para registrar manualmente a alguien
+  // 3. Función para registrar manualmente a alguien (fase temprana de pruebas)
   async crearUsuarioManual(datos: { nombre: string, correo: string, rol: string }) {
     try {
       const nuevoUsuario = new this.usuarioModelo({
@@ -44,6 +44,24 @@ export class UsuariosService {
       console.error('Error al crear usuario:', error);
       throw new Error('No se pudo crear el usuario. ¿Quizás el correo ya existe en la base de datos?');
     }
+  }
+
+  // funcion para crear un usuario al registrarse con google
+  async crearUsuarioAutomatico(perfilGoogle: any) {
+    // a futuro hacer esto con @ucn.cl para funcionarios
+    const esAlumno = perfilGoogle.correo.endsWith('@alumnos.ucn.cl');
+    const rolAsignado = esAlumno ? 'estudiante' : 'funcionario';
+
+    const nuevoUsuario = new this.usuarioModelo({
+      nombre: perfilGoogle.nombre,
+      correo: perfilGoogle.correo,
+      googleId: perfilGoogle.googleId,
+      avatarUrl: perfilGoogle.avatarUrl,
+      rol: rolAsignado, // Asigna 'estudiante' o 'funcionario'
+      activo: true
+    });
+
+    return await nuevoUsuario.save();
   }
 
 }
