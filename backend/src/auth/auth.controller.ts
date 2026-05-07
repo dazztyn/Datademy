@@ -22,6 +22,12 @@ export class AuthController {
     const jwt = resultadoLogin.tokens.backendJwt;
     const gToken = resultadoLogin.tokens.googleAccessToken;
     
-    return res.redirect(`${urlFrontend}?token=${jwt}&gToken=${gToken}`);
+    //Despues se debe cambiar descomentar
+    //return res.redirect(`${urlFrontend}?token=${jwt}&gToken=${gToken}`);
+
+    return res.json({
+      mensaje: "Copia este token JWT para usarlo en Thunder Client",
+      token_jwt: jwt
+    });
   }
 }
