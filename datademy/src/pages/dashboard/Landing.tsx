@@ -6,13 +6,35 @@ import BotonVerDetalles from '../../components/BotonVerDetalles'
 import ThemeToggle from '../../components/ThemeToggle'
 import ModalCrearProceso from '../../components/ModalCrearProceso'
 import { useFormularios } from '../../hooks/useFormularios'
+import { sincronizarPlantillas, configurarCarpetaDestino } from '../../services/formularios_service'
+import { useGooglePicker } from '../../hooks/useGooglePicker'
 
 export default function Landing() {
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
   const navigate = useNavigate()
   const { formularios, cargando, error, recargar } = useFormularios()
+  const { abrirPicker: abrirPickerPlantillas } = useGooglePicker({
+  onSeleccionada: async (idCarpeta) => {
+    try {
+      await sincronizarPlantillas(idCarpeta)
+      alert('Carpeta de plantillas configurada correctamente')
+    } catch {
+      alert('Error al configurar carpeta de plantillas')
+    }
+  }
+})
 
+const { abrirPicker: abrirPickerDestino } = useGooglePicker({
+  onSeleccionada: async (idCarpeta) => {
+    try {
+      await configurarCarpetaDestino(idCarpeta)
+      alert('Carpeta destino configurada correctamente')
+    } catch {
+      alert('Error al configurar carpeta destino')
+    }
+  }
+})
   const procesoSeleccionado = formularios.find(f => f.idProceso === seleccionado)
   const puedeVer = !!(
     procesoSeleccionado &&
@@ -25,18 +47,33 @@ export default function Landing() {
       <HeroBanner nombre="Nombre" />
 
       <div className="max-w-xl mx-auto px-6 pb-24">
-        {/* Cabecera de la lista */}
-        <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-medium text-slate-500 dark:text-slate-400">
             Procesos disponibles
           </h2>
-          <button
-            onClick={() => setModalAbierto(true)}
-            className="text-xs px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity"
-            style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
-          >
-            + Crear
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={abrirPickerPlantillas}
+              className="text-xs px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity"
+              style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+            >
+              Plantillas
+            </button>
+            <button
+              onClick={abrirPickerDestino}
+              className="text-xs px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity"
+              style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+            >
+               Carpeta Destino
+            </button>
+            <button
+              onClick={() => setModalAbierto(true)}
+              className="text-xs px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity"
+              style={{ background: 'linear-gradient(to right, #f59e0b, #ea580c)' }}
+            >
+              + Crear proceso
+            </button>
+          </div>
         </div>
 
         {cargando && (

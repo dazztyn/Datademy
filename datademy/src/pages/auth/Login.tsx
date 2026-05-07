@@ -1,12 +1,24 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import ThemeToggle from '../../components/ThemeToggle'
 
 export default function Login() {
-  const [usuario, setUsuario] = useState('')
-  const [contrasena, setContrasena] = useState('')
+  const [searchParams] = useSearchParams()
+  const { guardarTokens } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const token = searchParams.get('token')
+    const gToken = searchParams.get('gToken')
+    if (token && gToken) {
+      guardarTokens(token, gToken)
+      navigate('/dashboard')
+    }
+  }, [])
 
   const handleLogin = () => {
-    // esperando a la wa
+    window.location.href = 'http://localhost:3000/auth/google'
   }
 
   return (
@@ -15,6 +27,8 @@ export default function Login() {
       style={{ background: 'linear-gradient(to bottom, #1b4f96, #7f458f)' }}
     >
       <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm mx-4 px-8 py-10 flex flex-col items-center">
+
+        {/* Logos */}
         <div className="flex items-center justify-between w-full mb-8">
           <img
             src="/src/assets/LOGOA+S.png"
@@ -27,44 +41,28 @@ export default function Login() {
             className="h-12 w-20 object-contain"
           />
         </div>
+
         <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-1">
           Iniciar sesión
         </h1>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-8">
+          Usa tu cuenta institucional de Google
+        </p>
 
-        <div className="flex flex-col gap-4 w-full mb-6">
-          <div>
-            <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
-              Usuario
-            </label>
-            <input
-              type="text"
-              value={usuario}
-              onChange={e => setUsuario(e.target.value)}
-              placeholder="Ingresa tu usuario"
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
-              Contraseña
-            </label>
-            <input
-              type="password"
-              value={contrasena}
-              onChange={e => setContrasena(e.target.value)}
-              placeholder="Ingresa tu contraseña"
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-            />
-          </div>
-        </div>
         <button
           onClick={handleLogin}
-          className="w-full py-3 rounded-xl text-white text-sm font-medium hover:opacity-90 active:scale-95 transition-all duration-150 shadow-sm"
+          className="w-full py-3 rounded-xl text-white text-sm font-medium hover:opacity-90 active:scale-95 transition-all duration-150 shadow-sm flex items-center justify-center gap-3"
           style={{ background: 'linear-gradient(to right, #1b4f96, #7f458f)' }}
         >
-          Iniciar sesión
+          <img
+            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            alt="Google"
+            className="w-5 h-5 bg-white rounded-full p-0.5"
+          />
+          Continuar con Google
         </button>
       </div>
+
       <ThemeToggle />
     </div>
   )

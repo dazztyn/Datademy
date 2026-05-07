@@ -37,3 +37,21 @@ export async function vincularFormulario(
   })
   if (!response.ok) throw new Error('Error al vincular formulario')
 }
+
+export async function sincronizarPlantillas(idCarpeta: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/formularios/sincronizar-plantillas`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idCarpeta }),
+  })
+  if (!response.ok) throw new Error('Error al sincronizar plantillas')
+}
+
+export async function configurarCarpetaDestino(idCarpeta: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/formularios/configurar-carpeta-destino`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idCarpeta }),
+  })
+  if (!response.ok) throw new Error('Error al configurar carpeta destino')
+}
