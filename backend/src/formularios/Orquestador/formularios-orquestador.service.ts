@@ -12,6 +12,7 @@ export class FormulariosOrquestadorService {
   ) {}
 
   async crearYVincularFormulario(
+    usuario_id: string,
     idProceso: string,
     idPlantilla: string,
     nombreNuevoFormulario: string,
@@ -19,7 +20,7 @@ export class FormulariosOrquestadorService {
   ) 
   {
 
-    const idCarpetaDestino = await this.formulariosService.obtenerCarpetaDestino();
+    const idCarpetaDestino = await this.formulariosService.obtenerCarpetaDestino(usuario_id);
     const resultadoCopia = await this.googleService.copiarPlantillaYGuardar(
       idPlantilla,
       nombreNuevoFormulario,
@@ -40,7 +41,7 @@ export class FormulariosOrquestadorService {
       [`${campoBase}.url_respuesta`]: urlRespuestaGenerada
     };
 
-    const resultadoActualizacion = await this.formulariosService.actualizar(idProceso, datosAActualizar);
+    const resultadoActualizacion = await this.formulariosService.actualizar(usuario_id, idProceso, datosAActualizar);
 
     return {
       estado: 'exito',
@@ -56,13 +57,13 @@ export class FormulariosOrquestadorService {
   /**
    * Obtiene archivos de Google Drive y le dice al servicio de formularios que los guarde en caché.
    */
-  async sincronizarCarpetaPlantillas(idCarpeta: string) 
+  async sincronizarCarpetaPlantillas(usuario_id: string, idCarpeta: string) 
   {
     try 
     {
       const archivosEnDrive = await this.googleService.listarPlantillas(idCarpeta);
 
-      const plantillasGuardadas = await this.formulariosService.guardarPlantillasEnCache(archivosEnDrive);
+      const plantillasGuardadas = await this.formulariosService.guardarPlantillasEnCache(usuario_id, archivosEnDrive);
 
       return {
         estado: 'exito',
@@ -78,9 +79,9 @@ export class FormulariosOrquestadorService {
   /**
    * Orquesta la eliminación completa: Borra archivos de Drive y luego el registro en MongoDB.
    */
-  async eliminarProcesoCompleto(idProceso: string) 
+  async eliminarProcesoCompleto(usuario_id: string, idProceso: string) 
   {
-    const proceso = await this.formulariosService.obtenerProcesoInterno(idProceso);
+    const proceso = await this.formulariosService.obtenerProcesoInterno(usuario_id, idProceso);
 
     if (proceso.formulario_socios && proceso.formulario_socios.id_google_form) 
     {
@@ -92,7 +93,7 @@ export class FormulariosOrquestadorService {
       await this.googleService.enviarArchivoAPapelera(proceso.formulario_estudiantes.id_google_form);
     }
 
-    await this.formulariosService.eliminarProcesoDeBD(idProceso);
+    await this.formulariosService.eliminarProcesoDeBD(usuario_id, idProceso);
 
     return {
       estado: 'exito',

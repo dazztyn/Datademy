@@ -1,9 +1,17 @@
-import { Controller, Post, Body, Patch, Param, Get, Delete, Query} from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Get, Delete, Query, UseGuards, Req} from '@nestjs/common';
 import { FormulariosService } from './formularios.service';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
+import { AuthGuard } from '@nestjs/passport';
+import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
+
+interface RequestConUsuario extends Request 
+{
+  user: UsuarioActivo;
+}
 
 @Controller('formularios')
+@UseGuards(AuthGuard('jwt'))
 export class FormulariosController {
   constructor
   (
@@ -12,19 +20,21 @@ export class FormulariosController {
   ) {}
 
   @Post('crear')
-  async crearNuevoProceso(@Body() datos: CrearProcesoDto) 
+  async crearNuevoProceso(@Req() req: RequestConUsuario, @Body() datos: CrearProcesoDto) 
   {
-    return await this.formulariosService.crearProceso(datos);
+    return await this.formulariosService.crearProceso(req.user.userId, datos);
   }
   
   @Post(':idProceso/vincular-formulario')
   async vincularFormulario(
+    @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string, 
     @Body('idPlantilla') idPlantilla: string,
     @Body('nombreNuevoFormulario') nombreNuevoFormulario: string,
-    @Body('tipoFormulario') tipoFormulario: 'socios' | 'estudiantes',
+    @Body('tipoFormulario') tipoFormulario: 'socios' | 'estudiantes'
   ) {
     return await this.orquestadorService.crearYVincularFormulario(
+      req.user.userId,
       idProceso,
       idPlantilla,
       nombreNuevoFormulario,
@@ -33,32 +43,32 @@ export class FormulariosController {
   }
 
   @Post('configurar-carpeta-destino')
-  async configurarCarpetaDestino(@Body('idCarpeta') idCarpeta: string) 
+  async configurarCarpetaDestino(@Req() req: RequestConUsuario, @Body('idCarpeta') idCarpeta: string) 
   {
-    return await this.formulariosService.guardarCarpetaDestino(idCarpeta);
+    return await this.formulariosService.guardarCarpetaDestino(req.user.userId, idCarpeta);
   }
 
   @Post('sincronizar-plantillas')
-  async sincronizarPlantillas(@Body('idCarpeta') idCarpeta: string) 
+  async sincronizarPlantillas(@Req() req: RequestConUsuario, @Body('idCarpeta') idCarpeta: string) 
   {
-    return await this.orquestadorService.sincronizarCarpetaPlantillas(idCarpeta);
+    return await this.orquestadorService.sincronizarCarpetaPlantillas(req.user.userId, idCarpeta);
   }
 
   @Get('listar')
-  async listarProcesos() {
-    return await this.formulariosService.obtenerTodosLosProcesos();
+  async listarProcesos(@Req() req: RequestConUsuario) {
+    return await this.formulariosService.obtenerTodosLosProcesos(req.user.userId);
   }
 
   @Get('plantillas')
-  async obtenerPlantillas(@Query('tipo') tipo?: string) 
+  async obtenerPlantillas(@Req() req: RequestConUsuario, @Query('tipo') tipo?: string) 
   {
-    return await this.formulariosService.obtenerPlantillasCacheadas(tipo);
+    return await this.formulariosService.obtenerPlantillasCacheadas(req.user.userId, tipo);
   }
   
   @Delete(':id')
-  async eliminarProceso(@Param('id') id: string) 
+  async eliminarProceso(@Req() req: RequestConUsuario, @Param('id') id: string) 
   {
-    return await this.orquestadorService.eliminarProcesoCompleto(id);
+    return await this.orquestadorService.eliminarProcesoCompleto(req.user.userId, id);
   }
 
 }

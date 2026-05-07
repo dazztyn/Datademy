@@ -9,6 +9,7 @@ import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
 import { Plantilla, PlantillaDocument } from './schemas/plantilla.schema';
 import { ArchivoGoogleDrive } from 'src/google/interfaces/archivo-google.interface';
 import { Configuracion, ConfiguracionDocument } from './schemas/configuracion.schema';
+import { FiltroPlantillas } from './interfaces/FiltroPlantillas';
 
 @Injectable()
 export class FormulariosService {
@@ -21,9 +22,9 @@ export class FormulariosService {
   ) {}
 
 
-  async obtenerTodosLosProcesos() {
+  async obtenerTodosLosProcesos(usuario_id: string) {
     try {
-      const procesos = await this.procesoModelo.find().sort({ createdAt: -1 }).exec();
+      const procesos = await this.procesoModelo.find({ usuario_id }).sort({ createdAt: -1 }).exec();
       
       const procesosFormateados = procesos.map((proceso) => {
         const doc = proceso.toObject();
@@ -48,7 +49,7 @@ export class FormulariosService {
     }
   }
 
-  ejecutarProcesamiento(tipo: string, datos: any) {
+  ejecutarProcesamiento(usuario_id: string, tipo: string, datos: any) {
     if (tipo === 'estudiante') {
       return this.estudianteEstrategia.procesarFormulario(datos);
     } 
@@ -60,11 +61,11 @@ export class FormulariosService {
     throw new BadRequestException('Tipo de formulario no válido. Use "estudiante" o "socio".');
   }
   
-  async actualizar(id: string, datos: ActualizarProcesoDto) {
+  async actualizar(usuario_id: string, id: string, datos: ActualizarProcesoDto) {
     try 
     {
       const actualizado = await this.procesoModelo
-        .findByIdAndUpdate(id, datos, {returnDocument: 'after' })
+        .findOneAndUpdate({ _id: id, usuario_id }, datos, { returnDocument: 'after' })
         .exec();
         
       if (!actualizado) {
@@ -85,9 +86,9 @@ export class FormulariosService {
     }
   }
 
-  async crearProceso(datos: CrearProcesoDto) {
+  async crearProceso(usuario_id: string, datos: CrearProcesoDto) {
     try {
-      const nuevoProceso = new this.procesoModelo(datos);
+      const nuevoProceso = new this.procesoModelo({ ...datos, usuario_id });
       const procesoGuardado = await nuevoProceso.save();
       return {
         datos: 
@@ -103,13 +104,14 @@ export class FormulariosService {
     }
   }
 
-  async guardarPlantillasEnCache(plantillasDeGoogle: ArchivoGoogleDrive[]) 
+  async guardarPlantillasEnCache(usuario_id: string, plantillasDeGoogle: ArchivoGoogleDrive[]) 
   {
-    await this.plantillaModelo.deleteMany({}).exec();
+    await this.plantillaModelo.deleteMany({ usuario_id }).exec();
 
     const plantillasNuevas = plantillasDeGoogle.map(archivo => ({
       idPlantilla: archivo.id,
-      nombrePlantilla: archivo.name
+      nombrePlantilla: archivo.name,
+      usuario_id
     }));
 
     await this.plantillaModelo.insertMany(plantillasNuevas);
@@ -119,16 +121,13 @@ export class FormulariosService {
   /**
    * Devuelve las plantillas al instante desde MongoDB.
    */
-  async obtenerPlantillasCacheadas(tipo?: string) 
+  async obtenerPlantillasCacheadas(usuario_id: string, tipo?: string) 
   {
-    let filtro = {};
+    const filtro: FiltroPlantillas = { usuario_id };
 
     if (tipo) 
     {
-      filtro = 
-      { 
-        nombrePlantilla: { $regex: new RegExp(tipo, 'i') } 
-      };
+      filtro.nombrePlantilla = { $regex: new RegExp(tipo, 'i') };
     }
     const plantillas = await this.plantillaModelo.find(filtro).exec();
     const plantillasFiltradas = plantillas.map((plantilla) => {
@@ -147,9 +146,9 @@ export class FormulariosService {
   /**
    * Guarda o actualiza la carpeta destino global en MongoDB.
    */
-  async guardarCarpetaDestino(idCarpeta: string) 
+  async guardarCarpetaDestino(usuario_id: string, idCarpeta: string) 
   {
-    let config = await this.configuracionModelo.findOne().exec();
+    let config = await this.configuracionModelo.findOne({ usuario_id }).exec();
 
     if (config) 
     {
@@ -158,7 +157,7 @@ export class FormulariosService {
     } 
     else 
     {
-      config = new this.configuracionModelo({ id_carpeta_destino_formularios: idCarpeta });
+      config = new this.configuracionModelo({ usuario_id, id_carpeta_destino_formularios: idCarpeta });
       await config.save();
     }
 
@@ -168,9 +167,9 @@ export class FormulariosService {
   /**
    * Obtiene la carpeta destino actual.
    */
-  async obtenerCarpetaDestino(): Promise<string> 
+  async obtenerCarpetaDestino(usuario_id: string): Promise<string> 
   {
-    const config = await this.configuracionModelo.findOne().exec();
+    const config = await this.configuracionModelo.findOne({ usuario_id }).exec();
     
     if (!config || !config.id_carpeta_destino_formularios) 
     {
@@ -183,9 +182,9 @@ export class FormulariosService {
   /**
    * Obtiene un proceso completo por su ID sin formatearlo (para uso interno).
    */
-  async obtenerProcesoInterno(id: string) 
+  async obtenerProcesoInterno(usuario_id: string, id: string) 
   {
-    const proceso = await this.procesoModelo.findById(id).exec();
+    const proceso = await this.procesoModelo.findOne({ _id: id, usuario_id }).exec();
     if (!proceso) 
     {
       throw new Error('El proceso que intentas eliminar no existe.');
@@ -196,9 +195,9 @@ export class FormulariosService {
   /**
    * Elimina un proceso de MongoDB utilizando su ID.
    */
-  async eliminarProcesoDeBD(id: string) 
+  async eliminarProcesoDeBD(usuario_id: string, id: string) 
   {
-    await this.procesoModelo.findByIdAndDelete(id).exec();
+    await this.procesoModelo.findOneAndDelete({ _id: id, usuario_id }).exec();
     return { estado: 'exito', mensaje: 'Registro eliminado de la base de datos.' };
   }
 

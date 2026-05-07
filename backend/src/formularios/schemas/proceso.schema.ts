@@ -5,8 +5,12 @@ import { Document } from 'mongoose';
 export type ProcesoDocument = Proceso & Document;
 
 @Schema({ timestamps: true })
-export class Proceso {
+export class Proceso 
+{
   
+  @Prop({ required: true })
+  usuario_id!: string;
+
   @Prop({ required: true })
   nombre_proceso!: string;
 
