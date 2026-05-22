@@ -23,13 +23,12 @@ export default function ModalAsignarFormulario({
   const [guardando, setGuardando] = useState(false)
   const [errorGuardar, setErrorGuardar] = useState<string | null>(null)
 
-  useEffect(() => {
-    obtenerPlantillas()
-      .then(setPlantillas)
-      .catch(() => setError('No se pudieron cargar las plantillas'))
-      .finally(() => setCargando(false))
-  }, [])
-
+    useEffect(() => {
+      obtenerPlantillas(tipoFormulario)
+        .then(setPlantillas)
+        .catch(() => setError('No se pudieron cargar las plantillas'))
+        .finally(() => setCargando(false))
+    }, [])
   const handleVincular = async () => {
     if (!seleccionada) return setErrorGuardar('Selecciona una plantilla')
     if (!nombre.trim()) return setErrorGuardar('Ingresa un nombre para el formulario')
