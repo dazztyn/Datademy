@@ -8,30 +8,35 @@ import ModalCrearProceso from '../../components/ModalCrearProceso'
 import { useFormularios } from '../../hooks/useFormularios'
 import { sincronizarPlantillas, configurarCarpetaDestino } from '../../services/formularios_service'
 import { useGooglePicker } from '../../hooks/useGooglePicker'
+import Toast from '../../components/Toast'
+import { useToast } from '../../hooks/useToast'
 
 export default function Landing() {
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
   const navigate = useNavigate()
+  const { toast, mostrar, cerrar } = useToast()
   const { formularios, cargando, error, recargar } = useFormularios()
   const { abrirPicker: abrirPickerPlantillas } = useGooglePicker({
   onSeleccionada: async (idCarpeta) => {
+    mostrar('Sincronizando plantillas...', 'cargando')
     try {
       await sincronizarPlantillas(idCarpeta)
-      alert('Carpeta de plantillas configurada correctamente')
+      mostrar('Carpeta de plantillas configurada correctamente', 'exito')
     } catch {
-      alert('Error al configurar carpeta de plantillas')
+      mostrar('Error al configurar carpeta de plantillas', 'error')
     }
   }
 })
 
 const { abrirPicker: abrirPickerDestino } = useGooglePicker({
   onSeleccionada: async (idCarpeta) => {
+    mostrar('Configurando carpeta destino...', 'cargando')
     try {
       await configurarCarpetaDestino(idCarpeta)
-      alert('Carpeta destino configurada correctamente')
+      mostrar('Carpeta destino configurada correctamente', 'exito')
     } catch {
-      alert('Error al configurar carpeta destino')
+      mostrar('Error al configurar carpeta destino', 'error')
     }
   }
 })
@@ -96,7 +101,10 @@ const { abrirPicker: abrirPickerDestino } = useGooglePicker({
               }))}
               seleccionado={seleccionado}
               onSeleccionar={setSeleccionado}
-              onRecargar={recargar}
+              onRecargar={() => {
+                  recargar()
+                  mostrar('Formulario asignado correctamente', 'exito')
+                }}
             />
             <BotonVerDetalles
               activo={puedeVer}
@@ -112,7 +120,13 @@ const { abrirPicker: abrirPickerDestino } = useGooglePicker({
           onCreado={recargar}
         />
       )}
-
+      {toast && (
+      <Toast
+        mensaje={toast.mensaje}
+        tipo={toast.tipo}
+        onCerrar={cerrar}
+      />
+    )}
       <ThemeToggle />
     </div>
   )
