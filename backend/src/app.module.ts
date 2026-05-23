@@ -7,6 +7,7 @@ import { GoogleModule } from './google/google.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
+import { EstadisticasModule } from './estadisticas/estadisticas.module';
 
 @Module({
   imports: 
@@ -15,7 +16,7 @@ import { AuthModule } from './auth/auth.module';
     MongooseModule.forRoot(process.env.MONGODB_URI!),
     UsuariosModule, 
     FormulariosModule, 
-    GoogleModule, AuthModule
+    GoogleModule, AuthModule, EstadisticasModule
   ],
   controllers: [AppController],
   providers: [AppService],
