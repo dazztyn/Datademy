@@ -86,5 +86,35 @@ export class GoogleService
     }
   }
 
+  /**
+   * Obtiene el diseño estructural de un formulario (títulos, preguntas y saltos de página).
+   */
+  async obtenerDisenoFormulario(idFormulario: string): Promise<any> {
+    try {
+      const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
+      const respuesta = await formsApi.forms.get({ formId: idFormulario });
+      return respuesta.data;
+    } catch (error) {
+      console.error('Error al obtener el diseño del formulario:', error);
+      throw new Error('No se pudo conectar con la estructura de Google Forms.');
+    }
+  }
+
+  /**
+   * Obtiene una respuesta específica enviada por un usuario.
+   */
+  async obtenerRespuestaEspecifica(idFormulario: string, idRespuesta: string): Promise<any> {
+    try {
+      const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
+      const respuesta = await formsApi.forms.responses.get({
+        formId: idFormulario,
+        responseId: idRespuesta,
+      });
+      return respuesta.data;
+    } catch (error) {
+      console.error('Error al obtener la respuesta de Google Forms:', error);
+      throw new Error('No se pudo recuperar la respuesta desde Google.');
+    }
+  }
 
 }
