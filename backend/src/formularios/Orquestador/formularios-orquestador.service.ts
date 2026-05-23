@@ -29,6 +29,8 @@ export class FormulariosOrquestadorService {
 
     const nuevoFormId = resultadoCopia.nuevo_id_google_form;
 
+    await this.googleService.activarVigilanciaRespuestas(nuevoFormId!);
+
     const urlEdicionGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/edit`;
     const urlRespuestaGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/viewform`;
 

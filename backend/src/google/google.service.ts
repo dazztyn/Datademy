@@ -117,4 +117,37 @@ export class GoogleService
     }
   }
 
+  /**
+   * Le dice a Google Forms que envíe una notificación a Pub/Sub
+   * cada vez que alguien responda este formulario específico.
+   */
+  async activarVigilanciaRespuestas(idFormulario: string): Promise<any> {
+    try {
+      const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
+      
+      
+      const nombreTema = 'projects/sistema-procesos-as/topics/respuestas-datademy';
+
+      const respuesta = await formsApi.forms.watches.create({
+        formId: idFormulario,
+        requestBody: {
+          watch: {
+            target: {
+              topic: {
+                topicName: nombreTema
+              }
+            },
+            eventType: 'RESPONSES'
+          }
+        }
+      });
+
+      console.log(`Vigilancia activada para el formulario: ${idFormulario}`);
+      return respuesta.data;
+    } catch (error) {
+      console.error('Error al activar el Watch en Google Forms:', error);
+      throw new Error('No se pudo vincular el formulario con Pub/Sub.');
+    }
+  }
+
 }

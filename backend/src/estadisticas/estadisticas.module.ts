@@ -3,13 +3,22 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { EstadisticasController } from './estadisticas.controller';
 import { EstadisticasService } from './estadisticas.service';
 import { Estadistica, EstadisticaSchema } from './schemas/estadisticas.schema';
+import { GoogleModule } from '../google/google.module';
+import { EstadisticasOrquestadorService } from './estadisticas-orquestador.service';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Estadistica.name, schema: EstadisticaSchema }])
+    MongooseModule.forFeature([{ name: Estadistica.name, schema: EstadisticaSchema }]),
+    GoogleModule
   ],
   controllers: [EstadisticasController],
-  providers: [EstadisticasService],
-  exports: [EstadisticasService]
+  providers: [
+    EstadisticasService,
+    EstadisticasOrquestadorService
+  ],
+  exports: [
+    EstadisticasService,
+    EstadisticasOrquestadorService
+  ]
 })
 export class EstadisticasModule {}
