@@ -7,27 +7,33 @@ export class EstadisticasController {
   constructor(private readonly orquestador: EstadisticasOrquestadorService) {}
 
   @Post('webhook/respuestas')
-  @HttpCode(200) // Respuesta rápida a Google Cloud
-  async recibirNotificacionGoogle(@Body() cuerpoWebhook: RecibirWebhookDto) {
+  @HttpCode(200)
+  async recibirNotificacionGoogle(@Body() cuerpoWebhook: any) {
     try {
-      // 1. Decodificamos el string Base64 que viene en el DTO de forma segura
-      const dataDecodificada = Buffer.from(cuerpoWebhook.message.data, 'base64').toString('utf-8');
-      const datosEvento = JSON.parse(dataDecodificada);
+      console.log('\n📩 === WEBHOOK RECIBIDO DE GOOGLE ===');
 
-      // 2. Extraemos los campos que Google inyecta en el evento de RESPONSES
-      const idFormulario = datosEvento.formId;
-      const idRespuestaGoogle = datosEvento.responseId;
+      // Extraemos los atributos donde Google Forms realmente manda la información
+      const atributos = cuerpoWebhook?.message?.attributes;
+
+      if (!atributos || !atributos.formId) {
+        console.log('🤖 Webhook sin "formId". Ignorando...');
+        return { estado: 'ignorado_sin_formId' };
+      }
+
+      if (atributos.eventType !== 'RESPONSES') {
+        console.log(`🤖 Evento ignorado. Google envió: ${atributos.eventType}`);
+        return { estado: 'ignorado_tipo_evento' };
+      }
+
+      const idFormulario = atributos.formId;
       
-      // 3. Enviamos al orquestador de forma asíncrona para no hacer esperar a Google
-      this.orquestador.manejarNuevoWebhookGoogle(
-        idFormulario, 
-        idRespuestaGoogle
-      );
+      // Llamamos al orquestador SOLO con el idFormulario (Google no nos da el id de respuesta)
+      await this.orquestador.manejarNuevoWebhookGoogle(idFormulario);
 
       return { estado: 'recibido' };
-    } catch (error) 
-    {
-      throw new BadRequestException('El formato de la data de Pub/Sub no es válido.');
+    } catch (error) {
+      console.error('\n⚠️ Error al procesar el Webhook de Google:', error);
+      return { estado: 'error_ignorado' };
     }
   }
 }

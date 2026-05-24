@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, ValidateNested, IsObject } from 'class-validator';
+import { IsNotEmpty, IsString, ValidateNested, IsObject, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class PubSubMessageDto 
@@ -10,6 +10,15 @@ export class PubSubMessageDto
   @IsNotEmpty()
   @IsString()
   messageId!: string;
+ 
+  @IsOptional()
+  @IsString()
+  publishTime?: string;
+
+  @IsOptional()
+  @IsObject()
+  attributes?: any;
+  
 }
 
 export class RecibirWebhookDto 

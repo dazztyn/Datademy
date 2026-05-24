@@ -15,49 +15,50 @@ export class EstadisticasOrquestadorService {
     private readonly formulariosService: FormulariosService
   ) {}
 
-async manejarNuevoWebhookGoogle(idFormulario: string, idRespuestaGoogle: string) 
-{
-
+  async manejarNuevoWebhookGoogle(idFormulario: string) 
+  {
+    // 1. DESCUBRIMOS AL DUEÑO
     const procesoAsociado = await this.formulariosService.buscarPorIdFormularioGoogle(idFormulario);
-    
-    if (!procesoAsociado) 
-    {
-      console.warn(`Webhook recibido para el formulario ${idFormulario}, pero no está registrado en la BD.`);
-      throw new NotFoundException('Formulario no encontrado en el sistema');
-    }
+    if (!procesoAsociado) throw new NotFoundException('Formulario no encontrado en el sistema');
 
     const usuarioIdReal = procesoAsociado.usuario_id;
     const procesoIdReal = procesoAsociado._id.toString();
-    
-    // Determinamos de qué tipo era para guardarlo en la estadística
     const tipoFormularioReal = procesoAsociado.formulario_estudiantes?.id_google_form === idFormulario 
-      ? 'estudiantes' 
-      : 'socios';
+      ? 'estudiantes' : 'socios';
 
-    // 2. Traemos datos de Google
-    const [diseno, respuestaCruda] = await Promise.all([
-      this.googleService.obtenerDisenoFormulario(idFormulario),
-      this.googleService.obtenerRespuestaEspecifica(idFormulario, idRespuestaGoogle)
-    ]);
+    // 2. Traemos el diseño y TODAS las respuestas del formulario
+    const diseno = await this.googleService.obtenerDisenoFormulario(idFormulario);
+    const listaRespuestas = await this.googleService.obtenerTodasLasRespuestas(idFormulario);
 
-    // 3. Procesamos Matemáticas
-    const documentoListo = this.estadisticasService.procesarEncuesta(
-      diseno, 
-      respuestaCruda, 
-      idRespuestaGoogle, 
-      usuarioIdReal, 
-      procesoIdReal
-    );
+    let nuevasGuardadas = 0;
 
-    // 4. Guardamos en MongoDB
-    const nuevaEstadistica = new this.estadisticaModelo({
-      ...documentoListo,
-      tipo_formulario: tipoFormularioReal // Usamos el tipo real
-    });
-    
-    await nuevaEstadistica.save();
+    // 3. Procesamos y guardamos SOLO las respuestas nuevas
+    for (const respuestaCruda of listaRespuestas) {
+      const idRespuestaGoogle = respuestaCruda.responseId;
 
-    console.log(`¡ÉXITO! Estadística guardada para el proceso: ${procesoAsociado.nombre_proceso}`);
-    return { estado: 'exito', idGuardado: nuevaEstadistica._id };
+      // Magia Clean Code: Preguntamos a MongoDB si ya guardamos este ID antes
+      const existe = await this.estadisticaModelo.exists({ id_respuesta_google: idRespuestaGoogle });
+      if (existe) continue; // Si ya existe, saltamos al siguiente
+
+      // Si no existe, usamos nuestro motor matemático para procesarla
+      const documentoListo = this.estadisticasService.procesarEncuesta(
+        diseno, 
+        respuestaCruda, 
+        idRespuestaGoogle, 
+        usuarioIdReal, 
+        procesoIdReal
+      );
+
+      // Guardamos en MongoDB
+      const nuevaEstadistica = new this.estadisticaModelo({
+        ...documentoListo,
+        tipo_formulario: tipoFormularioReal
+      });
+      await nuevaEstadistica.save();
+      nuevasGuardadas++;
+    }
+
+    console.log(`\n¡ÉXITO! Se guardaron ${nuevasGuardadas} respuestas nuevas para: ${procesoAsociado.nombre_proceso}\n`);
+    return { estado: 'exito', guardadas: nuevasGuardadas };
   }
 }

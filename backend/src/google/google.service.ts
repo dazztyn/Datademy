@@ -101,19 +101,20 @@ export class GoogleService
   }
 
   /**
-   * Obtiene una respuesta específica enviada por un usuario.
+   * Obtiene TODAS las respuestas de un formulario desde Google.
    */
-  async obtenerRespuestaEspecifica(idFormulario: string, idRespuesta: string): Promise<any> {
+  async obtenerTodasLasRespuestas(idFormulario: string): Promise<any[]> {
     try {
       const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
-      const respuesta = await formsApi.forms.responses.get({
+      const respuesta = await formsApi.forms.responses.list({
         formId: idFormulario,
-        responseId: idRespuesta,
       });
-      return respuesta.data;
+      
+      // Retornamos el arreglo de respuestas, o un arreglo vacío si no hay ninguna
+      return respuesta.data.responses || [];
     } catch (error) {
-      console.error('Error al obtener la respuesta de Google Forms:', error);
-      throw new Error('No se pudo recuperar la respuesta desde Google.');
+      console.error('Error al obtener las respuestas de Google Forms:', error);
+      throw new Error('No se pudieron recuperar las respuestas desde Google.');
     }
   }
 

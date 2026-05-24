@@ -57,6 +57,9 @@ export class AuthService {
     
     const jwt = this.jwtService.sign(payload);
 
+    console.log('\n========= ¡TOKEN GENERADO CON ÉXITO! =========');
+    console.log(jwt);
+
     // Devolvemos los tokens al AuthController
     return {
       usuario: {
