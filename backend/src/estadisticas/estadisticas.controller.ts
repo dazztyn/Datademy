@@ -10,18 +10,18 @@ export class EstadisticasController {
   @HttpCode(200)
   async recibirNotificacionGoogle(@Body() cuerpoWebhook: any) {
     try {
-      console.log('\n📩 === WEBHOOK RECIBIDO DE GOOGLE ===');
+      console.log('=== WEBHOOK RECIBIDO DE GOOGLE ===');
 
       // Extraemos los atributos donde Google Forms realmente manda la información
       const atributos = cuerpoWebhook?.message?.attributes;
 
       if (!atributos || !atributos.formId) {
-        console.log('🤖 Webhook sin "formId". Ignorando...');
+        console.log('Webhook sin "formId". Ignorando...');
         return { estado: 'ignorado_sin_formId' };
       }
 
       if (atributos.eventType !== 'RESPONSES') {
-        console.log(`🤖 Evento ignorado. Google envió: ${atributos.eventType}`);
+        console.log(`Evento ignorado. Google envió: ${atributos.eventType}`);
         return { estado: 'ignorado_tipo_evento' };
       }
 
@@ -32,7 +32,7 @@ export class EstadisticasController {
 
       return { estado: 'recibido' };
     } catch (error) {
-      console.error('\n⚠️ Error al procesar el Webhook de Google:', error);
+      console.error('Error al procesar el Webhook de Google:', error);
       return { estado: 'error_ignorado' };
     }
   }

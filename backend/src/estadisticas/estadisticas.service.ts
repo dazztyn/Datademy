@@ -42,92 +42,71 @@ export class EstadisticasService {
   }
 
   private construirMapaPreguntas(disenoCrudo: GoogleFormDiseno): Record<string, MapaPregunta> {
-    const mapa: Record<string, MapaPregunta> = {};
     let paginaActual = 1;
+    let ordenGlobal = 0;
 
-    if (!disenoCrudo.items) return mapa;
-
-    for (const item of disenoCrudo.items) {
+    return (disenoCrudo.items || []).reduce((mapa, item) => {
       if (item.pageBreakItem) paginaActual++;
       
-      if (item.questionItem && item.questionItem.question.choiceQuestion) {
+      if (item.questionItem) {
         const qId = item.questionItem.question.questionId;
-        const opciones = item.questionItem.question.choiceQuestion.options.map(opt => opt.value);
-
-        mapa[qId] = { pagina: paginaActual, titulo: item.title || 'Sin título', opciones };
+        const opciones = item.questionItem.question.choiceQuestion?.options.map(opt => opt.value) || [];
+        
+        mapa[qId] = { pagina: paginaActual, titulo: item.title || 'Sin título', opciones, orden: ++ordenGlobal };
       }
-    }
-    return mapa;
+      return mapa;
+    }, {} as Record<string, MapaPregunta>);
   }
 
-  private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) 
-  {
+  private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
     const datos: Record<string, any> = { 
-      edad: 'No especificada', 
-      genero: 'No especificado',
-      nivel_formativo: 'No especificado',
-      sede: 'No especificada',
-      carrera: 'No especificada',
-      metadatos_adicionales: new Map<string, string>()
+      edad: 'No especificada', genero: 'No especificado', nivel_formativo: 'No especificado', 
+      sede: 'No especificada', carrera: 'No especificada', metadatos_adicionales: new Map<string, string>()
     };
 
-    for (const qId in respuestasUsuario) {
-      const metadata = mapaPreguntas[qId];
-      
-      if (metadata && metadata.pagina === 1) {
-        let valorRespondido = 'Sin respuesta';
-        if (respuestasUsuario[qId].textAnswers?.answers[0]) {
-          valorRespondido = respuestasUsuario[qId].textAnswers.answers[0].value;
-        }
-
+    Object.keys(respuestasUsuario)
+      .filter(qId => mapaPreguntas[qId]?.pagina === 1) 
+      .forEach(qId => {
+        const metadata = mapaPreguntas[qId];
+        const valor = respuestasUsuario[qId].textAnswers?.answers?.[0]?.value || 'Sin respuesta';
         const tituloLimpio = metadata.titulo.toLowerCase();
-        let esCampoBase = false;
-        
-        for (const [palabraClave, propiedadDestino] of Object.entries(this.diccionarioClaves)) {
-          if (tituloLimpio.includes(palabraClave)) {
-            datos[propiedadDestino] = valorRespondido;
-            esCampoBase = true;
-            break; 
-          }
-        }
 
-        if (!esCampoBase) {
-          datos.metadatos_adicionales.set(metadata.titulo, valorRespondido);
+        const claveEncontrada = Object.keys(this.diccionarioClaves).find(clave => tituloLimpio.includes(clave));
+
+        if (claveEncontrada) {
+          datos[this.diccionarioClaves[claveEncontrada]] = valor;
+        } else {
+          datos.metadatos_adicionales.set(metadata.titulo, valor);
         }
-      }
-    }
-    
+      });
+
     return datos;
   }
 
   private procesarConstructos(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
-    const paginasAgrupadas: Record<number, PaginaConstructo> = {}; 
+    
+    const paginas = Object.keys(respuestasUsuario)
+      .filter(qId => mapaPreguntas[qId]?.pagina > 1)
+      .reduce((acc, qId) => {
+        const metadata = mapaPreguntas[qId];
+        const valor = respuestasUsuario[qId].textAnswers?.answers?.[0]?.value || 'Sin respuesta';
+        const puntaje = metadata.opciones.indexOf(valor) + 1;
 
-    for (const qId in respuestasUsuario) {
-      const metadata = mapaPreguntas[qId];
-      
-      if (metadata && metadata.pagina > 1) {
-        const nPagina = metadata.pagina;
-        const valorRespondido = respuestasUsuario[qId].textAnswers.answers[0].value;
+        if (!acc[metadata.pagina]) acc[metadata.pagina] = { numero_pagina: metadata.pagina, preguntas: [] };
 
-        if (!paginasAgrupadas[nPagina]) {
-          paginasAgrupadas[nPagina] = 
-          { 
-            numero_pagina: nPagina, 
-            preguestas_pagina: [] 
-          };
-        }
-
-        const indiceRespuesta = metadata.opciones.indexOf(valorRespondido);
-        const puntajeNumerico = indiceRespuesta !== -1 ? indiceRespuesta + 1 : 0;
-
-        paginasAgrupadas[nPagina].preguestas_pagina.push({
-          pregunta: metadata.titulo,
-          respuesta_texto: valorRespondido,
-          valor_numerico: puntajeNumerico
+        acc[metadata.pagina].preguntas.push({
+          pregunta: metadata.titulo, respuesta_texto: valor, valor_numerico: puntaje, orden: metadata.orden
         });
-      }
-    }
-    return Object.values(paginasAgrupadas);
+
+        return acc;
+      }, {} as Record<number, any>);
+
+    return Object.values(paginas).map((p: any) => ({
+      numero_pagina: p.numero_pagina,
+      preguestas_pagina: p.preguntas
+        .sort((a: any, b: any) => a.orden - b.orden) 
+        .map(({ orden, ...preguntaLimpia }: any) => preguntaLimpia)
+    }));
   }
+
 }
