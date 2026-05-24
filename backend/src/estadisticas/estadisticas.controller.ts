@@ -46,12 +46,20 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/resultados')
-  @UseGuards(AuthGuard('jwt'))
   async obtenerResultadosFrontend(
     @Req() req: any, 
     @Param('idProceso') idProceso: string,
     @Query() filtros: any 
   ) {
     return await this.orquestador.obtenerResultadosTabulares(idProceso, req.user.userId, filtros);
+  }
+
+  @Get(':idProceso/metricas')
+  async obtenerMetricasFrontend(
+    @Req() req: any,
+    @Param('idProceso') idProceso: string,
+    @Query() filtros: any 
+  ) {
+    return await this.orquestador.obtenerMetricasAnaliticas(idProceso, req.user.userId, filtros);
   }
 }

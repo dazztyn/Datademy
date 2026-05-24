@@ -98,4 +98,29 @@ export class EstadisticasOrquestadorService {
     };
   }
 
+  /**
+   * Obtiene y computa las métricas analíticas aplicando filtros concurrentes.
+   */
+  async obtenerMetricasAnaliticas(procesoId: string, usuarioId: string, filtros: Record<string, string>) 
+  {
+    const queryMongo: Record<string, any> = { proceso_id: procesoId, usuario_id: usuarioId };
+
+    Object.entries(filtros)
+      .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '')
+      .forEach(([llaveFrontend, valor]) => 
+      {
+        const campoMapeadoMongo = this.mapaFiltrosMongo[llaveFrontend];
+        if (campoMapeadoMongo) {
+          queryMongo[campoMapeadoMongo] = valor;
+        }
+      });
+
+    const estadisticas = await this.estadisticaModelo.find(queryMongo).lean().exec();
+
+    return {
+      estado: 'exito',
+      metricas: this.estadisticasService.calcularMetricasAnaliticas(estadisticas)
+    };
+  }
+
 }

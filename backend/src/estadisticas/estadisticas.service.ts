@@ -139,4 +139,74 @@ export class EstadisticasService {
     });
   }
 
+  // ORQUESTADOR MATEMÁTICO PRINCIPAL
+
+  calcularMetricasAnaliticas(estadisticasBD: any[]) {
+    if (!estadisticasBD || estadisticasBD.length === 0) {
+      return this.generarMetricasVacias();
+    }
+
+    // Paso 1: Aplastamos el JSON complejo en una sola lista gigante de preguntas 
+    const todasLasPreguntas = this.extraerTodasLasPreguntas(estadisticasBD);
+
+    // Paso 2: Delegamos cada cálculo a su propia función experta (Single Responsibility Principle)
+    return {
+      total_encuestados: estadisticasBD.length,
+      distribucion_genero: this.calcularDistribucionGenero(estadisticasBD),
+      promedios_por_pregunta: this.calcularPromediosPorPregunta(todasLasPreguntas),
+      promedio_satisfaccion_general: this.calcularSatisfaccionGeneral(todasLasPreguntas)
+    };
+  }
+
+  // FUNCIONES AUXILIARES (Puras, limpias y aisladas)
+
+  private generarMetricasVacias() {
+    return { total_encuestados: 0, distribucion_genero: {}, promedios_por_pregunta: {}, promedio_satisfaccion_general: 0 };
+  }
+
+  private extraerTodasLasPreguntas(estadisticasBD: any[]) {
+    // .flatMap() es pura magia: elimina la necesidad de hacer 3 forEach anidados.
+    return estadisticasBD.flatMap(est => 
+      (est.constructos_paginas || []).flatMap((pagina: any) => pagina.preguestas_pagina || [])
+    );
+  }
+
+  private calcularDistribucionGenero(estadisticasBD: any[]) {
+    return estadisticasBD.reduce((acc, est) => {
+      const genero = est.datos_respondente?.genero || 'No especificado';
+      acc[genero] = (acc[genero] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }
+
+  private calcularPromediosPorPregunta(preguntasAplanadas: any[]) {
+    // 1. Agrupamos y sumamos
+    const acumulador = preguntasAplanadas.reduce((acc, preg) => {
+      if (!acc[preg.pregunta]) acc[preg.pregunta] = { suma: 0, cantidad: 0 };
+      acc[preg.pregunta].suma += preg.valor_numerico;
+      acc[preg.pregunta].cantidad++;
+      return acc;
+    }, {} as Record<string, { suma: number, cantidad: number }>);
+
+    // 2. Dividimos para sacar el promedio exacto
+    return Object.entries(acumulador).reduce((acc, [pregunta, datos]: [string, any]) => {
+      acc[pregunta] = Number((datos.suma / datos.cantidad).toFixed(1)); // .toFixed(1) deja un solo decimal (ej: 5.4)
+      return acc;
+    }, {} as Record<string, number>);
+  }
+
+  private calcularSatisfaccionGeneral(preguntasAplanadas: any[]) {
+    // 1. Filtramos funcionalmente solo las preguntas que digan "Satisfacción general"
+    const preguntasSatisfaccion = preguntasAplanadas.filter(preg => 
+      preg.pregunta.toLowerCase().includes('satisfacción general') || 
+      preg.pregunta.toLowerCase().includes('satisfaccion general')
+    );
+
+    if (preguntasSatisfaccion.length === 0) return 0;
+
+    // 2. Sumamos y dividimos en 2 líneas
+    const suma = preguntasSatisfaccion.reduce((acc, preg) => acc + preg.valor_numerico, 0);
+    return Number((suma / preguntasSatisfaccion.length).toFixed(1));
+  }
+
 }
