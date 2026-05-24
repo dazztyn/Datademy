@@ -18,15 +18,10 @@ export class EstadisticasController {
       const idFormulario = datosEvento.formId;
       const idRespuestaGoogle = datosEvento.responseId;
       
-      const usuarioIdDummy = "id_dueño_sistema"; 
-      const procesoIdDummy = "id_proceso_asociado";
-
       // 3. Enviamos al orquestador de forma asíncrona para no hacer esperar a Google
       this.orquestador.manejarNuevoWebhookGoogle(
         idFormulario, 
-        idRespuestaGoogle, 
-        usuarioIdDummy, 
-        procesoIdDummy
+        idRespuestaGoogle
       );
 
       return { estado: 'recibido' };

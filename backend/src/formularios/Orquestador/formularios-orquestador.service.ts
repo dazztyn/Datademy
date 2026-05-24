@@ -1,5 +1,5 @@
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { FormulariosService } from '../formularios.service';
 import { GoogleService } from 'src/google/google.service';
 
@@ -29,7 +29,12 @@ export class FormulariosOrquestadorService {
 
     const nuevoFormId = resultadoCopia.nuevo_id_google_form;
 
-    await this.googleService.activarVigilanciaRespuestas(nuevoFormId!);
+    if (!nuevoFormId) 
+    {
+      throw new InternalServerErrorException('Error crítico: Google Drive no retornó un ID válido al clonar el formulario.');
+    }
+
+    await this.googleService.activarVigilanciaRespuestas(nuevoFormId);
 
     const urlEdicionGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/edit`;
     const urlRespuestaGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/viewform`;

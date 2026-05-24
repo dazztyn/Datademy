@@ -7,6 +7,15 @@ import { PaginaConstructo } from './interfaces/pagina-constructo.interface';
 @Injectable()
 export class EstadisticasService {
 
+  private readonly diccionarioClaves: Record<string, string> = {
+    'edad': 'edad',
+    'género': 'genero',
+    'genero': 'genero',
+    'nivel formativo': 'nivel_formativo',
+    'sede': 'sede',
+    'carrera': 'carrera'
+  };
+
   procesarEncuesta(
     disenoCrudo: GoogleFormDiseno,   
     respuestaCruda: GoogleFormRespuesta,
@@ -20,11 +29,13 @@ export class EstadisticasService {
     const datosRespondente = this.extraerDatosPersonales(respuestasUsuario, mapaPreguntas);
     const constructosFinales = this.procesarConstructos(respuestasUsuario, mapaPreguntas);
 
+    const fechaRespondida = respuestaCruda.createTime ? new Date(respuestaCruda.createTime) : new Date();
+
     return {
       id_respuesta_google: idRespuesta,
+      fecha_respuesta: fechaRespondida,
       proceso_id: procesoId,
       usuario_id: usuarioId,
-      tipo_formulario: 'estudiantes',
       datos_respondente: datosRespondente,
       constructos_paginas: constructosFinales
     };
@@ -49,19 +60,43 @@ export class EstadisticasService {
     return mapa;
   }
 
-  private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
-    const datos = { nombre: 'Anónimo', carrera: 'No especificada' };
+  private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) 
+  {
+    const datos: Record<string, any> = { 
+      edad: 'No especificada', 
+      genero: 'No especificado',
+      nivel_formativo: 'No especificado',
+      sede: 'No especificada',
+      carrera: 'No especificada',
+      metadatos_adicionales: new Map<string, string>()
+    };
 
     for (const qId in respuestasUsuario) {
       const metadata = mapaPreguntas[qId];
+      
       if (metadata && metadata.pagina === 1) {
-        const valorRespondido = respuestasUsuario[qId].textAnswers.answers[0].value;
+        let valorRespondido = 'Sin respuesta';
+        if (respuestasUsuario[qId].textAnswers?.answers[0]) {
+          valorRespondido = respuestasUsuario[qId].textAnswers.answers[0].value;
+        }
+
         const tituloLimpio = metadata.titulo.toLowerCase();
+        let esCampoBase = false;
         
-        if (tituloLimpio.includes('nombre')) datos.nombre = valorRespondido;
-        if (tituloLimpio.includes('carrera')) datos.carrera = valorRespondido;
+        for (const [palabraClave, propiedadDestino] of Object.entries(this.diccionarioClaves)) {
+          if (tituloLimpio.includes(palabraClave)) {
+            datos[propiedadDestino] = valorRespondido;
+            esCampoBase = true;
+            break; 
+          }
+        }
+
+        if (!esCampoBase) {
+          datos.metadatos_adicionales.set(metadata.titulo, valorRespondido);
+        }
       }
     }
+    
     return datos;
   }
 

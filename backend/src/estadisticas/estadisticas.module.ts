@@ -5,11 +5,13 @@ import { EstadisticasService } from './estadisticas.service';
 import { Estadistica, EstadisticaSchema } from './schemas/estadisticas.schema';
 import { GoogleModule } from '../google/google.module';
 import { EstadisticasOrquestadorService } from './estadisticas-orquestador.service';
+import { FormulariosModule } from 'src/formularios/formularios.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Estadistica.name, schema: EstadisticaSchema }]),
-    GoogleModule
+    GoogleModule,
+    FormulariosModule
   ],
   controllers: [EstadisticasController],
   providers: [

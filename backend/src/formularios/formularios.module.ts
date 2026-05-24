@@ -27,5 +27,6 @@ import { Configuracion, ConfiguracionSchema } from './schemas/configuracion.sche
     SocioEstrategia,
     FormulariosOrquestadorService
   ],
+  exports: [FormulariosService],
 })
 export class FormulariosModule {}

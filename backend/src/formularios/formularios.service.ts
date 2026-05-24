@@ -201,4 +201,17 @@ export class FormulariosService {
     return { estado: 'exito', mensaje: 'Registro eliminado de la base de datos.' };
   }
 
+  /**
+   * Busca a qué proceso y usuario le pertenece un ID de formulario de Google específico.
+   */
+  async buscarPorIdFormularioGoogle(idFormulario: string) 
+  {
+    return await this.procesoModelo.findOne({
+      $or: [
+        { 'formulario_estudiantes.id_google_form': idFormulario },
+        { 'formulario_socios.id_google_form': idFormulario }
+      ]
+    }).exec();
+  }
+
 }

@@ -7,18 +7,27 @@ export type EstadisticaDocument = Estadistica & Document;
 // ==========================================
 // Sub-Esquema 1: Datos Personales 
 // ==========================================
-@Schema({ _id: false }) // _id: false evita que Mongo genere un ID por cada subdocumento
+@Schema({ _id: false }) 
 export class DatosRespondente {
-  @Prop({ required: true })
-  nombre!: string;
+  @Prop({ required: true, default: 'No especificada' })
+  edad!: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: 'No especificado' })
+  genero!: string;
+
+  @Prop({ required: true, default: 'No especificado' })
+  nivel_formativo!: string;
+
+  @Prop({ required: true, default: 'No especificada' })
+  sede!: string;
+
+  @Prop({ required: true, default: 'No especificada' })
   carrera!: string;
 
-  // Un mapa flexible por si a futuro piden añadir "correo", "rut", etc., sin romper nada
   @Prop({ type: Map, of: String })
   metadatos_adicionales?: Map<string, string>;
 }
+
 const DatosRespondenteSchema = SchemaFactory.createForClass(DatosRespondente);
 
 // ==========================================
@@ -62,6 +71,9 @@ export class Estadistica {
   
   @Prop({ required: true, unique: true })
   id_respuesta_google!: string;
+
+  @Prop({ required: true })
+  fecha_respuesta!: Date;
 
   @Prop({ required: true })
   proceso_id!: string;

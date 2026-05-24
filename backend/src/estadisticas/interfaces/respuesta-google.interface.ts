@@ -16,5 +16,7 @@ export interface AnswerItem
 
 export interface GoogleFormRespuesta 
 {
+  responseId: string;
+  createTime?: string;
   answers: Record<string, AnswerItem>; 
 }
