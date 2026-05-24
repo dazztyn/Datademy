@@ -101,14 +101,13 @@ export class EstadisticasOrquestadorService {
   /**
    * Obtiene y computa las métricas analíticas aplicando filtros concurrentes.
    */
-  async obtenerMetricasAnaliticas(procesoId: string, usuarioId: string, filtros: Record<string, string>) 
-  {
+  async obtenerMetricasAnaliticas(procesoId: string, usuarioId: string, filtros: Record<string, string>, paginaFiltro?: number) {
     const queryMongo: Record<string, any> = { proceso_id: procesoId, usuario_id: usuarioId };
 
+    // Sigue aplicando filtros concurrentes de base de datos (tipo, carrera, genero, sede)
     Object.entries(filtros)
       .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '')
-      .forEach(([llaveFrontend, valor]) => 
-      {
+      .forEach(([llaveFrontend, valor]) => {
         const campoMapeadoMongo = this.mapaFiltrosMongo[llaveFrontend];
         if (campoMapeadoMongo) {
           queryMongo[campoMapeadoMongo] = valor;
@@ -117,9 +116,10 @@ export class EstadisticasOrquestadorService {
 
     const estadisticas = await this.estadisticaModelo.find(queryMongo).lean().exec();
 
+    // Enviamos los documentos y el filtro de página opcional al motor matemático
     return {
-      estado: 'exito',
-      metricas: this.estadisticasService.calcularMetricasAnaliticas(estadisticas)
+      status: 'exito',
+      metricas: this.estadisticasService.calcularMetricasAnaliticas(estadisticas, paginaFiltro)
     };
   }
 

@@ -139,35 +139,48 @@ export class EstadisticasService {
     });
   }
 
-  // ORQUESTADOR MATEMÁTICO PRINCIPAL
-
-  calcularMetricasAnaliticas(estadisticasBD: any[]) {
+  /**
+   * Procesa matemáticamente la colección de encuestas agrupando promedios por constructos (páginas).
+   */
+  calcularMetricasAnaliticas(estadisticasBD: any[], paginaFiltro?: number) {
     if (!estadisticasBD || estadisticasBD.length === 0) {
       return this.generarMetricasVacias();
     }
 
-    // Paso 1: Aplastamos el JSON complejo en una sola lista gigante de preguntas 
-    const todasLasPreguntas = this.extraerTodasLasPreguntas(estadisticasBD);
+    // Paso 1: Extraemos todas las preguntas conservando la asociación a su página
+    let todasLasPreguntas = this.extraerPreguntasConPagina(estadisticasBD);
 
-    // Paso 2: Delegamos cada cálculo a su propia función experta (Single Responsibility Principle)
+    // Paso 2: Si el frontend solicitó una página específica, filtramos la lista antes de procesar
+    if (paginaFiltro) {
+      todasLasPreguntas = todasLasPreguntas.filter(p => p.numero_pagina === paginaFiltro);
+    }
+
+    // Paso 3: Coordinación de cálculos limpios (Single Responsibility Principle)
     return {
       total_encuestados: estadisticasBD.length,
       distribucion_genero: this.calcularDistribucionGenero(estadisticasBD),
-      promedios_por_pregunta: this.calcularPromediosPorPregunta(todasLasPreguntas),
+      promedios_por_pagina: this.calcularPromediosPorPagina(todasLasPreguntas),
       promedio_satisfaccion_general: this.calcularSatisfaccionGeneral(todasLasPreguntas)
     };
   }
 
-  // FUNCIONES AUXILIARES (Puras, limpias y aisladas)
+  // ==========================================================
+  // FUNCIONES AUXILIARES REFACTORIZADAS
+  // ==========================================================
 
   private generarMetricasVacias() {
-    return { total_encuestados: 0, distribucion_genero: {}, promedios_por_pregunta: {}, promedio_satisfaccion_general: 0 };
+    return { total_encuestados: 0, distribucion_genero: {}, promedios_por_pagina: [], promedio_satisfaccion_general: 0 };
   }
 
-  private extraerTodasLasPreguntas(estadisticasBD: any[]) {
-    // .flatMap() es pura magia: elimina la necesidad de hacer 3 forEach anidados.
+  private extraerPreguntasConPagina(estadisticasBD: any[]) {
+    // Usamos .flatMap() para aplanar, pero inyectamos el numero_pagina en cada pregunta para no perder el constructo
     return estadisticasBD.flatMap(est => 
-      (est.constructos_paginas || []).flatMap((pagina: any) => pagina.preguestas_pagina || [])
+      (est.constructos_paginas || []).flatMap((pagina: any) => 
+        (pagina.preguestas_pagina || []).map((preg: any) => ({
+          ...preg,
+          numero_pagina: pagina.numero_pagina
+        }))
+      )
     );
   }
 
@@ -179,32 +192,40 @@ export class EstadisticasService {
     }, {} as Record<string, number>);
   }
 
-  private calcularPromediosPorPregunta(preguntasAplanadas: any[]) {
-    // 1. Agrupamos y sumamos
-    const acumulador = preguntasAplanadas.reduce((acc, preg) => {
-      if (!acc[preg.pregunta]) acc[preg.pregunta] = { suma: 0, cantidad: 0 };
-      acc[preg.pregunta].suma += preg.valor_numerico;
-      acc[preg.pregunta].cantidad++;
-      return acc;
-    }, {} as Record<string, { suma: number, cantidad: number }>);
+  private calcularPromediosPorPagina(preguntasConPagina: any[]) {
+    // 1. Agrupamos acumuladores
+    const acumulador = preguntasConPagina.reduce((acc: any, preg: any) => {
+      const pNum = preg.numero_pagina;
+      
+      if (!acc[pNum]) acc[pNum] = {};
+      if (!acc[pNum][preg.pregunta]) acc[pNum][preg.pregunta] = { suma: 0, cantidad: 0 };
 
-    // 2. Dividimos para sacar el promedio exacto
-    return Object.entries(acumulador).reduce((acc, [pregunta, datos]: [string, any]) => {
-      acc[pregunta] = Number((datos.suma / datos.cantidad).toFixed(1)); // .toFixed(1) deja un solo decimal (ej: 5.4)
+      acc[pNum][preg.pregunta].suma += preg.valor_numerico;
+      acc[pNum][preg.pregunta].cantidad++;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
+
+    // 2. Transformamos y ordenamos
+    return Object.entries(acumulador)
+      // FIX 1: Le decimos explícitamente a TypeScript los tipos que vienen del entries
+      .map(([pNum, preguntasData]: [string, any]) => ({
+        numero_pagina: Number(pNum),
+        preguntas: Object.entries(preguntasData).reduce((pAcc: any, [textoPregunta, datos]: [string, any]) => {
+          pAcc[textoPregunta] = Number((datos.suma / datos.cantidad).toFixed(1));
+          return pAcc;
+        }, {})
+      }))
+      .sort((a, b) => a.numero_pagina - b.numero_pagina); 
   }
 
-  private calcularSatisfaccionGeneral(preguntasAplanadas: any[]) {
-    // 1. Filtramos funcionalmente solo las preguntas que digan "Satisfacción general"
-    const preguntasSatisfaccion = preguntasAplanadas.filter(preg => 
+  private calcularSatisfaccionGeneral(preguntasConPagina: any[]) {
+    const preguntasSatisfaccion = preguntasConPagina.filter(preg => 
       preg.pregunta.toLowerCase().includes('satisfacción general') || 
       preg.pregunta.toLowerCase().includes('satisfaccion general')
     );
 
     if (preguntasSatisfaccion.length === 0) return 0;
 
-    // 2. Sumamos y dividimos en 2 líneas
     const suma = preguntasSatisfaccion.reduce((acc, preg) => acc + preg.valor_numerico, 0);
     return Number((suma / preguntasSatisfaccion.length).toFixed(1));
   }

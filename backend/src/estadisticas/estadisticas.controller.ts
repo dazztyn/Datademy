@@ -58,8 +58,16 @@ export class EstadisticasController {
   async obtenerMetricasFrontend(
     @Req() req: any,
     @Param('idProceso') idProceso: string,
-    @Query() filtros: any 
+    @Query() queryParams: any 
   ) {
-    return await this.orquestador.obtenerMetricasAnaliticas(idProceso, req.user.userId, filtros);
+    const { pagina, ...filtrosMongo } = queryParams;
+    const paginaFiltroNum = pagina ? Number(pagina) : undefined;
+
+    return await this.orquestador.obtenerMetricasAnaliticas(
+      idProceso, 
+      req.user.userId, 
+      filtrosMongo, 
+      paginaFiltroNum
+    );
   }
 }
