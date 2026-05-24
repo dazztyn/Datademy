@@ -109,4 +109,34 @@ export class EstadisticasService {
     }));
   }
 
+  /**
+   * Aplasta los documentos JSON de MongoDB en un formato plano perfecto para las tablas del Frontend.
+   */
+  formatearParaFrontend(estadisticasBD: any[]) {
+    return estadisticasBD.map(est => {
+      const { id_respuesta_google, fecha_respuesta, datos_respondente, constructos_paginas } = est;
+
+      const preguntasAplanadas = (constructos_paginas || []).reduce((acc: any, pagina: any) => {
+        (pagina.preguestas_pagina || []).forEach((preg: any) => {
+          acc[preg.pregunta] = preg.valor_numerico;
+        });
+        return acc;
+      }, {});
+
+      return {
+        id_respuesta: id_respuesta_google,
+        fecha: fecha_respuesta,
+        edad: datos_respondente?.edad || 'No especificada',
+        genero: datos_respondente?.genero || 'No especificado',
+        nivel_formativo: datos_respondente?.nivel_formativo || 'No especificado',
+        sede: datos_respondente?.sede || 'No especificada',
+        carrera: datos_respondente?.carrera || 'No especificada',
+        
+        ...(datos_respondente?.metadatos_adicionales || {}),
+        
+        ...preguntasAplanadas
+      };
+    });
+  }
+
 }

@@ -61,4 +61,41 @@ export class EstadisticasOrquestadorService {
     console.log(`\n¡ÉXITO! Se guardaron ${nuevasGuardadas} respuestas nuevas para: ${procesoAsociado.nombre_proceso}\n`);
     return { estado: 'exito', guardadas: nuevasGuardadas };
   }
+
+  private readonly mapaFiltrosMongo: Record<string, string> = {
+    tipo: 'tipo_formulario',
+    carrera: 'datos_respondente.carrera',
+    genero: 'datos_respondente.genero',
+    sede: 'datos_respondente.sede',
+    nivel_formativo: 'datos_respondente.nivel_formativo'
+  };
+
+  async obtenerResultadosTabulares(procesoId: string, usuarioId: string, filtros: Record<string, string>) {
+    // 1. Inicializamos la consulta con las condiciones obligatorias de seguridad
+    const queryMongo: Record<string, any> = { proceso_id: procesoId, usuario_id: usuarioId };
+
+    // 2. CONSTRUCCIÓN DINÁMICA DE FILTROS SIMULTÁNEOS
+    Object.entries(filtros)
+      .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '') // Limpiamos filtros vacíos
+      .forEach(([llaveFrontend, valor]) => {
+        const campoMapeadoMongo = this.mapaFiltrosMongo[llaveFrontend];
+        if (campoMapeadoMongo) {
+          queryMongo[campoMapeadoMongo] = valor; // Agrega filtros concurrentes al objeto (Operación AND implícita en Mongo)
+        }
+      });
+
+    // 3. Ejecutamos la consulta multi-filtro optimizada
+    const estadisticas = await this.estadisticaModelo
+      .find(queryMongo)
+      .sort({ fecha_respuesta: -1 })
+      .lean()
+      .exec(); 
+
+    return {
+      estado: 'exito',
+      total_respuestas: estadisticas.length,
+      datos: this.estadisticasService.formatearParaFrontend(estadisticas)
+    };
+  }
+
 }

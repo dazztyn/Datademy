@@ -1,8 +1,16 @@
-import { Controller, Post, Body, HttpCode, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, BadRequestException, Get, UseGuards, Req, Param, Query } from '@nestjs/common';
 import { RecibirWebhookDto } from './dto/recibir-webhook.dto';
 import { EstadisticasOrquestadorService } from './estadisticas-orquestador.service';
+import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
+import { AuthGuard } from '@nestjs/passport';
+
+interface RequestConUsuario extends Request 
+{
+  user: UsuarioActivo;
+}
 
 @Controller('estadisticas')
+@UseGuards(AuthGuard('jwt'))
 export class EstadisticasController {
   constructor(private readonly orquestador: EstadisticasOrquestadorService) {}
 
@@ -35,5 +43,15 @@ export class EstadisticasController {
       console.error('Error al procesar el Webhook de Google:', error);
       return { estado: 'error_ignorado' };
     }
+  }
+
+  @Get(':idProceso/resultados')
+  @UseGuards(AuthGuard('jwt'))
+  async obtenerResultadosFrontend(
+    @Req() req: any, 
+    @Param('idProceso') idProceso: string,
+    @Query() filtros: any 
+  ) {
+    return await this.orquestador.obtenerResultadosTabulares(idProceso, req.user.userId, filtros);
   }
 }
