@@ -155,4 +155,47 @@ export class EstadisticasOrquestadorService {
     };
   }
 
+  /**
+   * Explora la base de datos y devuelve los valores únicos reales 
+   * dependiendo de si se piden filtros para estudiantes o para socios.
+   */
+  async obtenerOpcionesFiltrosDisponibles(procesoId: string, usuarioId: string, tipoFormulario: string = 'estudiantes') {
+
+    const queryBase = { 
+      proceso_id: procesoId, 
+      usuario_id: usuarioId,
+      tipo_formulario: tipoFormulario // Solo busca en los de este tipo específico
+    };
+
+    if (tipoFormulario === 'estudiantes') {
+      const [carreras, sedes, generos, niveles] = await Promise.all([
+        this.estadisticaModelo.distinct('datos_respondente.carrera', queryBase),
+        this.estadisticaModelo.distinct('datos_respondente.sede', queryBase),
+        this.estadisticaModelo.distinct('datos_respondente.genero', queryBase),
+        this.estadisticaModelo.distinct('datos_respondente.nivel_formativo', queryBase)
+      ]);
+
+      return {
+        estado: 'exito',
+        filtros_disponibles: {
+          carreras: carreras.filter(c => c !== 'No especificada'),
+          sedes: sedes.filter(s => s !== 'No especificada'),
+          generos: generos.filter(g => g !== 'No especificado'),
+          niveles_formativos: niveles.filter(n => n !== 'No especificado')
+        }
+      };
+    }
+
+    if (tipoFormulario === 'socios') {
+      return {
+        estado: 'exito',
+        filtros_disponibles: {
+          // Aquí después usaremos .distinct() para extraer el Nombre de la Empresa, etc.
+        }
+      };
+    }
+
+    return { estado: 'error', mensaje: 'Tipo de formulario no válido' };
+  }
+
 }

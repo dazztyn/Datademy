@@ -80,4 +80,16 @@ export class EstadisticasController {
       paginaFiltroNum
     );
   }
+
+  @Get(':idProceso/filtros-disponibles')
+  @UseGuards(AuthGuard('jwt'))
+  async obtenerOpcionesFiltros(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string,
+    @Query('tipo') tipo?: string 
+  ) {
+    const tipoSeguro = tipo || 'estudiantes'; 
+    return await this.orquestador.obtenerOpcionesFiltrosDisponibles(idProceso, req.user.userId, tipoSeguro);
+  }
+
 }
