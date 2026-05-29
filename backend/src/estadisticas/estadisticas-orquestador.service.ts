@@ -123,4 +123,36 @@ export class EstadisticasOrquestadorService {
     };
   }
 
+  /**
+   * Sincroniza manualmente todas las respuestas de un proceso (Estudiantes y Socios).
+   * Ideal para formularios importados o si el webhook caducó.
+   */
+  async sincronizarProcesoManual(procesoId: string, usuarioId: string) {
+    const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
+    
+    let totalGuardadas = 0;
+    let mensajes: string [] = [];
+
+    // 1. Sincronizamos a los estudiantes (si existe el formulario)
+    if (proceso.formulario_estudiantes?.id_google_form) {
+      const resultadoEstudiantes = await this.manejarNuevoWebhookGoogle(proceso.formulario_estudiantes.id_google_form);
+      totalGuardadas += resultadoEstudiantes.guardadas;
+      mensajes.push(`Estudiantes: ${resultadoEstudiantes.guardadas} respuestas nuevas.`);
+    }
+
+    // 2. Sincronizamos a los socios (si existe el formulario)
+    if (proceso.formulario_socios?.id_google_form) {
+      const resultadoSocios = await this.manejarNuevoWebhookGoogle(proceso.formulario_socios.id_google_form);
+      totalGuardadas += resultadoSocios.guardadas;
+      mensajes.push(`Socios: ${resultadoSocios.guardadas} respuestas nuevas.`);
+    }
+
+    return {
+      estado: 'exito',
+      mensaje: 'Sincronización manual completada.',
+      total_nuevas_guardadas: totalGuardadas,
+      detalle: mensajes
+    };
+  }
+
 }

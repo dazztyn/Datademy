@@ -107,5 +107,54 @@ export class FormulariosOrquestadorService {
       idProcesoEliminado: idProceso
     };
   }
+  
+  /**
+   * Vincula un formulario que el usuario ya tenía publicado en su Google Drive,
+   * sin necesidad de clonar una plantilla.
+   */
+  async vincularFormularioExistente(
+    usuario_id: string,
+    idProceso: string,
+    idFormularioExistente: string,
+    tipoFormulario: 'socios' | 'estudiantes'
+  ) {
+    try {
+      // 1. Obtenemos el diseño para extraer el título real que le puso el profesor
+      const diseno = await this.googleService.obtenerDisenoFormulario(idFormularioExistente);
+      const nombreFormulario = diseno.info?.title || 'Formulario Importado';
+
+      // 2. Encendemos el Webhook de Datademy en ese formulario viejo
+      await this.googleService.activarVigilanciaRespuestas(idFormularioExistente);
+
+      // 3. Reconstruimos las URLs estándar de Google
+      const urlEdicion = `https://docs.google.com/forms/d/${idFormularioExistente}/edit`;
+      const urlRespuesta = `https://docs.google.com/forms/d/${idFormularioExistente}/viewform`;
+
+      // 4. Actualizamos el registro en MongoDB
+      const campoBase = `formulario_${tipoFormulario}`;
+      const datosAActualizar = {
+        [`${campoBase}.id_google_form`]: idFormularioExistente,
+        [`${campoBase}.nombre_formulario`]: nombreFormulario,
+        [`${campoBase}.id_carpeta_drive`]: 'importado_externamente', // Como no lo creamos, marcamos el origen
+        [`${campoBase}.url_edicion`]: urlEdicion,
+        [`${campoBase}.url_respuesta`]: urlRespuesta
+      };
+
+      const resultadoActualizacion = await this.formulariosService.actualizar(usuario_id, idProceso, datosAActualizar);
+
+      return {
+        estado: 'exito',
+        mensaje: 'Formulario existente vinculado y bajo vigilancia',
+        idFormulario: idFormularioExistente,
+        nombreFormulario: nombreFormulario,
+        urlEdicion,
+        urlRespuesta,
+        datosActualizados: resultadoActualizacion.datos
+      };
+    } catch (error) {
+      console.error('Error al vincular formulario existente:', error);
+      throw new InternalServerErrorException('No se pudo vincular el formulario. Verifique que el ID sea correcto y tenga permisos.');
+    }
+  }
 
 }

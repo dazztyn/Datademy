@@ -45,6 +45,15 @@ export class EstadisticasController {
     }
   }
 
+  @Post(':idProceso/sincronizar-manual')
+  @UseGuards(AuthGuard('jwt'))
+  async sincronizarDatosManualmente(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string
+  ) {
+    return await this.orquestador.sincronizarProcesoManual(idProceso, req.user.userId);
+  }
+
   @Get(':idProceso/resultados')
   async obtenerResultadosFrontend(
     @Req() req: any, 

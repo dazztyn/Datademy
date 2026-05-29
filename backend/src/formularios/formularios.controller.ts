@@ -54,6 +54,21 @@ export class FormulariosController {
     return await this.orquestadorService.sincronizarCarpetaPlantillas(req.user.userId, idCarpeta);
   }
 
+  @Post(':idProceso/vincular-existente')
+  async vincularFormularioExistente(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string,
+    @Body('idGoogleForm') idGoogleForm: string,
+    @Body('tipoFormulario') tipoFormulario: 'socios' | 'estudiantes'
+  ) {
+    return await this.orquestadorService.vincularFormularioExistente(
+      req.user.userId,
+      idProceso,
+      idGoogleForm,
+      tipoFormulario
+    );
+  }
+
   @Get('listar')
   async listarProcesos(@Req() req: RequestConUsuario) {
     return await this.formulariosService.obtenerTodosLosProcesos(req.user.userId);
