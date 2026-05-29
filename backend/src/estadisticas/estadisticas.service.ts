@@ -140,26 +140,42 @@ export class EstadisticasService {
   }
 
   /**
-   * Procesa matemáticamente la colección de encuestas agrupando promedios por constructos (páginas).
+   * Procesa matemáticamente la colección de encuestas aislando la última página (Satisfacción).
    */
   calcularMetricasAnaliticas(estadisticasBD: any[], paginaFiltro?: number) {
     if (!estadisticasBD || estadisticasBD.length === 0) {
       return this.generarMetricasVacias();
     }
 
-    let todasLasPreguntas = this.extraerPreguntasConPagina(estadisticasBD);
+    // 1. Extraemos todas las preguntas del formulario
+    const todasLasPreguntas = this.extraerPreguntasConPagina(estadisticasBD);
 
+    // 2. Magia dinámica: Encontramos cuál es el número de la última página
+    const paginasNumeros = todasLasPreguntas.map(p => p.numero_pagina);
+    const ultimaPagina = paginasNumeros.length > 0 ? Math.max(...paginasNumeros) : 0;
+
+    // 3. SEPARACIÓN DE RESPONSABILIDADES:
+    // Los constructos son todas las páginas MENORES a la última
+    const preguntasConstructos = todasLasPreguntas.filter(p => p.numero_pagina < ultimaPagina);
+    // (Opcional para el futuro) Aquí quedan guardadas las preguntas de la última página solas
+    const preguntasUltimaPagina = todasLasPreguntas.filter(p => p.numero_pagina === ultimaPagina);
+
+    // 4. Aplicamos el filtro de página si el Frontend lo pidió
+    let constructosAProcesar = preguntasConstructos;
     if (paginaFiltro) {
-      todasLasPreguntas = todasLasPreguntas.filter(p => p.numero_pagina === paginaFiltro);
+      constructosAProcesar = preguntasConstructos.filter(p => p.numero_pagina === paginaFiltro);
     }
 
     return {
       total_encuestados: estadisticasBD.length,
       distribucion_genero: this.calcularDistribucionGenero(estadisticasBD),
-      promedios_por_pagina: this.calcularPromediosPorPagina(todasLasPreguntas),
-      promedio_satisfaccion_general: this.calcularSatisfaccionGeneral(todasLasPreguntas),
-      // NUEVO: Análisis psicométrico avanzado
-      fiabilidad_constructos: this.calcularFiabilidadCronbach(estadisticasBD, paginaFiltro)
+      
+      // A los cálculos analíticos SOLO le mandamos los constructos puros
+      promedios_por_pagina: this.calcularPromediosPorPagina(constructosAProcesar),
+      fiabilidad_constructos: this.calcularFiabilidadCronbach(estadisticasBD, ultimaPagina, paginaFiltro),
+      
+      // La satisfacción general la buscamos en el pool completo (o en la última página)
+      promedio_satisfaccion_general: this.calcularSatisfaccionGeneral(todasLasPreguntas)
     };
   }
 
@@ -243,14 +259,17 @@ export class EstadisticasService {
 
   // MOTOR PSICOMÉTRICO: ALFA DE CRONBACH
 
-  private calcularFiabilidadCronbach(estadisticasBD: any[], paginaFiltro?: number) {
+  private calcularFiabilidadCronbach(estadisticasBD: any[], ultimaPagina: number, paginaFiltro?: number) {
     const resultados: any[] = [];
     const paginasMap = new Map<number, any[]>(); 
 
-    // 1. Agrupamos las respuestas por página y por encuestado
     estadisticasBD.forEach(est => {
       (est.constructos_paginas || []).forEach((pagina: any) => {
         const pNum = pagina.numero_pagina;
+        
+        if (pNum === ultimaPagina) return; 
+        
+        // Si el frontend pidió una página específica y no es esta, la ignoramos
         if (paginaFiltro && pNum !== paginaFiltro) return;
 
         if (!paginasMap.has(pNum)) paginasMap.set(pNum, []);
@@ -264,19 +283,15 @@ export class EstadisticasService {
       });
     });
 
-    // 2. Calculamos el Alfa para cada constructo
     paginasMap.forEach((respondentes, pNum) => {
-      // Obtenemos todas las preguntas únicas de este constructo
       const todasLasPreguntasSet = new Set<string>();
       respondentes.forEach(r => Object.keys(r).forEach(q => todasLasPreguntasSet.add(q)));
       const preguntas = Array.from(todasLasPreguntasSet);
 
-      // El Alfa de Cronbach exige mínimo 2 preguntas y 2 encuestados
       if (preguntas.length < 2 || respondentes.length < 2) return; 
 
       const alfaGlobal = this.procesarFormulaCronbach(respondentes, preguntas);
 
-      // Calculamos "Alfa si se elimina el elemento" para saber la relevancia de cada pregunta
       const impactoPreguntas = preguntas.reduce((acc, pregEliminada) => {
         const preguntasRestantes = preguntas.filter(p => p !== pregEliminada);
         acc[pregEliminada] = this.procesarFormulaCronbach(respondentes, preguntasRestantes);

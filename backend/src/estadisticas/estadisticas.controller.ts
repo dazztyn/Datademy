@@ -10,7 +10,6 @@ interface RequestConUsuario extends Request
 }
 
 @Controller('estadisticas')
-@UseGuards(AuthGuard('jwt'))
 export class EstadisticasController {
   constructor(private readonly orquestador: EstadisticasOrquestadorService) {}
 
@@ -55,6 +54,7 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/resultados')
+  @UseGuards(AuthGuard('jwt'))
   async obtenerResultadosFrontend(
     @Req() req: any, 
     @Param('idProceso') idProceso: string,
@@ -64,6 +64,7 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/metricas')
+  @UseGuards(AuthGuard('jwt'))
   async obtenerMetricasFrontend(
     @Req() req: any,
     @Param('idProceso') idProceso: string,
