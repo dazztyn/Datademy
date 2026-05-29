@@ -147,33 +147,35 @@ export class EstadisticasService {
       return this.generarMetricasVacias();
     }
 
-    // Paso 1: Extraemos todas las preguntas conservando la asociación a su página
     let todasLasPreguntas = this.extraerPreguntasConPagina(estadisticasBD);
 
-    // Paso 2: Si el frontend solicitó una página específica, filtramos la lista antes de procesar
     if (paginaFiltro) {
       todasLasPreguntas = todasLasPreguntas.filter(p => p.numero_pagina === paginaFiltro);
     }
 
-    // Paso 3: Coordinación de cálculos limpios (Single Responsibility Principle)
     return {
       total_encuestados: estadisticasBD.length,
       distribucion_genero: this.calcularDistribucionGenero(estadisticasBD),
       promedios_por_pagina: this.calcularPromediosPorPagina(todasLasPreguntas),
-      promedio_satisfaccion_general: this.calcularSatisfaccionGeneral(todasLasPreguntas)
+      promedio_satisfaccion_general: this.calcularSatisfaccionGeneral(todasLasPreguntas),
+      // NUEVO: Análisis psicométrico avanzado
+      fiabilidad_constructos: this.calcularFiabilidadCronbach(estadisticasBD, paginaFiltro)
     };
   }
 
-  // ==========================================================
-  // FUNCIONES AUXILIARES REFACTORIZADAS
-  // ==========================================================
-
+  // FUNCIONES AUXILIARES REFACTORIZADAS Y AVANZADAS
+  
   private generarMetricasVacias() {
-    return { total_encuestados: 0, distribucion_genero: {}, promedios_por_pagina: [], promedio_satisfaccion_general: 0 };
+    return { 
+      total_encuestados: 0, 
+      distribucion_genero: {}, 
+      promedios_por_pagina: [], 
+      promedio_satisfaccion_general: 0,
+      fiabilidad_constructos: []
+    };
   }
 
   private extraerPreguntasConPagina(estadisticasBD: any[]) {
-    // Usamos .flatMap() para aplanar, pero inyectamos el numero_pagina en cada pregunta para no perder el constructo
     return estadisticasBD.flatMap(est => 
       (est.constructos_paginas || []).flatMap((pagina: any) => 
         (pagina.preguestas_pagina || []).map((preg: any) => ({
@@ -193,7 +195,6 @@ export class EstadisticasService {
   }
 
   private calcularPromediosPorPagina(preguntasConPagina: any[]) {
-    // 1. Agrupamos acumuladores
     const acumulador = preguntasConPagina.reduce((acc: any, preg: any) => {
       const pNum = preg.numero_pagina;
       
@@ -205,16 +206,26 @@ export class EstadisticasService {
       return acc;
     }, {});
 
-    // 2. Transformamos y ordenamos
     return Object.entries(acumulador)
-      // FIX 1: Le decimos explícitamente a TypeScript los tipos que vienen del entries
-      .map(([pNum, preguntasData]: [string, any]) => ({
-        numero_pagina: Number(pNum),
-        preguntas: Object.entries(preguntasData).reduce((pAcc: any, [textoPregunta, datos]: [string, any]) => {
+      .map(([pNum, preguntasData]: [string, any]) => {
+        // 1. Calculamos el promedio de cada pregunta individual
+        const preguntas = Object.entries(preguntasData).reduce((pAcc: any, [textoPregunta, datos]: [string, any]) => {
           pAcc[textoPregunta] = Number((datos.suma / datos.cantidad).toFixed(1));
           return pAcc;
-        }, {})
-      }))
+        }, {});
+
+        // 2. Calculamos el promedio global del constructo
+        const valoresPreguntas = Object.values(preguntas) as number[];
+        const promedio_constructo = valoresPreguntas.length > 0 
+          ? Number((valoresPreguntas.reduce((a, b) => a + b, 0) / valoresPreguntas.length).toFixed(1))
+          : 0;
+
+        return {
+          numero_pagina: Number(pNum),
+          promedio_constructo, // Se inyecta aquí para el frontend
+          preguntas
+        };
+      })
       .sort((a, b) => a.numero_pagina - b.numero_pagina); 
   }
 
@@ -228,6 +239,90 @@ export class EstadisticasService {
 
     const suma = preguntasSatisfaccion.reduce((acc, preg) => acc + preg.valor_numerico, 0);
     return Number((suma / preguntasSatisfaccion.length).toFixed(1));
+  }
+
+  // MOTOR PSICOMÉTRICO: ALFA DE CRONBACH
+
+  private calcularFiabilidadCronbach(estadisticasBD: any[], paginaFiltro?: number) {
+    const resultados: any[] = [];
+    const paginasMap = new Map<number, any[]>(); 
+
+    // 1. Agrupamos las respuestas por página y por encuestado
+    estadisticasBD.forEach(est => {
+      (est.constructos_paginas || []).forEach((pagina: any) => {
+        const pNum = pagina.numero_pagina;
+        if (paginaFiltro && pNum !== paginaFiltro) return;
+
+        if (!paginasMap.has(pNum)) paginasMap.set(pNum, []);
+
+        const respuestasRespondente: Record<string, number> = {};
+        (pagina.preguestas_pagina || []).forEach((preg: any) => {
+          respuestasRespondente[preg.pregunta] = preg.valor_numerico;
+        });
+
+        paginasMap.get(pNum)!.push(respuestasRespondente);
+      });
+    });
+
+    // 2. Calculamos el Alfa para cada constructo
+    paginasMap.forEach((respondentes, pNum) => {
+      // Obtenemos todas las preguntas únicas de este constructo
+      const todasLasPreguntasSet = new Set<string>();
+      respondentes.forEach(r => Object.keys(r).forEach(q => todasLasPreguntasSet.add(q)));
+      const preguntas = Array.from(todasLasPreguntasSet);
+
+      // El Alfa de Cronbach exige mínimo 2 preguntas y 2 encuestados
+      if (preguntas.length < 2 || respondentes.length < 2) return; 
+
+      const alfaGlobal = this.procesarFormulaCronbach(respondentes, preguntas);
+
+      // Calculamos "Alfa si se elimina el elemento" para saber la relevancia de cada pregunta
+      const impactoPreguntas = preguntas.reduce((acc, pregEliminada) => {
+        const preguntasRestantes = preguntas.filter(p => p !== pregEliminada);
+        acc[pregEliminada] = this.procesarFormulaCronbach(respondentes, preguntasRestantes);
+        return acc;
+      }, {} as Record<string, number>);
+
+      resultados.push({
+        numero_pagina: pNum,
+        alfa_cronbach_global: alfaGlobal,
+        alfa_si_se_elimina_pregunta: impactoPreguntas
+      });
+    });
+
+    return resultados.sort((a, b) => a.numero_pagina - b.numero_pagina);
+  }
+
+  private procesarFormulaCronbach(respondentes: any[], preguntas: string[]): number {
+    const k = preguntas.length;
+    if (k < 2) return 0;
+
+    let sumaVarianzasItems = 0;
+
+    // Varianza de cada pregunta individual
+    preguntas.forEach(preg => {
+      const puntajesItem = respondentes.map(r => r[preg] || 0);
+      sumaVarianzasItems += this.calcularVarianzaMuestral(puntajesItem);
+    });
+
+    // Varianza de la suma total del constructo
+    const puntajesTotales = respondentes.map(r => 
+      preguntas.reduce((sum, preg) => sum + (r[preg] || 0), 0)
+    );
+    const varianzaTotal = this.calcularVarianzaMuestral(puntajesTotales);
+
+    if (varianzaTotal === 0) return 0; // Previene divisiones por cero si todos responden lo mismo
+
+    const alfa = (k / (k - 1)) * (1 - (sumaVarianzasItems / varianzaTotal));
+    return Number(alfa.toFixed(3)); // Retorna con 3 decimales (estándar académico)
+  }
+
+  private calcularVarianzaMuestral(valores: number[]): number {
+    const n = valores.length;
+    if (n < 2) return 0;
+    const media = valores.reduce((a, b) => a + b, 0) / n;
+    const sumaCuadrados = valores.reduce((a, b) => a + Math.pow(b - media, 2), 0);
+    return sumaCuadrados / (n - 1);
   }
 
 }
