@@ -1,19 +1,15 @@
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+// Asegúrate de que la ruta sea correcta. 
+// Si tu index está dentro de (tabs), la ruta será '../../components/HeroBanner'
+import HeroBanner from '../../components/HeroBanner'; 
 
 export default function HomeScreen() {
   return (
-    // Reemplazamos el <div> por <View>
-    <View className="flex-1 items-center justify-center bg-slate-900">
+    // Contenedor principal que ocupa toda la pantalla (flex-1) con un fondo claro
+    <View className="flex-1 bg-slate-50 dark:bg-slate-900">
       
-      {/* Reemplazamos el <h1> por <Text> */}
-      <Text className="text-3xl font-bold text-blue-400 mb-2">
-        ¡NativeWind Funciona!
-      </Text>
-      
-      {/* Reemplazamos el <p> por <Text> */}
-      <Text className="text-base text-slate-400">
-        Preparando Datademy Móvil...
-      </Text>
+      {/* ¡Aquí llamamos a tu bloque de Lego! */}
+      <HeroBanner nombre="Vicente" />
 
     </View>
   );
