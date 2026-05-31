@@ -10,11 +10,13 @@ import { sincronizarPlantillas, configurarCarpetaDestino } from '../../services/
 import { useGooglePicker } from '../../hooks/useGooglePicker'
 import Toast from '../../components/Toast'
 import { useToast } from '../../hooks/useToast'
+import { useProceso } from '../../context/ProcesoContext'
 
 export default function Landing() {
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
   const navigate = useNavigate()
+  const { setIdProceso } = useProceso()
   const { toast, mostrar, cerrar } = useToast()
   const { formularios, cargando, error, recargar } = useFormularios()
   const { abrirPicker: abrirPickerPlantillas } = useGooglePicker({
@@ -106,9 +108,12 @@ const { abrirPicker: abrirPickerDestino } = useGooglePicker({
                   mostrar('Formulario asignado correctamente', 'exito')
                 }}
             />
-            <BotonVerDetalles
+           <BotonVerDetalles
               activo={puedeVer}
-              onClick={() => navigate('/detalles')}
+              onClick={() => {
+                if (seleccionado) setIdProceso(seleccionado)
+                navigate('/detalles')
+              }}
             />
           </>
         )}

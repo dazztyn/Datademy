@@ -6,13 +6,15 @@ import { temasPagina, temaDefault } from '../../utils/temasPagina'
 export default function Detalles() {
   const location = useLocation()
 
-  const titulos: Record<string, string> = {
-    '/detalles': 'Inicio',
-    '/detalles/formularios': 'Formularios',
-    '/detalles/visualizar': 'Visualizar datos',
-    '/detalles/informe': 'Generar informe',
-  }
-
+const titulos: Record<string, string> = {
+  '/detalles': 'Inicio',
+  '/detalles/alumnos': 'Lista de alumnos',
+  '/detalles/socios': 'Lista de socios',
+  '/detalles/graficos': 'Gráficos generales',
+  '/detalles/cronbach': 'Cronbach',
+  '/detalles/informe': 'Generar informe',
+  '/detalles/completar': 'Completar datos',
+}
   const tema = temasPagina[location.pathname] ?? temaDefault
   const titulo = titulos[location.pathname] ?? 'Detalles'
 
