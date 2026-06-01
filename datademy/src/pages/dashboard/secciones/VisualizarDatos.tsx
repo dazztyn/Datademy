@@ -1,34 +1,72 @@
-import { useState } from 'react'
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { useState, useEffect } from 'react'
+import { Pie, Bar } from 'react-chartjs-2'
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+} from 'chart.js'
 import { useProceso } from '../../../context/ProcesoContext'
 import { useMetricas } from '../../../hooks/useMetricas'
 import type { FiltrosMetricas } from '../../../services/estadisticos_service'
+import { useTheme } from '../../../context/ThemeContext'
+import { temasPagina, temaDefault } from '../../../utils/temasPagina'
+import { useLocation } from 'react-router-dom'
 
-const COLORES_GENERO = ['#5fb7bb', '#0d438b', '#7f458f']
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
+
+const COLORES = ['#5fb7bb', '#0d438b', '#7f458f']
 
 export default function Visualizar() {
+  const [tipoActivo, setTipoActivo] = useState<'estudiantes' | 'socios'>('estudiantes')
   const { idProceso } = useProceso()
   const [filtros, setFiltros] = useState<FiltrosMetricas>({ tipo: 'estudiantes' })
   const [carreraInput, setCarreraInput] = useState('')
   const { metricas, cargando, error } = useMetricas(idProceso, filtros)
+  const { theme } = useTheme()
+  const location = useLocation()
+  const tema = temasPagina[location.pathname] ?? temaDefault
 
+  const colorTexto = theme === 'dark' ? 'white' : tema.sidebar
+  const colorGrid = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+  useEffect(() => {
+  setCarreraInput('')
+  setFiltros({ tipo: tipoActivo })
+}, [tipoActivo])
   const actualizarFiltro = (campo: keyof FiltrosMetricas, valor: any) => {
     setFiltros(prev => ({ ...prev, [campo]: valor || undefined }))
   }
 
-  const datosGenero = metricas
-    ? Object.entries(metricas.distribucion_genero).map(([name, value]) => ({ name, value }))
-    : []
+  const datosGenero = metricas ? {
+    labels: Object.keys(metricas.distribucion_genero),
+    datasets: [{
+      data: Object.values(metricas.distribucion_genero),
+      backgroundColor: COLORES,
+      borderWidth: 0,
+    }]
+  } : null
 
   const datosPreguntasTodas = metricas
     ? metricas.promedios_por_pagina.flatMap(p =>
         Object.entries(p.preguntas).map(([pregunta, promedio]) => ({
-          pregunta: pregunta.length > 40 ? pregunta.slice(0, 40) + '...' : pregunta,
+          pregunta: pregunta.length > 45 ? pregunta.slice(0, 45) + '...' : pregunta,
           promedio: Number(promedio.toFixed(2)),
-          pagina: p.numero_pagina,
         }))
       )
     : []
+
+  const datosBarras = datosPreguntasTodas.length > 0 ? {
+    labels: datosPreguntasTodas.map(d => d.pregunta),
+    datasets: [{
+      label: 'Promedio',
+      data: datosPreguntasTodas.map(d => d.promedio),
+      backgroundColor: tema.sidebar,
+      borderRadius: 6,
+    }]
+  } : null
 
   if (!idProceso) {
     return (
@@ -46,26 +84,73 @@ export default function Visualizar() {
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="text-xs text-slate-400 mb-1 block">Tipo</label>
-            <select
-              value={filtros.tipo ?? ''}
-              onChange={e => actualizarFiltro('tipo', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="">Todos</option>
-              <option value="estudiantes">Estudiantes</option>
-              <option value="socios">Socios</option>
-            </select>
+              <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 mb-4">
+                <button
+                  onClick={() => {
+                    setTipoActivo('estudiantes')
+                    actualizarFiltro('tipo', 'estudiantes')
+                  }}
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all duration-200
+                    ${tipoActivo === 'estudiantes'
+                      ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
+                      : 'text-slate-400 dark:text-slate-500'
+                    }`}
+                >
+                  Estudiantes
+                </button>
+                <button
+                  onClick={() => {
+                    setTipoActivo('socios')
+                    actualizarFiltro('tipo', 'socios')
+                  }}
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all duration-200
+                    ${tipoActivo === 'socios'
+                      ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
+                      : 'text-slate-400 dark:text-slate-500'
+                    }`}
+                >
+                  Socios
+                </button>
+              </div>
           </div>
-          <div>
-            <label className="text-xs text-slate-400 mb-1 block">Carrera</label>
-            <input
-              type="text"
-              value={carreraInput}
-              onChange={e => setCarreraInput(e.target.value)}
-              onBlur={() => actualizarFiltro('carrera', carreraInput)}
-              placeholder="Ej: ITI"
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            {tipoActivo === 'estudiantes' && (
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block">Carrera</label>
+                <input
+                  type="text"
+                  value={carreraInput}
+                  onChange={e => setCarreraInput(e.target.value)}
+                  onBlur={() => actualizarFiltro('carrera', carreraInput)}
+                  placeholder="Ej: ITI"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+            )}
+            {tipoActivo === 'socios' && (
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block">Organización</label>
+                <input
+                  type="text"
+                  value={carreraInput}
+                  onChange={e => setCarreraInput(e.target.value)}
+                  onBlur={() => actualizarFiltro('carrera', carreraInput)}
+                  placeholder="Ej: ONG Ejemplo"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+            )}
+            <div>
+              <label className="text-xs text-slate-400 mb-1 block">Página del formulario</label>
+              <input
+                type="number"
+                min={1}
+                value={filtros.pagina ?? ''}
+                onChange={e => actualizarFiltro('pagina', e.target.value ? Number(e.target.value) : undefined)}
+                placeholder="Ej: 2"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
           </div>
           <div>
             <label className="text-xs text-slate-400 mb-1 block">Página del formulario</label>
@@ -90,7 +175,6 @@ export default function Visualizar() {
 
       {metricas && !cargando && (
         <>
-          {/* Tarjetas resumen */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
               <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Total encuestados</p>
@@ -107,71 +191,68 @@ export default function Visualizar() {
             </div>
           </div>
 
-          {/* Gráfico de género */}
-          {datosGenero.length > 0 && (
+
+          {datosGenero && Object.keys(metricas.distribucion_genero).length > 0 && (
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
               <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-4">
                 Distribución por género
               </h3>
-              <div className="flex items-center gap-6">
-                <ResponsiveContainer width="50%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={datosGenero}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
-                      dataKey="value"
-                    >
-                      {datosGenero.map((_, i) => (
-                        <Cell key={i} fill={COLORES_GENERO[i % COLORES_GENERO.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex flex-col gap-2">
-                  {datosGenero.map((entry, i) => (
-                    <div key={entry.name} className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: COLORES_GENERO[i % COLORES_GENERO.length] }}
-                      />
-                      <span className="text-xs text-slate-600 dark:text-slate-300">
-                        {entry.name}: <strong>{entry.value}</strong>
-                      </span>
-                    </div>
-                  ))}
+              <div className="flex items-center justify-center">
+                <div className="w-48 h-48">
+                  <Pie
+                    key={`pie-${theme}`}
+                    data={datosGenero}
+                    options={{
+                      plugins: {
+                        legend: {
+                          position: 'right',
+                          labels: { color: colorTexto },
+                        },
+                        tooltip: {
+                          backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
+                          titleColor: theme === 'dark' ? 'white' : tema.sidebar,
+                          bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
+                        },
+                      },
+                    }}
+                  />
                 </div>
               </div>
             </div>
           )}
 
-          {/* Gráfico de promedios por pregunta */}
-          {datosPreguntasTodas.length > 0 && (
+          {datosBarras && datosPreguntasTodas.length > 0 && (
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
               <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-4">
                 Promedios por pregunta
               </h3>
-              <ResponsiveContainer width="100%" height={datosPreguntasTodas.length * 50 + 40}>
-                <BarChart
-                  data={datosPreguntasTodas}
-                  layout="vertical"
-                  margin={{ left: 20, right: 30 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" domain={[0, 7]} tick={{ fontSize: 11 }} />
-                  <YAxis
-                    type="category"
-                    dataKey="pregunta"
-                    width={220}
-                    tick={{ fontSize: 10 }}
-                  />
-                  <Tooltip />
-                  <Bar dataKey="promedio" fill="#5fb7bb" radius={[0, 6, 6, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <Bar
+                key={`bar-${theme}`}
+                data={datosBarras}
+                options={{
+                  indexAxis: 'y',
+                  scales: {
+                    x: {
+                      min: 0,
+                      max: 7,
+                      ticks: { color: colorTexto },
+                      grid: { color: colorGrid },
+                    },
+                    y: {
+                      ticks: { color: colorTexto },
+                      grid: { color: colorGrid },
+                    },
+                  },
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
+                      titleColor: theme === 'dark' ? 'white' : tema.sidebar,
+                      bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
+                    },
+                  },
+                }}
+              />
             </div>
           )}
         </>

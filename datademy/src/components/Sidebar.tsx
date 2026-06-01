@@ -11,7 +11,7 @@ interface SidebarItem {
 }
 
 const items: SidebarItem[] = [
-  { icono: '/src/assets/HOME.png', titulo: 'Lista de alumnos', ruta: '/detalles/alumnos' },
+  { icono: '/src/assets/HOME.png', titulo: 'Listar resultados', ruta: '/detalles/alumnos' },
   { icono: '/src/assets/FORUM.png', titulo: 'Lista de socios', ruta: '/detalles/socios' },
   { icono: '/src/assets/DATA.png', titulo: 'Gráficos generales', ruta: '/detalles/graficos' },
   { icono: '/src/assets/FILE.png', titulo: 'Cronbach', ruta: '/detalles/cronbach' },

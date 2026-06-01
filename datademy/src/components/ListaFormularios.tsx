@@ -6,6 +6,8 @@ interface Periodo {
   anio: string
   formularioAlumnos: string | null
   formularioClientes: string | null
+  idGoogleFormAlumnos: string | null
+  idGoogleFormClientes: string | null
 }
 
 interface ListaFormulariosProps {
@@ -60,6 +62,7 @@ export default function ListaFormularios({ periodos, seleccionado, onSeleccionar
                   <SlotFormulario
                     label="Estudiantes"
                     asignado={periodo.formularioAlumnos}
+                    idGoogleForm={periodo.idGoogleFormAlumnos}
                     idProceso={periodo.id}
                     tipo="estudiantes"
                     onAsignado={onRecargar}
@@ -67,6 +70,7 @@ export default function ListaFormularios({ periodos, seleccionado, onSeleccionar
                   <SlotFormulario
                     label="Socios"
                     asignado={periodo.formularioClientes}
+                    idGoogleForm={periodo.idGoogleFormClientes}
                     idProceso={periodo.id}
                     tipo="socios"
                     onAsignado={onRecargar}

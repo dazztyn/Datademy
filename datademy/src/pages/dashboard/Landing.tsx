@@ -100,6 +100,8 @@ const { abrirPicker: abrirPickerDestino } = useGooglePicker({
                 anio: f.anio,
                 formularioAlumnos: f.formularios.formulario_estudiantes?.nombre_formulario ?? null,
                 formularioClientes: f.formularios.formulario_socios?.nombre_formulario ?? null,
+                idGoogleFormAlumnos: f.formularios.formulario_estudiantes?.id_google_form ?? null,
+                idGoogleFormClientes: f.formularios.formulario_socios?.id_google_form ?? null,
               }))}
               seleccionado={seleccionado}
               onSeleccionar={setSeleccionado}

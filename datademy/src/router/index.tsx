@@ -3,6 +3,7 @@ import Login from '../pages/auth/Login'
 import Landing from '../pages/dashboard/Landing'
 import Detalles from '../pages/dashboard/Detalles'
 import Visualizar from '../pages/dashboard/secciones/VisualizarDatos'
+import ListarResultados from '../pages/dashboard/secciones/ListarResultados'
 function RutaProtegida({ children }: { children: React.ReactNode }) {
   const jwt = sessionStorage.getItem('jwt')
   return jwt ? <>{children}</> : <Navigate to="/login" />
@@ -16,7 +17,7 @@ export default function Router() {
         <Route path="/dashboard" element={<RutaProtegida><Landing /></RutaProtegida>} />
         <Route path="detalles" element={<RutaProtegida><Detalles /></RutaProtegida>}>
           <Route index element={<p className="text-white/70 text-sm">Selecciona una sección del menú</p>} />
-          <Route path="alumnos" element={<p className="text-white/70 text-sm">Lista de alumnos — próximamente</p>} />
+          <Route path="alumnos" element={<ListarResultados />} />
           <Route path="socios" element={<p className="text-white/70 text-sm">Lista de socios — próximamente</p>} />
           <Route path="graficos" element={<Visualizar />} />
           <Route path="cronbach" element={<p className="text-white/70 text-sm">Cronbach — próximamente</p>} />
