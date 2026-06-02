@@ -13,44 +13,45 @@ interface SidebarItem {
 const items: SidebarItem[] = [
   { icono: '/src/assets/LIST.png', titulo: 'Listar resultados', ruta: '/detalles/listado' },
   { icono: '/src/assets/DATA.png', titulo: 'Gráficos generales', ruta: '/detalles/graficos' },
-  { icono: '/src/assets/ALPHA.png', titulo: 'Cronbach', ruta: '/detalles/cronbach' },
+  { icono: '/src/assets/ALPHA.png', titulo: 'Alfa de Cronbach', ruta: '/detalles/cronbach' },
 ]
-
 export default function Sidebar() {
-  const [expandida, setExpandida] = useState(false)
-  const [sincronizando, setSincronizando] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [sync, setSync] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const { idProceso } = useProceso()
 
-  const tema = temasPagina[location.pathname] ?? temaDefault
+  const temaBarra = temasPagina[location.pathname] ?? temaDefault
 
-  const handleRefresh = async () => {
-    if (!idProceso || sincronizando) return
-    setSincronizando(true)
+  const referesh = async () => {
+    if (!idProceso || sync) return
+    setSync(true)
     try {
       await sincronizarManual(idProceso)
+    } catch (err) {
+      console.error("Error al sincronizar", err)
     } finally {
-      setSincronizando(false)
+      setSync(false)
       window.location.reload()
     }
   }
 
   return (
     <div
-      onMouseEnter={() => setExpandida(true)}
-      onMouseLeave={() => setExpandida(false)}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
       className="h-screen sticky top-0 flex flex-col py-4 transition-all duration-300 ease-in-out z-40 shadow-lg"
       style={{
-        backgroundColor: tema.sidebar,
-        width: expandida ? '13rem' : '4rem',
+        backgroundColor: temaBarra.sidebar,
+        width: open ? '13rem' : '4rem',
       }}
     >
       <div className="px-3 mb-2">
         <button
-          onClick={handleRefresh}
+          onClick={referesh}
           title="Sincronizar datos"
-          className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-white/10 transition-all ${sincronizando ? 'animate-spin' : ''}`}
+          className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-white/10 transition-all ${sync ? 'animate-spin' : ''}`}
         >
           <img
             src="/src/assets/REFRESH.png"
@@ -58,28 +59,23 @@ export default function Sidebar() {
             className="w-5 h-5 object-contain flex-shrink-0"
             style={{ filter: 'brightness(0) invert(1)' }}
           />
-          <span className={`text-xs text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${expandida ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+          <span className={`text-xs text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Sincronizar
           </span>
         </button>
       </div>
-
       <div className="px-3 mb-4">
         <button
           onClick={() => navigate('/detalles/completar')}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl bg-white/15 hover:bg-white/20 transition-colors"
         >
           <span className="text-white text-base flex-shrink-0">✎</span>
-          <span className={`text-xs font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${expandida ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+          <span className={`text-xs font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Completar datos
           </span>
         </button>
       </div>
-
-
       <div className="mx-3 mb-3 border-t border-white/20" />
-
-
       <div className="flex flex-col gap-1 px-2 flex-1">
         {items.map(item => {
           const activo = location.pathname === item.ruta
@@ -94,9 +90,9 @@ export default function Sidebar() {
                 src={item.icono}
                 alt={item.titulo}
                 className="w-6 h-6 flex-shrink-0 object-contain"
-                style={{ filter: 'brightness(0) invert(1)' }}
+                style={{ filter: 'invert(1) brightness(0) ' }}
               />
-              <span className={`text-sm font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${expandida ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+              <span className={`text-sm font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
                 {item.titulo}
               </span>
             </button>
@@ -105,15 +101,13 @@ export default function Sidebar() {
       </div>
 
       <div className="px-3 flex flex-col gap-2 mt-4">
-        {/* Generar informe */}
         <button
           onClick={() => navigate('/detalles/informe')}
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white hover:opacity-90 transition-opacity overflow-hidden"
         >
-          <span className="text-base flex-shrink-0" style={{ color: tema.sidebar }}>📄</span>
           <span
-            className={`text-xs font-semibold whitespace-nowrap overflow-hidden transition-all duration-300 ${expandida ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}
-            style={{ color: tema.sidebar }}
+            className={`duration-300  transition-all text-xs font-semibold whitespace-nowrap overflow-hidden  ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}
+            style={{ color: temaBarra.sidebar }}
           >
             Generar informe
           </span>
@@ -124,7 +118,7 @@ export default function Sidebar() {
           className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
         >
           <span className="text-white text-base flex-shrink-0">←</span>
-          <span className={`text-xs text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${expandida ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+          <span className={`transition-all duration-300 overflow-hidden text-xs text-white whitespace-nowrap  ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Volver
           </span>
         </button>

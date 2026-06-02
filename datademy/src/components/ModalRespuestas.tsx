@@ -3,11 +3,11 @@ interface ModalRespuestasProps {
   onCerrar: () => void
 }
 
-const CAMPOS_FIJOS = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera']
+const campos = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera']
 
 export default function ModalRespuestas({ respuesta, onCerrar }: ModalRespuestasProps) {
   const preguntas = Object.entries(respuesta).filter(
-    ([key]) => !CAMPOS_FIJOS.includes(key)
+    ([key]) => !campos.includes(key)
   )
 
   return (
