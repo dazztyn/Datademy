@@ -53,7 +53,10 @@ export default function HomeScreen() {
           onRecargar={() => console.log('Recargar lista')}
         />
 
-        <BotonVerDetalles activo={puedeVer} onClick={() => console.log('Ir a detalles')} />
+        <BotonVerDetalles 
+          activo={puedeVer} 
+          onClick={() => router.push('/visualizar')} 
+        />
         <View className="h-12" />
       </ScrollView>
       <ModalCrearProceso 
