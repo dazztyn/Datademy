@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { View, Text } from 'react-native';
-import type { Alumno } from '../types/alumno';
-import type { FiltrosAlumno } from '../types/filtrosAlumno';
-import FiltrosAlumnos from '../components/FiltrosAlumnos';
-import ListaAlumnos from '../components/ListaAlumnos';
+import type { Alumno } from '../../types/alumno';
+import type { FiltrosAlumno } from '../../types/filtrosAlumno';
+import FiltrosAlumnos from '../../components/FiltrosAlumnos';
+import ListaAlumnos from '../../components/ListaAlumnos';
 
 const filtrosVacios: FiltrosAlumno = {
   genero: '',
