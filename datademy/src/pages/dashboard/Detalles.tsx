@@ -9,8 +9,7 @@ export default function Detalles() {
 
 const titulos: Record<string, string> = {
   '/detalles': 'Inicio',
-  '/detalles/alumnos': 'Lista de alumnos',
-  '/detalles/socios': 'Lista de socios',
+  '/detalles/listado': 'Lista de respuestas',
   '/detalles/graficos': 'Gráficos generales',
   '/detalles/cronbach': 'Cronbach',
   '/detalles/informe': 'Generar informe',

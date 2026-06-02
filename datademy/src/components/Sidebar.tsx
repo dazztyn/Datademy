@@ -11,10 +11,9 @@ interface SidebarItem {
 }
 
 const items: SidebarItem[] = [
-  { icono: '/src/assets/HOME.png', titulo: 'Listar resultados', ruta: '/detalles/alumnos' },
-  { icono: '/src/assets/FORUM.png', titulo: 'Lista de socios', ruta: '/detalles/socios' },
+  { icono: '/src/assets/LIST.png', titulo: 'Listar resultados', ruta: '/detalles/listado' },
   { icono: '/src/assets/DATA.png', titulo: 'Gráficos generales', ruta: '/detalles/graficos' },
-  { icono: '/src/assets/FILE.png', titulo: 'Cronbach', ruta: '/detalles/cronbach' },
+  { icono: '/src/assets/ALPHA.png', titulo: 'Cronbach', ruta: '/detalles/cronbach' },
 ]
 
 export default function Sidebar() {

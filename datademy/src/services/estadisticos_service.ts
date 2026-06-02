@@ -13,9 +13,15 @@ export interface Metricas {
   distribucion_genero: Record<string, number>
   promedios_por_pagina: {
     numero_pagina: number
+    promedio_constructo: number
     preguntas: Record<string, number>
   }[]
   promedio_satisfaccion_general: number
+  fiabilidad_constructos: {
+    numero_pagina: number
+    alfa_cronbach_global: number
+    alfa_si_se_elimina_pregunta: Record<string, number>
+  }[]
 }
 
 export interface MetricasResponse {
@@ -26,7 +32,10 @@ export interface MetricasResponse {
 export interface FiltrosMetricas {
   tipo?: 'estudiantes' | 'socios'
   carrera?: string
+  sede?: string
+  genero?: string
   pagina?: number
+  nivel_formativo?: string
 }
 
 export async function obtenerMetricas(
@@ -36,7 +45,11 @@ export async function obtenerMetricas(
   const params = new URLSearchParams()
   if (filtros.tipo) params.append('tipo', filtros.tipo)
   if (filtros.carrera) params.append('carrera', filtros.carrera)
+  if (filtros.sede) params.append('sede', filtros.sede)
+  if (filtros.genero) params.append('genero', filtros.genero)
   if (filtros.pagina !== undefined) params.append('pagina', String(filtros.pagina))
+  if (filtros.nivel_formativo) params.append('nivel_formativo', filtros.nivel_formativo)
+    
 
   const url = `${BASE_URL}/estadisticas/${idProceso}/metricas?${params.toString()}`
   const response = await fetch(url, { headers: getHeaders() })
@@ -72,6 +85,8 @@ export interface FiltrosResultados {
   tipo?: 'estudiantes' | 'socios'
   carrera?: string
   sede?: string
+  genero?: string
+  nivel_formativo?: string
 }
 
 export async function obtenerResultados(
@@ -82,9 +97,31 @@ export async function obtenerResultados(
   if (filtros.tipo) params.append('tipo', filtros.tipo)
   if (filtros.carrera) params.append('carrera', filtros.carrera)
   if (filtros.sede) params.append('sede', filtros.sede)
+  if (filtros.sede) params.append('sede', filtros.sede)
+  if (filtros.genero) params.append('genero', filtros.genero)
+  if (filtros.nivel_formativo) params.append('nivel_formativo', filtros.nivel_formativo)
 
   const url = `${BASE_URL}/estadisticas/${idProceso}/resultados?${params.toString()}`
   const response = await fetch(url, { headers: getHeaders() })
   if (!response.ok) throw new Error('Error al obtener resultados')
   return response.json()
+}
+export interface FiltrosDisponibles {
+  carreras?: string[]
+  sedes?: string[]
+  generos?: string[]
+  niveles_formativos?: string[]
+}
+
+export async function obtenerFiltrosDisponibles(
+  idProceso: string,
+  tipo: 'estudiantes' | 'socios'
+): Promise<FiltrosDisponibles> {
+  const response = await fetch(
+    `${BASE_URL}/estadisticas/${idProceso}/filtros-disponibles?tipo=${tipo}`,
+    { headers: getHeaders() }
+  )
+  if (!response.ok) throw new Error('Error al obtener filtros')
+  const data = await response.json()
+  return data.filtros_disponibles
 }
