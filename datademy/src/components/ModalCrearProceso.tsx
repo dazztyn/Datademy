@@ -8,22 +8,22 @@ interface ModalCrearProcesoProps {
 
 export default function ModalCrearProceso({ onCerrar, onCreado }: ModalCrearProcesoProps) {
   const [nombre, setNombre] = useState('')
-  const [anio, setAnio] = useState(new Date().getFullYear())
-  const [guardando, setGuardando] = useState(false)
+  const [year, setYear] = useState(new Date().getFullYear())
+  const [save, setSave] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleCrear = async () => {
-    if (!nombre.trim()) return setError('El nombre es obligatorio')
-    setGuardando(true)
+    if (!nombre.trim()) return setError('Por favor ingrese un nombre para el proceso')
+    setSave(true)
     setError(null)
     try {
-      await crearFormulario(nombre.trim(), anio)
+      await crearFormulario(nombre.trim(), year)
       onCreado()
       onCerrar()
     } catch {
-      setError('Error al crear el proceso, intenta de nuevo')
+      setError('Error al crear el proceso, por favor intente de nuevo')
     } finally {
-      setGuardando(false)
+      setSave(false)
     }
   }
 
@@ -44,7 +44,7 @@ export default function ModalCrearProceso({ onCerrar, onCreado }: ModalCrearProc
               value={nombre}
               onChange={e => setNombre(e.target.value)}
               placeholder="Ej: Proceso Informática - Semestre 2"
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full border  border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
           <div>
@@ -53,8 +53,8 @@ export default function ModalCrearProceso({ onCerrar, onCreado }: ModalCrearProc
             </label>
             <input
               type="number"
-              value={anio}
-              onChange={e => setAnio(Number(e.target.value))}
+              value={year}
+              onChange={e => setYear(Number(e.target.value))}
               className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
@@ -73,11 +73,11 @@ export default function ModalCrearProceso({ onCerrar, onCreado }: ModalCrearProc
           </button>
           <button
             onClick={handleCrear}
-            disabled={guardando}
-            className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium transition-all disabled:opacity-60"
+            disabled={save || !nombre.trim()}
+            className="flex-1 transition-all text-white text-sm font-medium py-2.5 rounded-xl disabled:opacity-60"
             style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
           >
-            {guardando ? 'Creando...' : 'Crear'}
+            {save ? 'Creando proceso...' : 'Crear proceso'}
           </button>
         </div>
       </div>

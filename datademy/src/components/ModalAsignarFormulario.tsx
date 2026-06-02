@@ -16,30 +16,31 @@ export default function ModalAsignarFormulario({
   onAsignado,
 }: ModalAsignarFormularioProps) {
   const [plantillas, setPlantillas] = useState<Plantilla[]>([])
-  const [cargando, setCargando] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [seleccionada, setSeleccionada] = useState<string | null>(null)
+
   const [nombre, setNombre] = useState('')
   const [guardando, setGuardando] = useState(false)
-  const [errorGuardar, setErrorGuardar] = useState<string | null>(null)
+  const [errorAlGuardar, setErrorAlGuardar] = useState<string | null>(null) //Era más facil así, no lo cuestionen
 
     useEffect(() => {
       obtenerPlantillas(tipoFormulario)
         .then(setPlantillas)
         .catch(() => setError('No se pudieron cargar las plantillas'))
-        .finally(() => setCargando(false))
+        .finally(() => setLoading(false))
     }, [])
   const handleVincular = async () => {
-    if (!seleccionada) return setErrorGuardar('Selecciona una plantilla')
-    if (!nombre.trim()) return setErrorGuardar('Ingresa un nombre para el formulario')
+    if (!seleccionada) return setErrorAlGuardar('Por favor seleccione una plantilla')
+    if (!nombre.trim()) return setErrorAlGuardar('Por favor ingrese un nombre para el formulario')
     setGuardando(true)
-    setErrorGuardar(null)
+    setErrorAlGuardar(null)
     try {
       await vincularFormulario(idProceso, seleccionada, nombre.trim(), tipoFormulario)
       onAsignado()
       onCerrar()
     } catch {
-      setErrorGuardar('Error al asignar, intenta de nuevo')
+      setErrorAlGuardar('Error al asignar, por favor intente de nuevo')
     } finally {
       setGuardando(false)
     }
@@ -57,8 +58,7 @@ export default function ModalAsignarFormulario({
           Tipo: <span className="font-medium text-slate-500 dark:text-slate-300">{labelTipo}</span>
         </p>
 
-        {/* Lista de plantillas */}
-        {cargando && (
+        {loading && (
           <div className="flex items-center justify-center py-8">
             <p className="text-sm text-slate-400 dark:text-slate-500 animate-pulse">
               Cargando plantillas...
@@ -68,7 +68,7 @@ export default function ModalAsignarFormulario({
         {error && (
           <p className="text-sm text-red-400 py-4 text-center">{error}</p>
         )}
-        {!cargando && !error && (
+        {!loading && !error && (
           <div className="mb-4 max-h-48 overflow-y-auto flex flex-col gap-2">
             {plantillas.map(plantilla => (
               <button
@@ -86,8 +86,7 @@ export default function ModalAsignarFormulario({
           </div>
         )}
 
-        {/* Nombre del formulario */}
-        {!cargando && !error && (
+        {!loading && !error && (
           <div className="mb-4">
             <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
               Nombre del formulario
@@ -96,14 +95,14 @@ export default function ModalAsignarFormulario({
               type="text"
               value={nombre}
               onChange={e => setNombre(e.target.value)}
-              placeholder="Ej: Encuesta estudiantes 2026"
+              placeholder="Ej: Encuesta estudiantes 202X"
               className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
         )}
 
-        {errorGuardar && (
-          <p className="text-xs text-red-400 mb-3">{errorGuardar}</p>
+        {errorAlGuardar && (
+          <p className="text-xs text-red-400 mb-3">{errorAlGuardar}</p>
         )}
 
         <div className="flex gap-2">
@@ -115,7 +114,7 @@ export default function ModalAsignarFormulario({
           </button>
           <button
             onClick={handleVincular}
-            disabled={guardando || cargando}
+            disabled={guardando || loading}
             className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium transition-all disabled:opacity-60"
             style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
           >
