@@ -24,6 +24,8 @@ export class Proceso
     nombre_formulario: string;
     url_edicion?: string; 
     url_respuesta?: string;
+    total_esperados?: number;
+    nombres_constructos?: string[];
   };
 
   @Prop({ type: Object })
@@ -33,6 +35,8 @@ export class Proceso
     nombre_formulario: string;
     url_edicion?: string;
     url_respuesta?: string;
+    total_esperados?: number;
+    nombres_constructos?: string[];
   };
 }
 
