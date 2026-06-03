@@ -27,7 +27,6 @@ export interface FormItem
   questionItem?: QuestionItem;
 }
 
-// ESTA ES LA QUE EXPORTAMOS PRINCIPALMENTE
 export interface GoogleFormDiseno 
 {
   items?: FormItem[];
