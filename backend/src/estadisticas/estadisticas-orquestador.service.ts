@@ -17,7 +17,6 @@ export class EstadisticasOrquestadorService {
 
   async manejarNuevoWebhookGoogle(idFormulario: string) 
   {
-    // 1. DESCUBRIMOS AL DUEÑO
     const procesoAsociado = await this.formulariosService.buscarPorIdFormularioGoogle(idFormulario);
     if (!procesoAsociado) throw new NotFoundException('Formulario no encontrado en el sistema');
 
@@ -26,21 +25,17 @@ export class EstadisticasOrquestadorService {
     const tipoFormularioReal = procesoAsociado.formulario_estudiantes?.id_google_form === idFormulario 
       ? 'estudiantes' : 'socios';
 
-    // 2. Traemos el diseño y TODAS las respuestas del formulario
     const diseno = await this.googleService.obtenerDisenoFormulario(idFormulario);
     const listaRespuestas = await this.googleService.obtenerTodasLasRespuestas(idFormulario);
 
     let nuevasGuardadas = 0;
 
-    // 3. Procesamos y guardamos SOLO las respuestas nuevas
     for (const respuestaCruda of listaRespuestas) {
       const idRespuestaGoogle = respuestaCruda.responseId;
 
-      // Magia Clean Code: Preguntamos a MongoDB si ya guardamos este ID antes
       const existe = await this.estadisticaModelo.exists({ id_respuesta_google: idRespuestaGoogle });
-      if (existe) continue; // Si ya existe, saltamos al siguiente
+      if (existe) continue; 
 
-      // Si no existe, usamos nuestro motor matemático para procesarla
       const documentoListo = this.estadisticasService.procesarEncuesta(
         diseno, 
         respuestaCruda, 
@@ -49,7 +44,6 @@ export class EstadisticasOrquestadorService {
         procesoIdReal
       );
 
-      // Guardamos en MongoDB
       const nuevaEstadistica = new this.estadisticaModelo({
         ...documentoListo,
         tipo_formulario: tipoFormularioReal
@@ -70,21 +64,19 @@ export class EstadisticasOrquestadorService {
     nivel_formativo: 'datos_respondente.nivel_formativo'
   };
 
-  async obtenerResultadosTabulares(procesoId: string, usuarioId: string, filtros: Record<string, string>) {
-    // 1. Inicializamos la consulta con las condiciones obligatorias de seguridad
+  async obtenerResultadosTabulares(procesoId: string, usuarioId: string, filtros: Record<string, string>) 
+  {
     const queryMongo: Record<string, any> = { proceso_id: procesoId, usuario_id: usuarioId };
 
-    // 2. CONSTRUCCIÓN DINÁMICA DE FILTROS SIMULTÁNEOS
     Object.entries(filtros)
-      .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '') // Limpiamos filtros vacíos
+      .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '') 
       .forEach(([llaveFrontend, valor]) => {
         const campoMapeadoMongo = this.mapaFiltrosMongo[llaveFrontend];
         if (campoMapeadoMongo) {
-          queryMongo[campoMapeadoMongo] = valor; // Agrega filtros concurrentes al objeto (Operación AND implícita en Mongo)
+          queryMongo[campoMapeadoMongo] = valor; 
         }
       });
 
-    // 3. Ejecutamos la consulta multi-filtro optimizada
     const estadisticas = await this.estadisticaModelo
       .find(queryMongo)
       .sort({ fecha_respuesta: -1 })
@@ -98,13 +90,9 @@ export class EstadisticasOrquestadorService {
     };
   }
 
-  /**
-   * Obtiene y computa las métricas analíticas aplicando filtros concurrentes.
-   */
   async obtenerMetricasAnaliticas(procesoId: string, usuarioId: string, filtros: Record<string, string>, paginaFiltro?: number) {
     const queryMongo: Record<string, any> = { proceso_id: procesoId, usuario_id: usuarioId };
 
-    // Sigue aplicando filtros concurrentes de base de datos (tipo, carrera, genero, sede)
     Object.entries(filtros)
       .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '')
       .forEach(([llaveFrontend, valor]) => {
@@ -116,31 +104,24 @@ export class EstadisticasOrquestadorService {
 
     const estadisticas = await this.estadisticaModelo.find(queryMongo).lean().exec();
 
-    // Enviamos los documentos y el filtro de página opcional al motor matemático
     return {
       status: 'exito',
       metricas: this.estadisticasService.calcularMetricasAnaliticas(estadisticas, paginaFiltro)
     };
   }
 
-  /**
-   * Sincroniza manualmente todas las respuestas de un proceso (Estudiantes y Socios).
-   * Ideal para formularios importados o si el webhook caducó.
-   */
   async sincronizarProcesoManual(procesoId: string, usuarioId: string) {
     const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
     
     let totalGuardadas = 0;
     let mensajes: string [] = [];
 
-    // 1. Sincronizamos a los estudiantes (si existe el formulario)
     if (proceso.formulario_estudiantes?.id_google_form) {
       const resultadoEstudiantes = await this.manejarNuevoWebhookGoogle(proceso.formulario_estudiantes.id_google_form);
       totalGuardadas += resultadoEstudiantes.guardadas;
       mensajes.push(`Estudiantes: ${resultadoEstudiantes.guardadas} respuestas nuevas.`);
     }
 
-    // 2. Sincronizamos a los socios (si existe el formulario)
     if (proceso.formulario_socios?.id_google_form) {
       const resultadoSocios = await this.manejarNuevoWebhookGoogle(proceso.formulario_socios.id_google_form);
       totalGuardadas += resultadoSocios.guardadas;
@@ -155,16 +136,12 @@ export class EstadisticasOrquestadorService {
     };
   }
 
-  /**
-   * Explora la base de datos y devuelve los valores únicos reales 
-   * dependiendo de si se piden filtros para estudiantes o para socios.
-   */
   async obtenerOpcionesFiltrosDisponibles(procesoId: string, usuarioId: string, tipoFormulario: string = 'estudiantes') {
 
     const queryBase = { 
       proceso_id: procesoId, 
       usuario_id: usuarioId,
-      tipo_formulario: tipoFormulario // Solo busca en los de este tipo específico
+      tipo_formulario: tipoFormulario 
     };
 
     if (tipoFormulario === 'estudiantes') {
@@ -190,7 +167,7 @@ export class EstadisticasOrquestadorService {
       return {
         estado: 'exito',
         filtros_disponibles: {
-          // Aquí después usaremos .distinct() para extraer el Nombre de la Empresa, etc.
+        
         }
       };
     }
