@@ -7,13 +7,22 @@ import { PaginaConstructo } from './interfaces/pagina-constructo.interface';
 @Injectable()
 export class EstadisticasService {
 
+  private readonly CAMPOS_DEMOGRAFICOS = [
+    'nombre', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'organizacion'
+  ];
+
   private readonly diccionarioClaves: Record<string, string> = {
+    'nombre': 'nombre',
     'edad': 'edad',
     'género': 'genero',
     'genero': 'genero',
     'nivel formativo': 'nivel_formativo',
     'sede': 'sede',
-    'carrera': 'carrera'
+    'carrera': 'carrera',
+    'nombre de organización': 'organizacion',
+    'nombre de la organización': 'organizacion',
+    'organización': 'organizacion',
+    'organizacion': 'organizacion'
   };
 
   procesarEncuesta(
@@ -59,10 +68,11 @@ export class EstadisticasService {
   }
 
   private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
+    
     const datos: Record<string, any> = { 
-      edad: 'No especificada', genero: 'No especificado', nivel_formativo: 'No especificado', 
-      sede: 'No especificada', carrera: 'No especificada', metadatos_adicionales: new Map<string, string>()
+      metadatos_adicionales: new Map<string, string>()
     };
+    this.CAMPOS_DEMOGRAFICOS.forEach(campo => datos[campo] = 'No especificado');
 
     Object.keys(respuestasUsuario)
       .filter(qId => mapaPreguntas[qId]?.pagina === 1) 
@@ -109,9 +119,6 @@ export class EstadisticasService {
     }));
   }
 
-  /**
-   * Aplasta los documentos JSON de MongoDB en un formato plano perfecto para las tablas del Frontend.
-   */
   formatearParaFrontend(estadisticasBD: any[]) {
     return estadisticasBD.map(est => {
       const { id_respuesta_google, fecha_respuesta, datos_respondente, constructos_paginas } = est;
@@ -123,15 +130,16 @@ export class EstadisticasService {
         return acc;
       }, {});
 
+      const datosBaseDinamicos = this.CAMPOS_DEMOGRAFICOS.reduce((acc, campo) => {
+        acc[campo] = datos_respondente?.[campo] || 'No especificado';
+        return acc;
+      }, {} as Record<string, string>);
+
       return {
         id_respuesta: id_respuesta_google,
         fecha: fecha_respuesta,
-        edad: datos_respondente?.edad || 'No especificada',
-        genero: datos_respondente?.genero || 'No especificado',
-        nivel_formativo: datos_respondente?.nivel_formativo || 'No especificado',
-        sede: datos_respondente?.sede || 'No especificada',
-        carrera: datos_respondente?.carrera || 'No especificada',
         
+        ...datosBaseDinamicos,
         ...(datos_respondente?.metadatos_adicionales || {}),
         
         ...preguntasAplanadas
@@ -139,28 +147,20 @@ export class EstadisticasService {
     });
   }
 
-  /**
-   * Procesa matemáticamente la colección de encuestas aislando la última página (Satisfacción).
-   */
   calcularMetricasAnaliticas(estadisticasBD: any[], paginaFiltro?: number) {
     if (!estadisticasBD || estadisticasBD.length === 0) {
       return this.generarMetricasVacias();
     }
 
-    // 1. Extraemos todas las preguntas del formulario
     const todasLasPreguntas = this.extraerPreguntasConPagina(estadisticasBD);
 
-    // 2. Magia dinámica: Encontramos cuál es el número de la última página
     const paginasNumeros = todasLasPreguntas.map(p => p.numero_pagina);
     const ultimaPagina = paginasNumeros.length > 0 ? Math.max(...paginasNumeros) : 0;
 
-    // 3. SEPARACIÓN DE RESPONSABILIDADES:
-    // Los constructos son todas las páginas MENORES a la última
     const preguntasConstructos = todasLasPreguntas.filter(p => p.numero_pagina < ultimaPagina);
-    // (Opcional para el futuro) Aquí quedan guardadas las preguntas de la última página solas
+
     const preguntasUltimaPagina = todasLasPreguntas.filter(p => p.numero_pagina === ultimaPagina);
 
-    // 4. Aplicamos el filtro de página si el Frontend lo pidió
     let constructosAProcesar = preguntasConstructos;
     if (paginaFiltro) {
       constructosAProcesar = preguntasConstructos.filter(p => p.numero_pagina === paginaFiltro);
@@ -169,17 +169,14 @@ export class EstadisticasService {
     return {
       total_encuestados: estadisticasBD.length,
       distribucion_genero: this.calcularDistribucionGenero(estadisticasBD),
-      
-      // A los cálculos analíticos SOLO le mandamos los constructos puros
+
       promedios_por_pagina: this.calcularPromediosPorPagina(constructosAProcesar),
       fiabilidad_constructos: this.calcularFiabilidadCronbach(estadisticasBD, ultimaPagina, paginaFiltro),
-      
-      // La satisfacción general la buscamos en el pool completo (o en la última página)
+
       promedio_satisfaccion_general: this.calcularSatisfaccionGeneral(todasLasPreguntas)
     };
   }
 
-  // FUNCIONES AUXILIARES REFACTORIZADAS Y AVANZADAS
   
   private generarMetricasVacias() {
     return { 
@@ -224,13 +221,12 @@ export class EstadisticasService {
 
     return Object.entries(acumulador)
       .map(([pNum, preguntasData]: [string, any]) => {
-        // 1. Calculamos el promedio de cada pregunta individual
+
         const preguntas = Object.entries(preguntasData).reduce((pAcc: any, [textoPregunta, datos]: [string, any]) => {
           pAcc[textoPregunta] = Number((datos.suma / datos.cantidad).toFixed(1));
           return pAcc;
         }, {});
 
-        // 2. Calculamos el promedio global del constructo
         const valoresPreguntas = Object.values(preguntas) as number[];
         const promedio_constructo = valoresPreguntas.length > 0 
           ? Number((valoresPreguntas.reduce((a, b) => a + b, 0) / valoresPreguntas.length).toFixed(1))
@@ -238,7 +234,7 @@ export class EstadisticasService {
 
         return {
           numero_pagina: Number(pNum),
-          promedio_constructo, // Se inyecta aquí para el frontend
+          promedio_constructo,
           preguntas
         };
       })
@@ -257,8 +253,6 @@ export class EstadisticasService {
     return Number((suma / preguntasSatisfaccion.length).toFixed(1));
   }
 
-  // MOTOR PSICOMÉTRICO: ALFA DE CRONBACH
-
   private calcularFiabilidadCronbach(estadisticasBD: any[], ultimaPagina: number, paginaFiltro?: number) {
     const resultados: any[] = [];
     const paginasMap = new Map<number, any[]>(); 
@@ -268,8 +262,7 @@ export class EstadisticasService {
         const pNum = pagina.numero_pagina;
         
         if (pNum === ultimaPagina) return; 
-        
-        // Si el frontend pidió una página específica y no es esta, la ignoramos
+
         if (paginaFiltro && pNum !== paginaFiltro) return;
 
         if (!paginasMap.has(pNum)) paginasMap.set(pNum, []);
@@ -314,22 +307,20 @@ export class EstadisticasService {
 
     let sumaVarianzasItems = 0;
 
-    // Varianza de cada pregunta individual
     preguntas.forEach(preg => {
       const puntajesItem = respondentes.map(r => r[preg] || 0);
       sumaVarianzasItems += this.calcularVarianzaMuestral(puntajesItem);
     });
 
-    // Varianza de la suma total del constructo
     const puntajesTotales = respondentes.map(r => 
       preguntas.reduce((sum, preg) => sum + (r[preg] || 0), 0)
     );
     const varianzaTotal = this.calcularVarianzaMuestral(puntajesTotales);
 
-    if (varianzaTotal === 0) return 0; // Previene divisiones por cero si todos responden lo mismo
+    if (varianzaTotal === 0) return 0;
 
     const alfa = (k / (k - 1)) * (1 - (sumaVarianzasItems / varianzaTotal));
-    return Number(alfa.toFixed(3)); // Retorna con 3 decimales (estándar académico)
+    return Number(alfa.toFixed(3));
   }
 
   private calcularVarianzaMuestral(valores: number[]): number {

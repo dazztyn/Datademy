@@ -1,10 +1,14 @@
 import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService
+  ) {}
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
@@ -17,7 +21,8 @@ export class AuthController {
   {
     const resultadoLogin = await this.authService.validarUsuarioGoogle(req.user);
 
-    const urlFrontend = 'http://localhost:5173/login';
+    const urlFrontendBase = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+    const urlFrontend = `${urlFrontendBase}/login`;
 
     const jwt = resultadoLogin.tokens.backendJwt;
     const gToken = resultadoLogin.tokens.googleAccessToken;

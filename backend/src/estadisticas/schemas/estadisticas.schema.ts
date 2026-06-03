@@ -6,6 +6,9 @@ export type EstadisticaDocument = Estadistica & Document;
 
 @Schema({ _id: false }) 
 export class DatosRespondente {
+  @Prop({ required: true, default: 'No especificado' })
+  nombre!: string;
+
   @Prop({ required: true, default: 'No especificada' })
   edad!: string;
 
@@ -20,6 +23,9 @@ export class DatosRespondente {
 
   @Prop({ required: true, default: 'No especificada' })
   carrera!: string;
+  
+  @Prop({ required: true, default: 'No especificada' })
+  organizacion!: string;
 
   @Prop({ type: Map, of: String })
   metadatos_adicionales?: Map<string, string>;
