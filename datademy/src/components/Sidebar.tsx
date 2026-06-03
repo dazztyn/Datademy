@@ -69,7 +69,6 @@ export default function Sidebar() {
           onClick={() => navigate('/detalles/completar')}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl bg-white/15 hover:bg-white/20 transition-colors"
         >
-          <span className="text-white text-base flex-shrink-0">✎</span>
           <span className={`text-xs font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Completar datos
           </span>
@@ -90,7 +89,7 @@ export default function Sidebar() {
                 src={item.icono}
                 alt={item.titulo}
                 className="w-6 h-6 flex-shrink-0 object-contain"
-                style={{ filter: 'invert(1) brightness(0) ' }}
+                style={{ filter: ' brightness(0) invert(1)' }}
               />
               <span className={`text-sm font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
                 {item.titulo}
