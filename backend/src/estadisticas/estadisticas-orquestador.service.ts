@@ -61,7 +61,8 @@ export class EstadisticasOrquestadorService {
     carrera: 'datos_respondente.carrera',
     genero: 'datos_respondente.genero',
     sede: 'datos_respondente.sede',
-    nivel_formativo: 'datos_respondente.nivel_formativo'
+    nivel_formativo: 'datos_respondente.nivel_formativo',
+    organizacion: 'datos_respondente.organizacion'
   };
 
   async obtenerResultadosTabulares(procesoId: string, usuarioId: string, filtros: Record<string, string>) 
@@ -164,15 +165,18 @@ export class EstadisticasOrquestadorService {
     }
 
     if (tipoFormulario === 'socios') {
+      const [organizaciones, generos] = await Promise.all([
+        this.estadisticaModelo.distinct('datos_respondente.organizacion', queryBase),
+        this.estadisticaModelo.distinct('datos_respondente.genero', queryBase)
+      ]);
+
       return {
         estado: 'exito',
         filtros_disponibles: {
-        
+          organizaciones: organizaciones.filter(o => o !== 'No especificada'),
+          generos: generos.filter(g => g !== 'No especificado')
         }
       };
     }
-
-    return { estado: 'error', mensaje: 'Tipo de formulario no válido' };
   }
-
 }
