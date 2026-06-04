@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { useAuth } from '../context/AuthContext';
+import { makeRedirectUri } from 'expo-auth-session';
 
 
 WebBrowser.maybeCompleteAuthSession();
@@ -13,9 +14,9 @@ export default function LoginScreen() {
   const { guardarTokens } = useAuth();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    //androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    redirectUri: 'https://auth.expo.io/@dazztyn/datademy-mobile',
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    redirectUri: makeRedirectUri(),
   });
 
   useEffect(() => {
@@ -86,6 +87,21 @@ export default function LoginScreen() {
             </>
           )}
         </TouchableOpacity>
+
+        {/* BOTÓN DE BYPASS PARA DESARROLLO */}
+        <TouchableOpacity
+          onPress={() => {
+            guardarTokens("token_de_prueba_jwt_123","token_de_prueba_google_abc");
+            router.replace('/');
+          }}
+          activeOpacity={0.8}
+          className="w-full py-3 mt-4 rounded-xl bg-slate-700 flex-row items-center justify-center border border-slate-600"
+        >
+          <Text className="text-white text-sm font-medium">
+            Entrar como Desarrollador
+          </Text>
+        </TouchableOpacity>
+        
       </View>
     </View>
   );
