@@ -94,6 +94,8 @@ export class EstadisticasOrquestadorService {
   async obtenerMetricasAnaliticas(procesoId: string, usuarioId: string, filtros: Record<string, string>, paginaFiltro?: number) {
     const queryMongo: Record<string, any> = { proceso_id: procesoId, usuario_id: usuarioId };
 
+    const tipoFormulario = filtros['tipo'] || 'estudiantes';
+
     Object.entries(filtros)
       .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '')
       .forEach(([llaveFrontend, valor]) => {
@@ -105,9 +107,15 @@ export class EstadisticasOrquestadorService {
 
     const estadisticas = await this.estadisticaModelo.find(queryMongo).lean().exec();
 
+    const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
+    const configFormulario = tipoFormulario === 'estudiantes' ? proceso.formulario_estudiantes : proceso.formulario_socios;
+    
+    const nombresConstructos = configFormulario?.nombres_constructos || [];
+    const totalEsperados = configFormulario?.total_esperados || 0;
+
     return {
       status: 'exito',
-      metricas: this.estadisticasService.calcularMetricasAnaliticas(estadisticas, paginaFiltro)
+      metricas: this.estadisticasService.calcularMetricasAnaliticas(estadisticas, nombresConstructos, totalEsperados, paginaFiltro)
     };
   }
 

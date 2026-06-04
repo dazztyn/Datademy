@@ -69,6 +69,23 @@ export class FormulariosController {
     );
   }
 
+  @Post(':idProceso/configurar-metadatos')
+  async configurarMetadatos(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string,
+    @Body('tipoFormulario') tipoFormulario: 'socios' | 'estudiantes',
+    @Body('nombresConstructos') nombresConstructos: string[],
+    @Body('totalEsperados') totalEsperados: number
+  ) {
+    return await this.formulariosService.guardarMetadatosFormulario(
+      req.user.userId,
+      idProceso,
+      tipoFormulario,
+      nombresConstructos,
+      totalEsperados
+    );
+  }
+
   @Get('listar')
   async listarProcesos(@Req() req: RequestConUsuario) {
     return await this.formulariosService.obtenerTodosLosProcesos(req.user.userId);

@@ -74,19 +74,22 @@ export class EstadisticasService {
     };
     this.CAMPOS_DEMOGRAFICOS.forEach(campo => datos[campo] = 'No especificado');
 
+    const clavesOrdenadas = Object.keys(this.diccionarioClaves).sort((a, b) => b.length - a.length);
+    
     Object.keys(respuestasUsuario)
       .filter(qId => mapaPreguntas[qId]?.pagina === 1) 
       .forEach(qId => {
         const metadata = mapaPreguntas[qId];
-        const valor = respuestasUsuario[qId].textAnswers?.answers?.[0]?.value || 'Sin respuesta';
+        const valorCrudo = respuestasUsuario[qId].textAnswers?.answers?.[0]?.value || 'Sin respuesta';
+        const valorNormalizado = this.normalizarTexto(valorCrudo);
         const tituloLimpio = metadata.titulo.toLowerCase();
 
-        const claveEncontrada = Object.keys(this.diccionarioClaves).find(clave => tituloLimpio.includes(clave));
+        const claveEncontrada = clavesOrdenadas.find(clave => tituloLimpio.includes(clave));
 
         if (claveEncontrada) {
-          datos[this.diccionarioClaves[claveEncontrada]] = valor;
+          datos[this.diccionarioClaves[claveEncontrada]] = valorNormalizado;
         } else {
-          datos.metadatos_adicionales.set(metadata.titulo, valor);
+          datos.metadatos_adicionales.set(metadata.titulo, valorNormalizado);
         }
       });
 
@@ -147,40 +150,61 @@ export class EstadisticasService {
     });
   }
 
-  calcularMetricasAnaliticas(estadisticasBD: any[], paginaFiltro?: number) {
+  calcularMetricasAnaliticas(estadisticasBD: any[], nombresConstructos: string[], totalEsperados: number, paginaFiltro?: number) {
     if (!estadisticasBD || estadisticasBD.length === 0) {
-      return this.generarMetricasVacias();
+      return this.generarMetricasVacias(totalEsperados);
     }
 
     const todasLasPreguntas = this.extraerPreguntasConPagina(estadisticasBD);
-
     const paginasNumeros = todasLasPreguntas.map(p => p.numero_pagina);
     const ultimaPagina = paginasNumeros.length > 0 ? Math.max(...paginasNumeros) : 0;
-
     const preguntasConstructos = todasLasPreguntas.filter(p => p.numero_pagina < ultimaPagina);
-
-    const preguntasUltimaPagina = todasLasPreguntas.filter(p => p.numero_pagina === ultimaPagina);
 
     let constructosAProcesar = preguntasConstructos;
     if (paginaFiltro) {
       constructosAProcesar = preguntasConstructos.filter(p => p.numero_pagina === paginaFiltro);
     }
 
+    const totalEncuestados = estadisticasBD.length;
+    const tasaRespuesta = totalEsperados > 0 ? Number(((totalEncuestados / totalEsperados) * 100).toFixed(1)) : 0;
+
     return {
+      total_esperados: totalEsperados,
       total_encuestados: estadisticasBD.length,
+      tasa_respuesta_porcentaje: tasaRespuesta,
       distribucion_genero: this.calcularDistribucionGenero(estadisticasBD),
 
-      promedios_por_pagina: this.calcularPromediosPorPagina(constructosAProcesar),
-      fiabilidad_constructos: this.calcularFiabilidadCronbach(estadisticasBD, ultimaPagina, paginaFiltro),
-
+      promedios_por_pagina: this.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos),
+      fiabilidad_constructos: this.calcularFiabilidadCronbach(estadisticasBD, ultimaPagina, nombresConstructos, paginaFiltro),
       promedio_satisfaccion_general: this.calcularSatisfaccionGeneral(todasLasPreguntas)
     };
   }
 
+  private normalizarTexto(texto: string): string {
+    if (!texto || texto === 'Sin respuesta') return 'Sin respuesta';
+
+    const textoLimpio = texto.trim().replace(/\s+/g, ' ');
+
+    return textoLimpio.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
+    );
+  }
+
+  private mapearNombreConstructo(numeroPagina: number, nombresConstructos: string[]): string 
+  {
+    const indice = numeroPagina - 2;
+    if (nombresConstructos && nombresConstructos[indice]) {
+      return nombresConstructos[indice];
+    }
+    return `Constructo Página ${numeroPagina}`;
+  }
   
-  private generarMetricasVacias() {
+  private generarMetricasVacias(totalEsperados: number) {
     return { 
+      total_esperados: totalEsperados,
       total_encuestados: 0, 
+      tasa_respuesta_porcentaje: 0,
       distribucion_genero: {}, 
       promedios_por_pagina: [], 
       promedio_satisfaccion_general: 0,
@@ -207,7 +231,7 @@ export class EstadisticasService {
     }, {} as Record<string, number>);
   }
 
-  private calcularPromediosPorPagina(preguntasConPagina: any[]) {
+  private calcularPromediosPorPagina(preguntasConPagina: any[], nombresConstructos: string[]) {
     const acumulador = preguntasConPagina.reduce((acc: any, preg: any) => {
       const pNum = preg.numero_pagina;
       
@@ -234,6 +258,7 @@ export class EstadisticasService {
 
         return {
           numero_pagina: Number(pNum),
+          nombre_constructo: this.mapearNombreConstructo(Number(pNum), nombresConstructos),
           promedio_constructo,
           preguntas
         };
@@ -253,7 +278,7 @@ export class EstadisticasService {
     return Number((suma / preguntasSatisfaccion.length).toFixed(1));
   }
 
-  private calcularFiabilidadCronbach(estadisticasBD: any[], ultimaPagina: number, paginaFiltro?: number) {
+  private calcularFiabilidadCronbach(estadisticasBD: any[], ultimaPagina: number, nombresConstructos: string[], paginaFiltro?: number) {
     const resultados: any[] = [];
     const paginasMap = new Map<number, any[]>(); 
 
@@ -293,6 +318,7 @@ export class EstadisticasService {
 
       resultados.push({
         numero_pagina: pNum,
+        nombre_constructo: this.mapearNombreConstructo(pNum, nombresConstructos),
         alfa_cronbach_global: alfaGlobal,
         alfa_si_se_elimina_pregunta: impactoPreguntas
       });

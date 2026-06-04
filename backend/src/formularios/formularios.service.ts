@@ -118,9 +118,6 @@ export class FormulariosService {
     return plantillasNuevas;
   }
 
-  /**
-   * Devuelve las plantillas al instante desde MongoDB.
-   */
   async obtenerPlantillasCacheadas(usuario_id: string, tipo?: string) 
   {
     const filtro: FiltroPlantillas = { usuario_id };
@@ -143,9 +140,6 @@ export class FormulariosService {
     };
   }
 
-  /**
-   * Guarda o actualiza la carpeta destino global en MongoDB.
-   */
   async guardarCarpetaDestino(usuario_id: string, idCarpeta: string) 
   {
     let config = await this.configuracionModelo.findOne({ usuario_id }).exec();
@@ -164,9 +158,6 @@ export class FormulariosService {
     return { estado: 'exito'};
   }
 
-  /**
-   * Obtiene la carpeta destino actual.
-   */
   async obtenerCarpetaDestino(usuario_id: string): Promise<string> 
   {
     const config = await this.configuracionModelo.findOne({ usuario_id }).exec();
@@ -179,9 +170,6 @@ export class FormulariosService {
     return config.id_carpeta_destino_formularios;
   }
 
-  /**
-   * Obtiene un proceso completo por su ID sin formatearlo (para uso interno).
-   */
   async obtenerProcesoInterno(usuario_id: string, id: string) 
   {
     const proceso = await this.procesoModelo.findOne({ _id: id, usuario_id }).exec();
@@ -192,18 +180,12 @@ export class FormulariosService {
     return proceso;
   }
 
-  /**
-   * Elimina un proceso de MongoDB utilizando su ID.
-   */
   async eliminarProcesoDeBD(usuario_id: string, id: string) 
   {
     await this.procesoModelo.findOneAndDelete({ _id: id, usuario_id }).exec();
     return { estado: 'exito', mensaje: 'Registro eliminado de la base de datos.' };
   }
 
-  /**
-   * Busca a qué proceso y usuario le pertenece un ID de formulario de Google específico.
-   */
   async buscarPorIdFormularioGoogle(idFormulario: string) 
   {
     return await this.procesoModelo.findOne({
@@ -212,6 +194,22 @@ export class FormulariosService {
         { 'formulario_socios.id_google_form': idFormulario }
       ]
     }).exec();
+  }
+
+  async guardarMetadatosFormulario(
+    usuario_id: string, 
+    idProceso: string, 
+    tipoFormulario: 'socios' | 'estudiantes', 
+    nombresConstructos: string[], 
+    totalEsperados: number
+  ) {
+    const campoBase = `formulario_${tipoFormulario}`;
+    const datosAActualizar = {
+      [`${campoBase}.nombres_constructos`]: nombresConstructos,
+      [`${campoBase}.total_esperados`]: totalEsperados
+    };
+
+    return await this.actualizar(usuario_id, idProceso, datosAActualizar as any);
   }
 
 }
