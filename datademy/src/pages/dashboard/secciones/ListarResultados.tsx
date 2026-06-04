@@ -11,14 +11,10 @@ export default function ListarResultados() {
   const { idProceso } = useProceso()
   const [tipoActivo, setTipoActivo] = useState<'estudiantes' | 'socios'>('estudiantes')
   const [filtros, setFiltros] = useState<FiltrosResultados>({ tipo: 'estudiantes' })
-  const [carreraInput, setCarreraInput] = useState('')
-  const [sedeInput, setSedeInput] = useState('')
   const [respuestaSeleccionada, setRespuestaSeleccionada] = useState<Respuesta | null>(null)
   const { resultados, cargando, error } = useResultados(idProceso, filtros)
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, tipoActivo)
   useEffect(() => {
-    setCarreraInput('')
-    setSedeInput('')
     setFiltros({ tipo: tipoActivo })
   }, [tipoActivo])
 
@@ -110,7 +106,31 @@ export default function ListarResultados() {
             </select>
           </div>
         )}
+        {tipoActivo === 'socios' && filtrosDisponibles.organizaciones && filtrosDisponibles.organizaciones.length > 0 && (
+  <div>
+    <label className="text-xs text-slate-400 mb-1 block">Organización</label>
+    <select
+      onChange={e => setFiltros(f => ({ ...f, organizacion: e.target.value || undefined }))}
+      className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+    >
+      <option value="">Todas</option>
+      {filtrosDisponibles.organizaciones.map(o => <option key={o}>{o}</option>)}
+    </select>
+  </div>
+)}
       </div>
+      {tipoActivo === 'socios' && filtrosDisponibles.generos && filtrosDisponibles.generos.length > 0 && (
+  <div>
+    <label className="text-xs text-slate-400 mb-1 block">Género</label>
+    <select
+      onChange={e => setFiltros(f => ({ ...f, genero: e.target.value || undefined }))}
+      className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+    >
+      <option value="">Todos</option>
+      {filtrosDisponibles.generos.map(g => <option key={g}>{g}</option>)}
+    </select>
+  </div>
+)}
     </div>
 
       {cargando && <p className="text-center text-white/70 text-sm py-8 animate-pulse">Cargando resultados...</p>}

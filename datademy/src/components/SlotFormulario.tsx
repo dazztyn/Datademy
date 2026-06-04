@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ModalAsignarFormulario from './ModalAsignarFormulario'
+import ModalVincularExistente from './ModalVincularExistente'
 
 interface SlotFormularioProps {
   label: string
@@ -12,6 +13,7 @@ interface SlotFormularioProps {
 
 export default function SlotFormulario({ label, asignado, idGoogleForm, idProceso, tipo, onAsignado }: SlotFormularioProps) {
   const [modalAbierto, setModalAbierto] = useState(false)
+  const [modalExistenteAbierto, setModalExistenteAbierto] = useState(false)
 
   return (
     <>
@@ -32,15 +34,30 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
                 Abrir en Google Forms →
               </a>
             )}
+            <button
+              onClick={() => setModalAbierto(true)}
+              className="text-xs text-amber-500 hover:text-amber-600 dark:text-amber-400 transition-colors text-left"
+            >
+              ↺ Reasignar plantilla
+            </button>
           </div>
         ) : (
-          <button
-            onClick={() => setModalAbierto(true)}
-            className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 transition-colors"
-          >
-            + Asignar
-          </button>
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => setModalAbierto(true)}
+              className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 transition-colors text-left"
+            >
+              + Asignar desde plantilla
+            </button>
+            <button
+              onClick={() => setModalExistenteAbierto(true)}
+              className="text-xs text-purple-900 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors text-left"
+            >
+              + Vincular formulario existente
+            </button>
+          </div>
         )}
+        
       </div>
 
       {modalAbierto && (
@@ -49,6 +66,14 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
           tipoFormulario={tipo}
           onCerrar={() => setModalAbierto(false)}
           onAsignado={onAsignado}
+        />
+      )}
+      {modalExistenteAbierto && (
+        <ModalVincularExistente
+          idProceso={idProceso}
+          tipoFormulario={tipo}
+          onCerrar={() => setModalExistenteAbierto(false)}
+          onVinculado={onAsignado}
         />
       )}
     </>

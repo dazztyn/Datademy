@@ -7,6 +7,7 @@ interface ModalAsignarFormularioProps {
   tipoFormulario: 'estudiantes' | 'socios'
   onCerrar: () => void
   onAsignado: () => void
+  onVincularExistente?: () => void
 }
 
 export default function ModalAsignarFormulario({
@@ -14,6 +15,7 @@ export default function ModalAsignarFormulario({
   tipoFormulario,
   onCerrar,
   onAsignado,
+  onVincularExistente,
 }: ModalAsignarFormularioProps) {
   const [plantillas, setPlantillas] = useState<Plantilla[]>([])
   const [loading, setLoading] = useState(true)
@@ -104,7 +106,20 @@ export default function ModalAsignarFormulario({
         {errorAlGuardar && (
           <p className="text-xs text-red-400 mb-3">{errorAlGuardar}</p>
         )}
-
+        {onVincularExistente && (
+          <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-2">
+            ¿Ya tienes un formulario creado?{' '}
+            <button
+              onClick={() => {
+                onCerrar()
+                onVincularExistente()
+              }}
+              className="text-purple-900 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline transition-colors"
+            >
+              Vincularlo aquí
+            </button>
+          </p>
+        )}
         <div className="flex gap-2">
           <button
             onClick={onCerrar}

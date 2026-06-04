@@ -36,6 +36,8 @@ export interface FiltrosMetricas {
   genero?: string
   pagina?: number
   nivel_formativo?: string
+  organizacion?: string
+  
 }
 
 export async function obtenerMetricas(
@@ -87,6 +89,7 @@ export interface FiltrosResultados {
   sede?: string
   genero?: string
   nivel_formativo?: string
+  organizacion?: string
 }
 
 export async function obtenerResultados(
@@ -111,6 +114,7 @@ export interface FiltrosDisponibles {
   sedes?: string[]
   generos?: string[]
   niveles_formativos?: string[]
+  organizaciones?: string[]
 }
 
 export async function obtenerFiltrosDisponibles(
