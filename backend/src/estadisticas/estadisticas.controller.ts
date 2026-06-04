@@ -19,7 +19,6 @@ export class EstadisticasController {
     try {
       console.log('=== WEBHOOK RECIBIDO DE GOOGLE ===');
 
-      // Extraemos los atributos donde Google Forms realmente manda la información
       const atributos = cuerpoWebhook?.message?.attributes;
 
       if (!atributos || !atributos.formId) {
@@ -34,7 +33,6 @@ export class EstadisticasController {
 
       const idFormulario = atributos.formId;
       
-      // Llamamos al orquestador SOLO con el idFormulario (Google no nos da el id de respuesta)
       await this.orquestador.manejarNuevoWebhookGoogle(idFormulario);
 
       return { estado: 'recibido' };
@@ -42,6 +40,23 @@ export class EstadisticasController {
       console.error('Error al procesar el Webhook de Google:', error);
       return { estado: 'error_ignorado' };
     }
+  }
+
+  @Get('comparativa-global')
+  @UseGuards(AuthGuard('jwt'))
+  async obtenerComparativaGlobal(
+    @Req() req: RequestConUsuario,
+    @Query('procesos') procesosUrl: string,
+    @Query('tipo') tipo?: string
+  ) {
+    if (!procesosUrl) {
+      throw new BadRequestException('Debes enviar al menos un ID de proceso para comparar (procesos=id1,id2)');
+    }
+
+    const procesosIds = procesosUrl.split(',');
+    const tipoSeguro = tipo || 'estudiantes';
+
+    return await this.orquestador.obtenerComparativaGlobal(req.user.userId, procesosIds, tipoSeguro);
   }
 
   @Post(':idProceso/sincronizar-manual')
