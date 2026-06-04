@@ -61,17 +61,29 @@ const { abrirPicker: abrirPickerDestino } = useGooglePicker({
           <div className="flex items-center gap-2">
             <button
               onClick={abrirPickerPlantillas}
-              className="text-xs px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity"
+              className="text-xs flex items-center gap-1 px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity "
               style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
             >
-              Plantillas
+                <img
+              src="/src/assets/FOLDER.png"
+              alt="Carpeta Plantillas"
+              className="w-5 h-5 object-contain flex-shrink-0"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
+          Carpeta Plantillas
             </button>
             <button
               onClick={abrirPickerDestino}
-              className="text-xs px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity"
+              className="text-xs flex items-center gap-1 px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity"
               style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
             >
-               Carpeta Destino
+                <img
+              src="/src/assets/FOLDER.png"
+              alt="Carpeta Destino"
+              className="w-5 h-5 object-contain flex-shrink-0"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
+          Carpeta Destino
             </button>
             <button
               onClick={() => setModalAbierto(true)}
@@ -97,7 +109,7 @@ const { abrirPicker: abrirPickerDestino } = useGooglePicker({
               periodos={formularios.map(f => ({
                 id: f.idProceso,
                 nombreProceso: f.nombreProceso,
-                anio: f.anio,
+                year: f.anio,
                 formularioAlumnos: f.formularios.formulario_estudiantes?.nombre_formulario ?? null,
                 formularioClientes: f.formularios.formulario_socios?.nombre_formulario ?? null,
                 idGoogleFormAlumnos: f.formularios.formulario_estudiantes?.id_google_form ?? null,
@@ -105,7 +117,7 @@ const { abrirPicker: abrirPickerDestino } = useGooglePicker({
               }))}
               seleccionado={seleccionado}
               onSeleccionar={setSeleccionado}
-              onRecargar={() => {
+              onReload={() => {
                   recargar()
                   mostrar('Formulario asignado correctamente', 'exito')
                 }}

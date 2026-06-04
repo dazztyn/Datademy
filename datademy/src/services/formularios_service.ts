@@ -69,3 +69,15 @@ export async function configurarCarpetaDestino(idCarpeta: string): Promise<void>
   })
   if (!response.ok) throw new Error('Error al configurar carpeta destino')
 }
+export async function vincularExistente(
+  idProceso: string,
+  idGoogleForm: string,
+  tipoFormulario: 'estudiantes' | 'socios'
+): Promise<void> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/vincular-existente`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ idGoogleForm, tipoFormulario }),
+  })
+  if (!response.ok) throw new Error('Error al vincular formulario existente')
+}
