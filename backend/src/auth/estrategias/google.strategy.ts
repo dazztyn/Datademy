@@ -14,17 +14,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google')
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET')!,
       callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL')!,
 
-      // permisos para acceder a la info para el picker
       scope: 
       [
         'email', 
         'profile', 
-        'https://www.googleapis.com/auth/drive.readonly' // Permiso para el Picker
+        'https://www.googleapis.com/auth/drive',
+        'https://www.googleapis.com/auth/documents'
       ],
     });
   }
-
-  // Esta función se ejecuta automáticamente cuando Google nos devuelve al usuario
   async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> 
   {
     const { name, emails, photos, id } = profile;
@@ -37,7 +35,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google')
       accessToken, 
     };
 
-    // fin de peticiones a google y retorno a la app
     done(null, usuarioDeGoogle);
   }
 }

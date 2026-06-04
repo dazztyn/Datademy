@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { google } from 'googleapis';
 import { ArchivoGoogleDrive } from './interfaces/archivo-google.interface';
 
@@ -7,16 +8,16 @@ export class GoogleService
 {
   private oauth2Client;
 
-  constructor() 
+  constructor(private readonly configService: ConfigService) 
   {
     this.oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      'https://developers.google.com/oauthplayground' 
+      this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+      this.configService.get<string>('GOOGLE_CALLBACK_URL') || 'https://developers.google.com/oauthplayground' 
     );
 
     this.oauth2Client.setCredentials({
-      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+      refresh_token: this.configService.get<string>('GOOGLE_REFRESH_TOKEN'),
     });
   }
 
@@ -68,9 +69,6 @@ export class GoogleService
     }
   }
 
-  /**
-   * Mueve un archivo específico a la papelera de Google Drive.
-   */
   async enviarArchivoAPapelera(idArchivo: string): Promise<void> {
     try {
       const drive = google.drive({ version: 'v3', auth: this.oauth2Client });
@@ -86,9 +84,6 @@ export class GoogleService
     }
   }
 
-  /**
-   * Obtiene el diseño estructural de un formulario (títulos, preguntas y saltos de página).
-   */
   async obtenerDisenoFormulario(idFormulario: string): Promise<any> {
     try {
       const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
@@ -100,17 +95,13 @@ export class GoogleService
     }
   }
 
-  /**
-   * Obtiene TODAS las respuestas de un formulario desde Google.
-   */
   async obtenerTodasLasRespuestas(idFormulario: string): Promise<any[]> {
     try {
       const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
       const respuesta = await formsApi.forms.responses.list({
         formId: idFormulario,
       });
-      
-      // Retornamos el arreglo de respuestas, o un arreglo vacío si no hay ninguna
+
       return respuesta.data.responses || [];
     } catch (error) {
       console.error('Error al obtener las respuestas de Google Forms:', error);
@@ -118,10 +109,6 @@ export class GoogleService
     }
   }
 
-  /**
-   * Le dice a Google Forms que envíe una notificación a Pub/Sub
-   * cada vez que alguien responda este formulario específico.
-   */
   async activarVigilanciaRespuestas(idFormulario: string): Promise<any> {
     try {
       const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
