@@ -38,7 +38,7 @@ export default function LoginScreen() {
   const enviarTokenAlBackend = async (googleAccessToken: string) => {
     console.log("Token de Google obtenido, enviando a NestJS...");
     await guardarTokens('simulacion_jwt_123', googleAccessToken);
-    router.replace('/(tabs)'); 
+    router.replace('/'); 
   };
 
   return (

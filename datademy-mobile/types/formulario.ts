@@ -5,6 +5,7 @@ export interface FormularioDetalle {
 }
 
 export interface Proceso {
+  _id?: string;
   idProceso: string
   nombreProceso: string
   anio: string
