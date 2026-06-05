@@ -42,6 +42,17 @@ export class EstadisticasController {
     }
   }
 
+  @Post(':idProceso/generar-dummy')
+  @UseGuards(AuthGuard('jwt'))
+  async generarDatosPrueba(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string,
+    @Body('cantidad') cantidad: number
+  ) {
+    const cantidadSegura = cantidad || 50; 
+    return await this.orquestador.generarVolumenDummy(idProceso, req.user.userId, cantidadSegura);
+  }
+
   @Get('comparativa-global')
   @UseGuards(AuthGuard('jwt'))
   async obtenerComparativaGlobal(

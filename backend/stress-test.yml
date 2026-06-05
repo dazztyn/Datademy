@@ -1,0 +1,25 @@
+config:
+  # La URL base de tu servidor local
+  target: "http://localhost:3000"
+  
+  # Fases del ataque
+  phases:
+    - duration: 10
+      arrivalRate: 5
+      name: "Fase 1: Tráfico normal (5/sec)"
+    - duration: 5
+      arrivalRate: 100
+      name: "Fase 2: EL PICO MASIVO (100/sec)"
+    - duration: 10
+      arrivalRate: 5
+      name: "Fase 3: Vuelta a la normalidad (5/sec)"
+
+scenarios:
+  - name: "Profesor pidiendo métricas matemáticas"
+    flow:
+      - get:
+          # REEMPLAZA ESTO CON UN ID DE PROCESO REAL DE TU BD
+          url: "/estadisticas/6a20d2ebae8dc482f0b9be0e/metricas?tipo=estudiantes"
+          headers:
+            # REEMPLAZA ESTO CON UN TOKEN JWT VÁLIDO
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YTIwZDI3MmFlOGRjNDgyZjBiOWJlMDYiLCJjb3JyZW8iOiJwYWJsby5qb3JxdWVyYUBhbHVtbm9zLnVjbi5jbCIsInJvbCI6ImVzdHVkaWFudGUiLCJpYXQiOjE3ODA2MjMwNDEsImV4cCI6MTc4MDY1MTg0MX0.8LRxlFlVpSaOTqBBACsIkMgJ0blhh8D0erct45FZ40Q"
