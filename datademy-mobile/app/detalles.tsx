@@ -40,7 +40,10 @@ export default function VisualizarProceso() {
             <TouchableOpacity className="flex-1 bg-blue-600 py-2.5 rounded-xl items-center active:bg-blue-700">
               <Text className="text-white font-medium text-sm">Llenar / Editar</Text>
             </TouchableOpacity>
-            <TouchableOpacity className="flex-1 bg-slate-700 py-2.5 rounded-xl items-center border border-slate-600 active:bg-slate-600">
+            <TouchableOpacity 
+              onPress={() => router.push('/respuestas-estudiantes')} 
+              className="flex-1 bg-slate-700 py-2.5 rounded-xl items-center border border-slate-600 active:bg-slate-600"
+            >
               <Text className="text-slate-200 font-medium text-sm">Ver Respuestas</Text>
             </TouchableOpacity>
           </View>
@@ -61,7 +64,10 @@ export default function VisualizarProceso() {
             <TouchableOpacity className="flex-1 bg-purple-600 py-2.5 rounded-xl items-center active:bg-purple-700">
               <Text className="text-white font-medium text-sm">Llenar / Editar</Text>
             </TouchableOpacity>
-            <TouchableOpacity className="flex-1 bg-slate-700 py-2.5 rounded-xl items-center border border-slate-600 active:bg-slate-600">
+|           <TouchableOpacity 
+              onPress={() => router.push('/respuestas-socios')} 
+              className="flex-1 bg-slate-700 py-2.5 rounded-xl items-center border border-slate-600 active:bg-slate-600"
+            >
               <Text className="text-slate-200 font-medium text-sm">Ver Respuestas</Text>
             </TouchableOpacity>
           </View>
