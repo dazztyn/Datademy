@@ -16,7 +16,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [gToken, setGToken] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
 
-  // Al abrir la app, revisamos si el usuario ya tenía sesión iniciada en el SecureStore
   useEffect(() => {
     async function cargarTokens() {
       try {
