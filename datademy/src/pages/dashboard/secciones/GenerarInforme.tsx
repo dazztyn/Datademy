@@ -111,6 +111,7 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
         AsignaturaModulo: `${asignatura} - ${modulo}`.trim(),
         CarreraPrograma: `${carrera} - ${programa}`.trim(),
         Periodo: `${mesInicio}-${mesFinal} / ${anio}`,
+        Anio: anio,
         NombreUsuario: nombreUsuario,
         Ciudad: ciudad,
         ToggleAsignatura: tipoAsignatura,
@@ -231,8 +232,8 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
         <div>
           <label className={labelClass}>Período</label>
           <div className="grid grid-cols-3 gap-2">
-            <input type="text" value={mesInicio} onChange={e => setMesInicio(e.target.value)} placeholder="Mes inicio (01)" maxLength={2} className={inputClass} />
-            <input type="text" value={mesFinal} onChange={e => setMesFinal(e.target.value)} placeholder="Mes final (12)" maxLength={2} className={inputClass} />
+            <input type="text" value={mesInicio} onChange={e => setMesInicio(e.target.value)} placeholder="Mes inicio" className={inputClass} />
+            <input type="text" value={mesFinal} onChange={e => setMesFinal(e.target.value)} placeholder="Mes final" className={inputClass} />
             <input type="text" value={anio} onChange={e => setAnio(e.target.value)} placeholder="Año" maxLength={4} className={inputClass} />
           </div>
         </div>
@@ -301,7 +302,7 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
     <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
       Gráfico de género (se incluirá en el informe)
     </p>
-    <div style={{ width: '300px', height: '300px', visibility: 'collapse', position: 'absolute' }}>
+    <div style={{ width: '380px', height: '260px', margin: '20px' }}>
       <Pie
         ref={pieRef}
         data={datosGenero}
