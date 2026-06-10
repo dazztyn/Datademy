@@ -126,7 +126,7 @@ const { abrirPicker: abrirPickerDestino } = useGooglePicker({
               activo={puedeVer}
               onClick={() => {
                 if (seleccionado) setIdProceso(seleccionado)
-                navigate('/detalles')
+                navigate('/detalles/completar')
               }}
             />
           </>

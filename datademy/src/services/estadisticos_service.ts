@@ -14,6 +14,7 @@ export interface Metricas {
   promedios_por_pagina: {
     numero_pagina: number
     promedio_constructo: number
+    nombre_constructo?: string
     preguntas: Record<string, number>
   }[]
   promedio_satisfaccion_general: number
