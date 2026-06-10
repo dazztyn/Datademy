@@ -5,7 +5,8 @@ import Detalles from '../pages/dashboard/Detalles'
 import Visualizar from '../pages/dashboard/secciones/VisualizarDatos'
 import ListarResultados from '../pages/dashboard/secciones/ListarResultados'
 import Cronbach from '../pages/dashboard/secciones/Cronbach'
-
+import CompletarDatos from '../pages/dashboard/secciones/CompletarDatos'
+import GenerarInforme from '../pages/dashboard/secciones/GenerarInforme'
 
 function RutaProtegida({ children }: { children: React.ReactNode }) {
   const jwt = sessionStorage.getItem('jwt')
@@ -23,8 +24,8 @@ export default function Router() {
           <Route path="listado" element={<ListarResultados />} />
           <Route path="graficos" element={<Visualizar />} />
           <Route path="cronbach" element={<Cronbach />} />
-          <Route path="informe" element={<p className="text-white/70 text-sm">Generar informe — próximamente</p>} />
-          <Route path="completar" element={<p className="text-white/70 text-sm">Completar datos — próximamente</p>} />
+          <Route path="completar" element={<CompletarDatos />} />
+          <Route path="informe" element={<GenerarInforme />} />
         </Route>
       </Routes>
     </BrowserRouter>

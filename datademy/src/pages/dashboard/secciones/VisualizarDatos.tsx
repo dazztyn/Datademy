@@ -51,25 +51,6 @@ export default function Visualizar() {
     }]
   } : null
 
-  const datosPreguntasTodas = metricas
-    ? metricas.promedios_por_pagina.flatMap(p =>
-        Object.entries(p.preguntas).map(([pregunta, promedio]) => ({
-          pregunta: pregunta.length > 45 ? pregunta.slice(0, 45) + '...' : pregunta,
-          promedio: Number(promedio.toFixed(2)),
-        }))
-      )
-    : []
-
-  const datosBarras = datosPreguntasTodas.length > 0 ? {
-    labels: datosPreguntasTodas.map(d => d.pregunta),
-    datasets: [{
-      label: 'Promedio',
-      data: datosPreguntasTodas.map(d => d.promedio),
-      backgroundColor: tema.sidebar,
-      borderRadius: 6,
-    }]
-  } : null
-
   if (!idProceso) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -80,6 +61,7 @@ export default function Visualizar() {
 
   return (
     <div className="space-y-6">
+      {/* Toggle */}
       <div className="flex items-center bg-white/20 dark:bg-slate-900/40 rounded-xl p-1">
         {(['estudiantes', 'socios'] as const).map(tipo => (
           <button
@@ -96,11 +78,9 @@ export default function Visualizar() {
         ))}
       </div>
 
-
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
         <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-3">Filtros</h3>
         <div className="grid grid-cols-2 gap-3">
-
           {tipoActivo === 'estudiantes' && filtrosDisponibles.carreras && filtrosDisponibles.carreras.length > 0 && (
             <div>
               <label className="text-xs text-slate-400 mb-1 block">Carrera</label>
@@ -163,12 +143,8 @@ export default function Visualizar() {
         </div>
       </div>
 
-      {cargando && (
-        <p className="text-center text-white/70 text-sm py-8 animate-pulse">Cargando métricas...</p>
-      )}
-      {error && (
-        <p className="text-center text-red-300 text-sm py-8">{error}</p>
-      )}
+      {cargando && <p className="text-center text-white/70 text-sm py-8 animate-pulse">Cargando métricas...</p>}
+      {error && <p className="text-center text-red-300 text-sm py-8">{error}</p>}
 
       {metricas && !cargando && (
         <>
@@ -213,40 +189,92 @@ export default function Visualizar() {
             )}
           </div>
 
-          {datosBarras && datosPreguntasTodas.length > 0 && (
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-4">
-                Promedios por pregunta
-              </h3>
-              <Bar
-                key={`bar-${theme}`}
-                data={datosBarras}
-                options={{
-                  indexAxis: 'y',
-                  scales: {
-                    x: {
-                      min: 0,
-                      max: 7,
-                      ticks: { color: colorTexto },
-                      grid: { color: colorGrid },
-                    },
-                    y: {
-                      ticks: { color: colorTexto },
-                      grid: { color: colorGrid },
-                    },
-                  },
-                  plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                      backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
-                      titleColor: theme === 'dark' ? 'white' : tema.sidebar,
-                      bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
-                    },
-                  },
-                }}
-              />
-            </div>
-          )}
+          {metricas.promedios_por_pagina.length > 0 && metricas.promedios_por_pagina.map(constructo => {
+            const preguntas = Object.entries(constructo.preguntas)
+            const etiquetas = preguntas.map((_, i) => `Pregunta ${i + 1}`)
+            const valores = preguntas.map(([, v]) => Number(v.toFixed(2)))
+
+            const datosConstructo = {
+              labels: etiquetas,
+              datasets: [{
+                label: 'Promedio',
+                data: valores,
+                backgroundColor: tema.sidebar,
+                borderRadius: 6,
+              }]
+            }
+
+            return (
+              <div
+                key={constructo.numero_pagina}
+                className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                    {constructo.nombre_constructo ?? `Constructo — Página ${constructo.numero_pagina}`}
+                  </h3>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                    Promedio: <strong style={{ color: tema.sidebar }}>{constructo.promedio_constructo.toFixed(2)}</strong>
+                  </span>
+                </div>
+
+                <div style={{ height: `${preguntas.length * 44 + 40}px` }}>
+                  <Bar
+                    key={`bar-${constructo.numero_pagina}-${theme}`}
+                    data={datosConstructo}
+                    options={{
+                      indexAxis: 'y',
+                      maintainAspectRatio: false,
+                      scales: {
+                        x: {
+                          min: 0,
+                          max: 7,
+                          ticks: { color: colorTexto },
+                          grid: { color: colorGrid },
+                        },
+                        y: {
+                          ticks: { color: colorTexto },
+                          grid: { color: colorGrid },
+                        },
+                      },
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                          backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
+                          titleColor: theme === 'dark' ? 'white' : tema.sidebar,
+                          bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
+                          callbacks: {
+                            title: ctx => Object.keys(constructo.preguntas)[ctx[0].dataIndex],
+                            label: ctx => `Promedio: ${Number(ctx.raw).toFixed(2)}`
+                          }
+                        },
+                      },
+                      animation: false,
+                    }}
+                    plugins={[{
+                      id: `labels-${constructo.numero_pagina}`,
+                      afterDatasetsDraw(chart) {
+                        const { ctx } = chart
+                        chart.data.datasets.forEach((_, datasetIndex) => {
+                          const meta = chart.getDatasetMeta(datasetIndex)
+                          meta.data.forEach((bar, index) => {
+                            const value = chart.data.datasets[datasetIndex].data[index] as number
+                            ctx.save()
+                            ctx.fillStyle = colorTexto
+                            ctx.font = 'bold 11px sans-serif'
+                            ctx.textAlign = 'left'
+                            ctx.textBaseline = 'middle'
+                            ctx.fillText(value.toFixed(2), bar.x + 6, bar.y)
+                            ctx.restore()
+                          })
+                        })
+                      }
+                    }]}
+                  />
+                </div>
+              </div>
+            )
+          })}
         </>
       )}
     </div>

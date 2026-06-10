@@ -2,6 +2,21 @@ import type { ListarResponse, Proceso, PlantillasResponse, Plantilla } from '../
 
 const BASE_URL = import.meta.env.VITE_API_URL
 
+export async function configurarMetadatos(
+  idProceso: string,
+  tipoFormulario: 'estudiantes' | 'socios',
+  nombresConstructos: string[],
+  totalEsperados: number
+): Promise<void> {
+
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/configurar-metadatos`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ tipoFormulario, nombresConstructos, totalEsperados }),
+  })
+  if (!response.ok) throw new Error('Error al configurar metadatos')
+}
+
 function getHeaders(): HeadersInit {
   const jwt = sessionStorage.getItem('jwt')
   return {

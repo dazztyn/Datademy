@@ -89,9 +89,7 @@ export default function Cronbach() {
           datasets: [{
             label: 'Alfa si se elimina',
             data: valores,
-            backgroundColor: valores.map(v =>
-              v > constructo.alfa_cronbach_global ? '#ef4444' : tema.sidebar
-            ),
+            backgroundColor: valores.map(interpretarAlfa).map(i => i.color),
             borderRadius: 6,
           }]
         }
@@ -103,7 +101,8 @@ export default function Cronbach() {
           >
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                Constructo — Página {constructo.numero_pagina}
+                {metricas.promedios_por_pagina.find(p => p.numero_pagina === constructo.numero_pagina)?.nombre_constructo
+                  ?? `Constructo — ${constructo.numero_pagina}`}
               </h3>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-slate-400">α global</span>
@@ -123,7 +122,7 @@ export default function Cronbach() {
             </div>
 
             <p className="text-xs text-slate-400 dark:text-slate-500">
-              Las barras en <span className="text-red-400 font-medium">rojo</span> indican preguntas cuya eliminación aumentaría el alfa del constructo.
+              Hacer hover sobre las preguntas muestra cuanto su eliminación aumentaría el alfa del constructo.
             </p>
 
             <div style={{ height: `${etiquetas.length * 40 + 40}px` }}>
