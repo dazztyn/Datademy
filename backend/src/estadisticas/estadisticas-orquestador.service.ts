@@ -51,8 +51,6 @@ export class EstadisticasOrquestadorService {
       await nuevaEstadistica.save();
       nuevasGuardadas++;
     }
-
-    console.log(`\n¡ÉXITO! Se guardaron ${nuevasGuardadas} respuestas nuevas para: ${procesoAsociado.nombre_proceso}\n`);
     return { estado: 'exito', guardadas: nuevasGuardadas };
   }
 
@@ -105,7 +103,11 @@ export class EstadisticasOrquestadorService {
         }
       });
 
-    const estadisticas = await this.estadisticaModelo.find(queryMongo).lean().exec();
+    const estadisticas = await this.estadisticaModelo
+      .find(queryMongo)
+      .select('constructos_paginas datos_respondente.genero -_id')
+      .lean()
+      .exec();
 
     const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
     const configFormulario = tipoFormulario === 'estudiantes' ? proceso.formulario_estudiantes : proceso.formulario_socios;
@@ -217,7 +219,10 @@ export class EstadisticasOrquestadorService {
       proceso_id: procesoId, 
       usuario_id: usuarioId, 
       tipo_formulario: tipoFormulario 
-    }).lean().exec();
+    })
+    .select('constructos_paginas datos_respondente.genero -_id')
+    .lean()
+    .exec();
 
     const metricas = this.estadisticasService.calcularMetricasAnaliticas(estadisticas, nombresConstructos, totalEsperados);
 
@@ -267,52 +272,42 @@ export class EstadisticasOrquestadorService {
     });
   }
 
-  // ==========================================
-  // FUNCIÓN TEMPORAL PARA TESTING (SEEDER)
-  // ==========================================
   async generarVolumenDummy(procesoId: string, usuarioId: string, cantidad: number) {
-    // 1. Buscar al menos 1 respuesta real que ya tengas en la base de datos
     const respuestaBase = await this.estadisticaModelo.findOne({ proceso_id: procesoId }).lean().exec();
 
     if (!respuestaBase) {
       throw new BadRequestException('Debes tener al menos 1 respuesta real en este proceso para poder clonarla.');
     }
 
-    // Opciones para aleatorizar la demografía
     const carreras = ['Ingeniería Comercial', 'Medicina', 'Derecho', 'Arquitectura', 'Psicología'];
     const generos = ['Masculino', 'Femenino', 'Prefiero no decirlo'];
     const sedes = ['Antofagasta', 'Coquimbo'];
 
     let creados = 0;
 
-    for (let i = 0; i < cantidad; i++) {
-      // 2. Hacer una copia exacta (Clonación profunda)
+    for (let i = 0; i < cantidad; i++) 
+    {
       const clon = JSON.parse(JSON.stringify(respuestaBase));
 
-      // 3. Limpiar los IDs internos de Mongo para que lo detecte como un documento nuevo
       delete clon._id;
       delete clon.__v;
 
-      // 4. Mutar los datos para que sean distintos
       clon.id_respuesta_google = `dummy_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      
-      // Fecha aleatoria en los últimos 30 días
+
       clon.fecha_respuesta = new Date(Date.now() - Math.floor(Math.random() * 2592000000)); 
-      
-      // Demografía aleatoria
+
       clon.datos_respondente.carrera = carreras[Math.floor(Math.random() * carreras.length)];
       clon.datos_respondente.genero = generos[Math.floor(Math.random() * generos.length)];
       clon.datos_respondente.sede = sedes[Math.floor(Math.random() * sedes.length)];
 
-      // 5. Aleatorizar los puntajes de los constructos (Asumiendo escala del 1 al 5)
-      (clon.constructos_paginas || []).forEach((pagina: any) => {
+      (clon.constructos_paginas || []).forEach((pagina: any) => 
+      {
         (pagina.preguestas_pagina || []).forEach((preg: any) => {
-          preg.valor_numerico = Math.floor(Math.random() * 5) + 1; // Genera 1, 2, 3, 4 o 5
+          preg.valor_numerico = Math.floor(Math.random() * 5) + 1;
           preg.respuesta_texto = `Opción generada aleatoriamente (${preg.valor_numerico})`;
         });
       });
 
-      // 6. Guardar el mutante en la Base de Datos
       await new this.estadisticaModelo(clon).save();
       creados++;
     }
