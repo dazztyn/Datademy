@@ -25,6 +25,8 @@ export class EstadisticasService {
     'organizacion': 'organizacion'
   };
 
+  private readonly clavesOrdenadas = Object.keys(this.diccionarioClaves).sort((a, b) => b.length - a.length);
+
   procesarEncuesta(
     disenoCrudo: GoogleFormDiseno,   
     respuestaCruda: GoogleFormRespuesta,
@@ -73,8 +75,6 @@ export class EstadisticasService {
       metadatos_adicionales: new Map<string, string>()
     };
     this.CAMPOS_DEMOGRAFICOS.forEach(campo => datos[campo] = 'No especificado');
-
-    const clavesOrdenadas = Object.keys(this.diccionarioClaves).sort((a, b) => b.length - a.length);
     
     Object.keys(respuestasUsuario)
       .filter(qId => mapaPreguntas[qId]?.pagina === 1) 
@@ -84,7 +84,7 @@ export class EstadisticasService {
         const valorNormalizado = this.normalizarTexto(valorCrudo);
         const tituloLimpio = metadata.titulo.toLowerCase();
 
-        const claveEncontrada = clavesOrdenadas.find(clave => tituloLimpio.includes(clave));
+        const claveEncontrada = this.clavesOrdenadas.find(clave => tituloLimpio.includes(clave));
 
         if (claveEncontrada) {
           datos[this.diccionarioClaves[claveEncontrada]] = valorNormalizado;
@@ -116,7 +116,7 @@ export class EstadisticasService {
 
     return Object.values(paginas).map((p: any) => ({
       numero_pagina: p.numero_pagina,
-      preguestas_pagina: p.preguntas
+      preguntas_pagina: p.preguntas
         .sort((a: any, b: any) => a.orden - b.orden) 
         .map(({ orden, ...preguntaLimpia }: any) => preguntaLimpia)
     }));
@@ -127,7 +127,7 @@ export class EstadisticasService {
       const { id_respuesta_google, fecha_respuesta, datos_respondente, constructos_paginas } = est;
 
       const preguntasAplanadas = (constructos_paginas || []).reduce((acc: any, pagina: any) => {
-        (pagina.preguestas_pagina || []).forEach((preg: any) => {
+        (pagina.preguntas_pagina || []).forEach((preg: any) => {
           acc[preg.pregunta] = preg.valor_numerico;
         });
         return acc;
@@ -215,7 +215,7 @@ export class EstadisticasService {
   private extraerPreguntasConPagina(estadisticasBD: any[]) {
     return estadisticasBD.flatMap(est => 
       (est.constructos_paginas || []).flatMap((pagina: any) => 
-        (pagina.preguestas_pagina || []).map((preg: any) => ({
+        (pagina.preguntas_pagina || []).map((preg: any) => ({
           ...preg,
           numero_pagina: pagina.numero_pagina
         }))
@@ -293,7 +293,7 @@ export class EstadisticasService {
         if (!paginasMap.has(pNum)) paginasMap.set(pNum, []);
 
         const respuestasRespondente: Record<string, number> = {};
-        (pagina.preguestas_pagina || []).forEach((preg: any) => {
+        (pagina.preguntas_pagina || []).forEach((preg: any) => {
           respuestasRespondente[preg.pregunta] = preg.valor_numerico;
         });
 
@@ -349,12 +349,21 @@ export class EstadisticasService {
     return Number(alfa.toFixed(3));
   }
 
-  private calcularVarianzaMuestral(valores: number[]): number {
+ private calcularVarianzaMuestral(valores: number[]): number {
     const n = valores.length;
     if (n < 2) return 0;
-    const media = valores.reduce((a, b) => a + b, 0) / n;
-    const sumaCuadrados = valores.reduce((a, b) => a + Math.pow(b - media, 2), 0);
-    return sumaCuadrados / (n - 1);
+    
+    let suma = 0;
+    let sumaCuadrados = 0;
+    
+    for (let i = 0; i < n; i++) {
+      const valor = valores[i];
+      suma += valor;
+      sumaCuadrados += valor * valor;
+    }
+    
+    const media = suma / n;
+    return (sumaCuadrados - n * Math.pow(media, 2)) / (n - 1);
   }
 
 }

@@ -55,7 +55,7 @@ export class PaginaConstructo {
   nombre_constructo?: string; 
 
   @Prop({ type: [RespuestaPreguntaSchema], required: true })
-  preguestas_pagina!: RespuestaPregunta[];
+  preguntas_pagina!: RespuestaPregunta[];
 }
 const PaginaConstructoSchema = SchemaFactory.createForClass(PaginaConstructo);
 
