@@ -18,7 +18,7 @@ export default function Login() {
   }, [])
 
   const handleLogin = () => {
-    window.location.href = 'http://localhost:3000/auth/google'
+    window.location.href = import.meta.env.VITE_API_URL + '/auth/google'
   }
 
   return (
@@ -28,7 +28,6 @@ export default function Login() {
     >
       <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm mx-4 px-8 py-10 flex flex-col items-center">
 
-        {/* Logos */}
         <div className="flex items-center justify-between w-full mb-8">
           <img
             src="/src/assets/LOGOA+S.png"

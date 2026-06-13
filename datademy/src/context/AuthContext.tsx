@@ -1,8 +1,8 @@
 import { createContext, useContext, useState } from 'react'
 
 interface AuthContextType {
-  jwt: string | null
-  gToken: string | null
+  isAuthenticated: boolean 
+  gToken: string | null    
   guardarTokens: (jwt: string, gToken: string) => void
   cerrarSesion: () => void
 }
@@ -10,25 +10,27 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [jwt, setJwt] = useState<string | null>(sessionStorage.getItem('jwt'))
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    sessionStorage.getItem('isLoggedIn') === 'true'
+  )
   const [gToken, setGToken] = useState<string | null>(sessionStorage.getItem('gToken'))
 
-  const guardarTokens = (jwt: string, gToken: string) => {
-    sessionStorage.setItem('jwt', jwt)
+  const guardarTokens = (_jwt: string, gToken: string) => {
+    sessionStorage.setItem('isLoggedIn', 'true')
     sessionStorage.setItem('gToken', gToken)
-    setJwt(jwt)
+    setIsAuthenticated(true)
     setGToken(gToken)
   }
 
-  const cerrarSesion = () => {
-    sessionStorage.removeItem('jwt')
+const cerrarSesion = () => {
+    sessionStorage.removeItem('isLoggedIn')
     sessionStorage.removeItem('gToken')
-    setJwt(null)
+    setIsAuthenticated(false)
     setGToken(null)
   }
-
-  return (
-    <AuthContext.Provider value={{ jwt, gToken, guardarTokens, cerrarSesion }}>
+  
+return (
+    <AuthContext.Provider value={{ isAuthenticated, gToken, guardarTokens, cerrarSesion }}>
       {children}
     </AuthContext.Provider>
   )
