@@ -47,8 +47,16 @@ export class EstadisticasWebhooksService {
         ...documentoListo,
         tipo_formulario: tipoFormularioReal
       });
-      await nuevaEstadistica.save();
-      nuevasGuardadas++;
+      try {
+        await nuevaEstadistica.save();
+        nuevasGuardadas++;
+      } catch (error: any) {
+        if (error.code === 11000) {
+          console.warn(`Aviso: Intento de guardar respuesta duplicada evitado (${idRespuestaGoogle})`);
+        } else {
+          throw error;
+        }
+      }
     }
 
     console.log(`\n¡ÉXITO! Se guardaron ${nuevasGuardadas} respuestas nuevas para: ${procesoAsociado.nombre_proceso}\n`);
