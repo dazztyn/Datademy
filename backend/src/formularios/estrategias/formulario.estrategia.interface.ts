@@ -1,4 +1,4 @@
 
 export interface IProcesadorFormulario {
-  procesarFormulario(datos: any): string;
+  procesarFormulario(datos: Record<string, string | number | boolean>): string;
 }
