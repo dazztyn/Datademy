@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Req, UseGuards, Patch } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ReportesService } from './reportes.service';
+import type { RequestConUsuario } from './interface/request-con-usuario.interface';
 
 @Controller('reportes')
 @UseGuards(AuthGuard('jwt'))
@@ -9,7 +10,7 @@ export class ReportesController {
 
   @Patch('configurar')
   async configurarReportes(
-    @Req() req: any,
+    @Req() req: RequestConUsuario,
     @Body('idCarpeta') idCarpeta?: string,
     @Body('idPlantilla') idPlantilla?: string
   ) {
@@ -18,7 +19,7 @@ export class ReportesController {
 
   @Post('generar')
   async generarInforme(
-    @Req() req: any,
+    @Req() req: RequestConUsuario,
     @Body('datosTexto') datosTexto: Record<string, string>,
     @Body('graficos') graficos: Record<string, string>, 
     @Body('nombreCarrera') nombreCarrera?: string
