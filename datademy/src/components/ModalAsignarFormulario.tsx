@@ -21,7 +21,6 @@ export default function ModalAsignarFormulario({
   const { toast, mostrar, cerrar } = useToast()
   const [plantillas, setPlantillas] = useState<Plantilla[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [seleccionada, setSeleccionada] = useState<string | null>(null)
 
   const [nombre, setNombre] = useState('')
@@ -30,7 +29,7 @@ export default function ModalAsignarFormulario({
     useEffect(() => {
       obtenerPlantillas(tipoFormulario)
         .then(setPlantillas)
-        .catch(() => setError('No se pudieron cargar las plantillas'))
+        .catch(() => mostrar('No se pudieron cargar las plantillas', 'error'))
         .finally(() => setLoading(false))
     }, [])
   const handleVincular = async () => {
@@ -75,10 +74,7 @@ export default function ModalAsignarFormulario({
             </p>
           </div>
         )}
-        {error && (
-          <p className="text-sm text-red-400 py-4 text-center">{error}</p>
-        )}
-        {!loading && !error && (
+        {!loading && (
           <div className="mb-4 max-h-48 overflow-y-auto flex flex-col gap-2">
             {plantillas.map(plantilla => (
               <button
@@ -96,7 +92,7 @@ export default function ModalAsignarFormulario({
           </div>
         )}
 
-        {!loading && !error && (
+        {!loading && (
           <div className="mb-4">
             <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
               Nombre del formulario

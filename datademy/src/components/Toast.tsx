@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-
+import iconoReloj from '../assets/CLOCK.png'
 interface ToastProps {
   mensaje: string
   tipo: 'exito' | 'error' | 'cargando'
@@ -11,33 +11,42 @@ export default function Toast({ mensaje, tipo, onCerrar }: ToastProps) {
     if (tipo === 'cargando') return
     const timer = setTimeout(onCerrar, 3000)
     return () => clearTimeout(timer)
-  }, [tipo])
+  }, [tipo, onCerrar])
 
-  const estilos = {
-    exito: 'bg-green-500',
-    error: 'bg-red-500',
-    cargando: 'bg-blue-500',
+const estilos = {
+    exito: 'bg-emerald-500 border-emerald-600',
+    error: 'bg-rose-500 border-rose-600',
+    cargando: 'bg-blue-500 border-blue-600',
   }
 
-  const iconos = {
-    exito: <span>✓</span>,
-    error: <span>✕</span>,
+ const iconos = {
+    exito: <span className="w-5 h-5 flex items-center justify-center font-bold text-base">✓</span>,
+    error: <span className="w-5 h-5 flex items-center justify-center font-bold text-base">✕</span>,
     cargando: (
       <img
-        src="/src/assets/CLOCK.png"
+        src={iconoReloj}
         alt="Cargando"
-        className="w-5 h-5 object-contain spin-pause"
-        style={{ filter: 'brightness(0) invert(1)' }}
+        className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert animate-spin"
       />
     ),
   }
 
   return (
-    <div className={`fixed bottom-16 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-lg text-white text-sm font-medium transition-all duration-300 ${estilos[tipo]}`}>
-      {iconos[tipo]}
-      <span>{mensaje}</span>
+    <div 
+      className={`fixed bottom-16 right-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl shadow-slate-900/10 border text-white text-sm font-medium transition-all duration-300 animate-fade-in-up ${estilos[tipo]}`}
+    >
+      <div className="flex-shrink-0">
+        {iconos[tipo]}
+      </div>
+      
+      <span className="leading-tight">{mensaje}</span>
+      
       {tipo !== 'cargando' && (
-        <button onClick={onCerrar} className="ml-2 text-white/70 hover:text-white transition-colors">
+        <button 
+          onClick={onCerrar} 
+          className="ml-3 text-white/70 hover:text-white hover:bg-white/10 p-1 rounded-lg transition-colors text-xs font-bold"
+          aria-label="Cerrar notificación"
+        >
           ✕
         </button>
       )}

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { vincularExistente } from '../services/formularios_service'
 import { useGooglePicker } from '../hooks/useGooglePicker'
+import { useToast } from '../hooks/useToast' 
+import Toast from '../components/Toast'
 
 interface ModalVincularExistenteProps {
   idProceso: string
@@ -18,7 +20,7 @@ export default function ModalVincularExistente({
   const [idSeleccionado, setIdSeleccionado] = useState<string | null>(null)
   const [nombreSeleccionado, setNombreSeleccionado] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { toast, mostrar, cerrar } = useToast()
 
   const { abrirPicker } = useGooglePicker({
     modo: 'formulario',
@@ -29,15 +31,17 @@ export default function ModalVincularExistente({
   })
 
   const handleVincular = async () => {
-    if (!idSeleccionado) return setError('Selecciona un formulario primero')
+    if (!idSeleccionado) {
+      return mostrar('Selecciona un formulario primero', 'error')
+    }
     setGuardando(true)
-    setError(null)
+    mostrar('Vinculando formulario...', 'cargando')
     try {
       await vincularExistente(idProceso, idSeleccionado, tipoFormulario)
       onVinculado()
       onCerrar()
     } catch {
-      setError('Error al vincular, probablemente ya esté asignado o no sea un formulario válido')
+      mostrar('Error al vincular, probablemente ya esté asignado o no sea un formulario válido', 'error')
     } finally {
       setGuardando(false)
     }
@@ -87,9 +91,6 @@ export default function ModalVincularExistente({
             </div>
           )}
         </div>
-
-        {error && <p className="text-xs text-red-400 mb-3">{error}</p>}
-
         <div className="flex gap-2">
           <button
             onClick={onCerrar}
@@ -100,13 +101,13 @@ export default function ModalVincularExistente({
           <button
             onClick={handleVincular}
             disabled={guardando || !idSeleccionado}
-            className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium transition-all disabled:opacity-60"
-            style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+            className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium transition-all disabled:opacity-60 hover:opacity-95 bg-gradient-to-r from-[#5fb7bb] to-[#0d438b] shadow-md shadow-blue-900/10"
           >
             {guardando ? 'Vinculando...' : 'Vincular'}
           </button>
         </div>
       </div>
+      {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={cerrar} />}
     </div>
   )
 }
