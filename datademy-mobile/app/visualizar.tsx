@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { View, Text } from 'react-native';
-import type { Alumno } from '../../types/alumno';
-import type { FiltrosAlumno } from '../../types/filtrosAlumno';
-import FiltrosAlumnos from '../../components/FiltrosAlumnos';
-import ListaAlumnos from '../../components/ListaAlumnos';
+import type { Alumno } from '../types/alumno';
+import type { FiltrosAlumno } from '../types/filtrosAlumno';
+import FiltrosAlumnos from '../components/FiltrosAlumnos';
+import ListaAlumnos from '../components/ListaAlumnos';
 
 const filtrosVacios: FiltrosAlumno = {
   genero: '',
@@ -46,7 +46,6 @@ export default function VisualizarScreen() {
         Base de datos de alumnos
       </Text>
 
-      {/* Componente de Filtros (Chips) */}
       <FiltrosAlumnos
         filtros={filtros}
         carreras={carreras}
@@ -54,7 +53,6 @@ export default function VisualizarScreen() {
         onLimpiar={() => setFiltros(filtrosVacios)}
       />
 
-      {/* Lista optimizada (Tarjetas) */}
       <ListaAlumnos alumnos={alumnosFiltrados} />
     </View>
   );

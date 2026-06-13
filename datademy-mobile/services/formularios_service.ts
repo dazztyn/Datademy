@@ -1,21 +1,32 @@
-import type { ListarResponse, Proceso, PlantillasResponse, Plantilla } from '../types/formulario'
+import * as SecureStore from 'expo-secure-store';
+import type { ListarResponse, Proceso, PlantillasResponse, Plantilla } from '../types/formulario';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 async function getHeaders(): Promise<HeadersInit> {
+  const jwt = await SecureStore.getItemAsync('jwt');
   return {
     'Content-Type': 'application/json',
-  }
+    ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
+  };
 }
 
 export async function listarFormularios(): Promise<Proceso[]> {
+  console.log(`Llamando a NestJS: ${BASE_URL}/formularios/listar`);
+  
   const response = await fetch(`${BASE_URL}/formularios/listar`, {
     headers: await getHeaders(),
-  })
-  if (!response.ok) throw new Error('Error al obtener formularios')
-  const data: ListarResponse = await response.json()
-  return data.procesos
-} 
+  });
+
+  if (!response.ok) {
+    const errorReal = await response.text();
+    console.error(`NestJS rechazó la petición (Status ${response.status}):`, errorReal);
+    throw new Error(`Error Backend (${response.status}): ${errorReal}`);
+  }
+
+  const data = await response.json();
+  return Array.isArray(data) ? data : (data.procesos || []);
+}
 
 export async function crearFormulario(nombreProceso: string, anio: number): Promise<void> {
   const response = await fetch(`${BASE_URL}/formularios/crear`, {
