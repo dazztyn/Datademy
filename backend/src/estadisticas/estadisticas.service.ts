@@ -6,6 +6,7 @@ import { PaginaConstructo } from './interfaces/pagina-constructo.interface';
 import { Estadistica } from './schemas/estadisticas.schema';
 import { PreguntaAplanada } from './interfaces/pregunta-aplanada.interface';
 import { PaginaTemp } from './interfaces/pagina-temp.interface';
+import { ResultadoCronbach } from './interfaces/resultado-cronbach.interface';
 
 type PuntajesRespondente = Record<string, number>;
 
@@ -76,7 +77,7 @@ export class EstadisticasService {
 
   private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
     
-    const datos: Record<string, any> = { 
+    const datos: Record<string, string | Map<string, string>> = { 
       metadatos_adicionales: new Map<string, string>()
     };
     this.CAMPOS_DEMOGRAFICOS.forEach(campo => datos[campo] = 'No especificado');
@@ -105,7 +106,7 @@ export class EstadisticasService {
     
     const paginas = Object.keys(respuestasUsuario)
       .filter(qId => mapaPreguntas[qId]?.pagina > 1)
-      .reduce((acc, qId) => {
+      .reduce<Record<number, PaginaTemp>>((acc, qId) => {
         const metadata = mapaPreguntas[qId];
         const valor = respuestasUsuario[qId].textAnswers?.answers?.[0]?.value || 'Sin respuesta';
         const puntaje = metadata.opciones.indexOf(valor) + 1;
@@ -117,13 +118,13 @@ export class EstadisticasService {
         });
 
         return acc;
-      }, {} as Record<number, any>);
+      }, {});
 
     return Object.values(paginas).map(p => ({
       numero_pagina: p.numero_pagina,
       preguntas_pagina: p.preguntas
-        .sort((a: any, b: any) => a.orden - b.orden) 
-        .map(({ orden, ...preguntaLimpia }: any) => preguntaLimpia)
+        .sort((a, b) => a.orden - b.orden) 
+        .map(({ orden, ...preguntaLimpia }) => preguntaLimpia)
     }));
   }
 
@@ -236,7 +237,7 @@ export class EstadisticasService {
     }, {} as Record<string, number>);
   }
 
-  private calcularPromediosPorPagina(preguntasConPagina: any[], nombresConstructos: string[]) {
+  private calcularPromediosPorPagina(preguntasConPagina: PreguntaAplanada[], nombresConstructos: string[]) {
     const acumulador = preguntasConPagina.reduce((acc: Record<number, Record<string, { suma: number; cantidad: number }>>, preg) => {
       const pNum = preg.numero_pagina;
       
@@ -251,7 +252,7 @@ export class EstadisticasService {
     return Object.entries(acumulador)
       .map(([pNum, preguntasData]) => {
 
-        const preguntas = Object.entries(preguntasData).reduce((pAcc: any, [textoPregunta, datos]) => {
+        const preguntas = Object.entries(preguntasData).reduce((pAcc: Record<string, number>, [textoPregunta, datos]) => {
           pAcc[textoPregunta] = Number((datos.suma / datos.cantidad).toFixed(1));
           return pAcc;
         }, {});
@@ -284,7 +285,7 @@ export class EstadisticasService {
   }
 
   private calcularFiabilidadCronbach(estadisticasBD: Partial<Estadistica>[], ultimaPagina: number, nombresConstructos: string[], paginaFiltro?: number) {
-    const resultados: any[] = [];
+    const resultados: ResultadoCronbach[] = [];
     const paginasMap = new Map<number, PuntajesRespondente[]>(); 
 
     estadisticasBD.forEach(est => {
