@@ -31,7 +31,7 @@ export class AppModule implements NestModule
   configure(consumer: MiddlewareConsumer) 
   {
     consumer
-      .apply(express.json({ limit: '50mb' }), express.urlencoded({ limit: '50mb', extended: true }))
+      .apply(express.json({ limit: '10mb' }), express.urlencoded({ limit: '10mb', extended: true }))
       .forRoutes('reportes/generar');
 
     consumer

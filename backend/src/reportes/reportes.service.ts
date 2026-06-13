@@ -70,6 +70,8 @@ export class ReportesService {
 
     const drive = google.drive({ version: 'v3', auth: this.oauth2Client });
     const docs = google.docs({ version: 'v1', auth: this.oauth2Client });
+    
+    const imagenesTemporalesIds: string[] = [];
 
     try {
 
@@ -81,7 +83,6 @@ export class ReportesService {
       const nuevoDocId = copia.data.id!;
 
       const comandosGoogle: docs_v1.Schema$Request[] = [];
-      const imagenesTemporalesIds: string[] = [];
       const estructuraDoc = await docs.documents.get({ documentId: nuevoDocId });
 
       const imagenesAInsertar: { etiqueta: string; posicion: number; base64Completo: string }[] = [];
@@ -130,11 +131,7 @@ export class ReportesService {
           requestBody: { requests: comandosGoogle }
         });
       }
-
-      for (const idTemporal of imagenesTemporalesIds) {
-        await drive.files.delete({ fileId: idTemporal });
-      }
-
+      
       return {
         estado: 'exito',
         url_informe: `https://docs.google.com/document/d/${nuevoDocId}/edit`
@@ -143,6 +140,11 @@ export class ReportesService {
     } catch (error) {
       const err = error as Error;
       throw new InternalServerErrorException('Error al generar el informe: ' + err.message);
+    } finally {
+      for (const idTemporal of imagenesTemporalesIds) 
+      {
+        await drive.files.delete({ fileId: idTemporal }).catch(e => console.error(`No se pudo borrar imagen temporal ${idTemporal}`, e));
+      }
     }
   }
 

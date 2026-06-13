@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, mongo } from 'mongoose';
 import { GoogleService } from '../google/google.service';
 import { EstadisticasService } from './estadisticas.service';
 import { EstadisticaDocument } from './schemas/estadisticas.schema';
@@ -47,8 +47,17 @@ export class EstadisticasWebhooksService {
         ...documentoListo,
         tipo_formulario: tipoFormularioReal
       });
-      await nuevaEstadistica.save();
-      nuevasGuardadas++;
+      try {
+        await nuevaEstadistica.save();
+        nuevasGuardadas++;
+      } catch (error: unknown) {
+        
+        if (error instanceof mongo.MongoServerError && error.code === 11000) {
+          console.warn(`Aviso: Intento de guardar respuesta duplicada evitado (${idRespuestaGoogle})`);
+        } else {
+          throw error;
+        }
+      }
     }
 
     console.log(`\n¡ÉXITO! Se guardaron ${nuevasGuardadas} respuestas nuevas para: ${procesoAsociado.nombre_proceso}\n`);
