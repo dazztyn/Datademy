@@ -2,13 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { MapaPregunta } from './interfaces/mapa-pregunta.interface'; 
 import { GoogleFormDiseno } from './interfaces/diseno-google.interface';
 import { GoogleFormRespuesta, AnswerItem } from './interfaces/respuesta-google.interface'; 
-import { PaginaConstructo } from './interfaces/pagina-constructo.interface';
 import { Estadistica } from './schemas/estadisticas.schema';
 import { PreguntaAplanada } from './interfaces/pregunta-aplanada.interface';
 import { PaginaTemp } from './interfaces/pagina-temp.interface';
 import { ResultadoCronbach } from './interfaces/resultado-cronbach.interface';
+import { PuntajesRespondente } from './interfaces/puntajes-respondente.type';
 
-type PuntajesRespondente = Record<string, number>;
 
 @Injectable()
 export class EstadisticasService {
