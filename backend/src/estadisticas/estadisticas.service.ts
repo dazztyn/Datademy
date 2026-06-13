@@ -75,13 +75,16 @@ export class EstadisticasService {
     }, {} as Record<string, MapaPregunta>);
   }
 
-  private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
-    
+  private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) 
+  {
+    const metadatosExtra = new Map<string, string>();
+
     const datos: Record<string, string | Map<string, string>> = { 
-      metadatos_adicionales: new Map<string, string>()
+      metadatos_adicionales: metadatosExtra
     };
-    this.CAMPOS_DEMOGRAFICOS.forEach(campo => datos[campo] = 'No especificado');
     
+    this.CAMPOS_DEMOGRAFICOS.forEach(campo => datos[campo] = 'No especificado');
+
     Object.keys(respuestasUsuario)
       .filter(qId => mapaPreguntas[qId]?.pagina === 1) 
       .forEach(qId => {
@@ -95,12 +98,38 @@ export class EstadisticasService {
         if (claveEncontrada) {
           datos[this.diccionarioClaves[claveEncontrada]] = valorNormalizado;
         } else {
-          datos.metadatos_adicionales.set(metadata.titulo, valorNormalizado);
+          metadatosExtra.set(metadata.titulo, valorNormalizado);
         }
       });
 
-    return datos;
+        return datos;
   }
+  // private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
+    
+  //   const datos: Record<string, any> = { 
+  //     metadatos_adicionales: new Map<string, string>()
+  //   };
+  //   this.CAMPOS_DEMOGRAFICOS.forEach(campo => datos[campo] = 'No especificado');
+    
+  //   Object.keys(respuestasUsuario)
+  //     .filter(qId => mapaPreguntas[qId]?.pagina === 1) 
+  //     .forEach(qId => {
+  //       const metadata = mapaPreguntas[qId];
+  //       const valorCrudo = respuestasUsuario[qId].textAnswers?.answers?.[0]?.value || 'Sin respuesta';
+  //       const valorNormalizado = this.normalizarTexto(valorCrudo);
+  //       const tituloLimpio = metadata.titulo.toLowerCase();
+
+  //       const claveEncontrada = this.clavesOrdenadas.find(clave => tituloLimpio.includes(clave));
+
+  //       if (claveEncontrada) {
+  //         datos[this.diccionarioClaves[claveEncontrada]] = valorNormalizado;
+  //       } else {
+  //         datos.metadatos_adicionales.set(metadata.titulo, valorNormalizado);
+  //       }
+  //     });
+
+  //   return datos;
+  // }
 
   private procesarConstructos(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
     
