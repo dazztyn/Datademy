@@ -3,7 +3,7 @@ import { EstudianteEstrategia } from './estrategias/estudiante.estrategia';
 import { SocioEstrategia } from './estrategias/socio.estrategia';
 import { InjectModel } from '@nestjs/mongoose';
 import { Proceso, ProcesoDocument } from './schemas/proceso.schema';
-import { Model } from 'mongoose';
+import { Model, ClientSession } from 'mongoose';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
 import { Plantilla, PlantillaDocument } from './schemas/plantilla.schema';
@@ -180,9 +180,9 @@ export class FormulariosService {
     return proceso;
   }
 
-  async eliminarProcesoDeBD(usuario_id: string, id: string) 
+  async eliminarProcesoDeBD(usuario_id: string, id: string, session?: ClientSession) 
   {
-    await this.procesoModelo.findOneAndDelete({ _id: id, usuario_id }).exec();
+    await this.procesoModelo.findOneAndDelete({ _id: id, usuario_id }, { session }).exec();
     return { estado: 'exito', mensaje: 'Registro eliminado de la base de datos.' };
   }
 
