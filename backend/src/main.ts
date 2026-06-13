@@ -3,7 +3,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
-import * as express from 'express';
 
 
 async function bootstrap() {
@@ -13,10 +12,6 @@ async function bootstrap() {
   const frontendUrl = configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
 
   app.use(cookieParser());
-
-  app.use(express.json({ limit: '2mb' }));
-  app.use(express.urlencoded({ limit: '2mb', extended: true }));
-
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true, 
@@ -24,7 +19,7 @@ async function bootstrap() {
   app.enableCors({
   origin: frontendUrl,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  methods: ['GET', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
 })
   await app.listen(process.env.PORT ?? 3000);
 }

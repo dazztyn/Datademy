@@ -17,7 +17,10 @@ import { ReportesModule } from './reportes/reportes.module';
     MongooseModule.forRoot(process.env.MONGODB_URI!),
     UsuariosModule, 
     FormulariosModule, 
-    GoogleModule, AuthModule, EstadisticasModule, ReportesModule
+    GoogleModule, 
+    AuthModule, 
+    EstadisticasModule, 
+    ReportesModule
   ],
   controllers: [AppController],
   providers: [AppService],
