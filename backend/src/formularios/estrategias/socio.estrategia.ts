@@ -4,7 +4,7 @@ import { IProcesadorFormulario } from './formulario.estrategia.interface';
 @Injectable()
 export class SocioEstrategia implements IProcesadorFormulario {
   
-  procesarFormulario(datos: any): string 
+  procesarFormulario(datos: Record<string, string>): string 
   {
     return `Formulario de SOCIO COMUNITARIO procesado correctamente: ${datos.organizacion}`;
   }

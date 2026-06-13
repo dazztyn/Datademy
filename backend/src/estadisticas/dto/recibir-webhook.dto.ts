@@ -17,7 +17,7 @@ export class PubSubMessageDto
 
   @IsOptional()
   @IsObject()
-  attributes?: any;
+  attributes?: Record<string, string>;
   
 }
 
