@@ -2,13 +2,16 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { FormulariosService } from '../formularios.service';
 import { GoogleService } from 'src/google/google.service';
+import { InjectConnection } from '@nestjs/mongoose'; 
+import { Connection } from 'mongoose';
 
 
 @Injectable()
 export class FormulariosOrquestadorService {
   constructor(
     private readonly formulariosService: FormulariosService,
-    private readonly googleService: GoogleService
+    private readonly googleService: GoogleService,
+    @InjectConnection() private readonly connection: Connection
   ) {}
 
   async crearYVincularFormulario(
@@ -61,9 +64,6 @@ export class FormulariosOrquestadorService {
     };
   }
 
-  /**
-   * Obtiene archivos de Google Drive y le dice al servicio de formularios que los guarde en caché.
-   */
   async sincronizarCarpetaPlantillas(usuario_id: string, idCarpeta: string) 
   {
     try 
@@ -83,9 +83,6 @@ export class FormulariosOrquestadorService {
     }
   }
 
-  /**
-   * Orquesta la eliminación completa: Borra archivos de Drive y luego el registro en MongoDB.
-   */
   async eliminarProcesoCompleto(usuario_id: string, idProceso: string) 
   {
     const proceso = await this.formulariosService.obtenerProcesoInterno(usuario_id, idProceso);
@@ -108,10 +105,6 @@ export class FormulariosOrquestadorService {
     };
   }
   
-  /**
-   * Vincula un formulario que el usuario ya tenía publicado en su Google Drive,
-   * sin necesidad de clonar una plantilla.
-   */
   async vincularFormularioExistente(
     usuario_id: string,
     idProceso: string,
@@ -119,23 +112,16 @@ export class FormulariosOrquestadorService {
     tipoFormulario: 'socios' | 'estudiantes'
   ) {
     try {
-      // 1. Obtenemos el diseño para extraer el título real que le puso el profesor
       const diseno = await this.googleService.obtenerDisenoFormulario(idFormularioExistente);
       const nombreFormulario = diseno.info?.title || 'Formulario Importado';
-
-      // 2. Encendemos el Webhook de Datademy en ese formulario viejo
       await this.googleService.activarVigilanciaRespuestas(idFormularioExistente);
-
-      // 3. Reconstruimos las URLs estándar de Google
       const urlEdicion = `https://docs.google.com/forms/d/${idFormularioExistente}/edit`;
       const urlRespuesta = `https://docs.google.com/forms/d/${idFormularioExistente}/viewform`;
-
-      // 4. Actualizamos el registro en MongoDB
       const campoBase = `formulario_${tipoFormulario}`;
       const datosAActualizar = {
         [`${campoBase}.id_google_form`]: idFormularioExistente,
         [`${campoBase}.nombre_formulario`]: nombreFormulario,
-        [`${campoBase}.id_carpeta_drive`]: 'importado_externamente', // Como no lo creamos, marcamos el origen
+        [`${campoBase}.id_carpeta_drive`]: 'importado_externamente', 
         [`${campoBase}.url_edicion`]: urlEdicion,
         [`${campoBase}.url_respuesta`]: urlRespuesta
       };

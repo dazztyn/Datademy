@@ -28,6 +28,7 @@
     "@nestjs/mongoose": "^11.0.4",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/throttler": "^6.5.0",
     "@types/mongodb": "^4.0.6",
     "chart.js": "^4.5.1",
     "class-transformer": "^0.5.1",
