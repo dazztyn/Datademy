@@ -3,6 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
+import type { RequestConPerfilGoogle } from './interfaces/request-con-perfil-google.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -18,7 +19,7 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res: Response) 
+  async googleAuthRedirect(@Req() req: RequestConPerfilGoogle, @Res() res: Response) 
   {
     const resultadoLogin = await this.authService.validarUsuarioGoogle(req.user);
 
