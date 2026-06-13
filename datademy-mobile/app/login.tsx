@@ -28,7 +28,7 @@ export default function LoginScreen() {
 
       console.log("Token de Google nativo obtenido, enviando a NestJS...");
       
-      const rutaInicio: Href = '/index';
+      const rutaInicio = '/' as any;;
       
       await guardarTokens('simulacion_jwt_123', tokens.accessToken);
       router.replace(rutaInicio);
@@ -96,7 +96,7 @@ export default function LoginScreen() {
         {/* BOTÓN DE BYPASS PARA DESARROLLO */}
         <TouchableOpacity
           onPress={() => {
-            const rutaInicio: Href = '/index';
+            const rutaInicio = '/' as any;
             guardarTokens("token_de_prueba_jwt_123","token_de_prueba_google_abc");
             router.replace(rutaInicio);
           }}
