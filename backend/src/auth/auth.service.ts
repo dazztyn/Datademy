@@ -47,6 +47,8 @@ export class AuthService {
     };
     
     const jwt = this.jwtService.sign(payload);
+    
+    console.log(jwt);
 
     return {
       usuario: {
