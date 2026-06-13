@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsuariosModule } from './usuarios/usuarios.module';
@@ -9,6 +9,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { EstadisticasModule } from './estadisticas/estadisticas.module';
 import { ReportesModule } from './reportes/reportes.module';
+import * as express from 'express';
 
 @Module({
   imports: 
@@ -25,4 +26,17 @@ import { ReportesModule } from './reportes/reportes.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule 
+{
+  configure(consumer: MiddlewareConsumer) 
+  {
+    consumer
+      .apply(express.json({ limit: '50mb' }), express.urlencoded({ limit: '50mb', extended: true }))
+      .forRoutes('reportes/generar');
+
+    consumer
+      .apply(express.json({ limit: '2mb' }), express.urlencoded({ limit: '2mb', extended: true }))
+      .exclude('reportes/generar') 
+      .forRoutes('*'); 
+  }
+}
