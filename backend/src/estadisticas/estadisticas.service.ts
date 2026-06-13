@@ -3,6 +3,11 @@ import { MapaPregunta } from './interfaces/mapa-pregunta.interface';
 import { GoogleFormDiseno } from './interfaces/diseno-google.interface';
 import { GoogleFormRespuesta, AnswerItem } from './interfaces/respuesta-google.interface'; 
 import { PaginaConstructo } from './interfaces/pagina-constructo.interface';
+import { Estadistica } from './schemas/estadisticas.schema';
+import { PreguntaAplanada } from './interfaces/pregunta-aplanada.interface';
+import { PaginaTemp } from './interfaces/pagina-temp.interface';
+
+type PuntajesRespondente = Record<string, number>;
 
 @Injectable()
 export class EstadisticasService {
@@ -114,7 +119,7 @@ export class EstadisticasService {
         return acc;
       }, {} as Record<number, any>);
 
-    return Object.values(paginas).map((p: any) => ({
+    return Object.values(paginas).map(p => ({
       numero_pagina: p.numero_pagina,
       preguntas_pagina: p.preguntas
         .sort((a: any, b: any) => a.orden - b.orden) 
@@ -122,12 +127,12 @@ export class EstadisticasService {
     }));
   }
 
-  formatearParaFrontend(estadisticasBD: any[]) {
+  formatearParaFrontend(estadisticasBD: Estadistica[]) {
     return estadisticasBD.map(est => {
       const { id_respuesta_google, fecha_respuesta, datos_respondente, constructos_paginas } = est;
 
-      const preguntasAplanadas = (constructos_paginas || []).reduce((acc: any, pagina: any) => {
-        (pagina.preguntas_pagina || []).forEach((preg: any) => {
+      const preguntasAplanadas = (constructos_paginas || []).reduce((acc: Record<string, number>, pagina) => {
+        (pagina.preguntas_pagina || []).forEach((preg) => {
           acc[preg.pregunta] = preg.valor_numerico;
         });
         return acc;
@@ -150,7 +155,7 @@ export class EstadisticasService {
     });
   }
 
-  calcularMetricasAnaliticas(estadisticasBD: any[], nombresConstructos: string[], totalEsperados: number, paginaFiltro?: number) {
+  calcularMetricasAnaliticas(estadisticasBD: Partial<Estadistica>[], nombresConstructos: string[], totalEsperados: number, paginaFiltro?: number) {
     if (!estadisticasBD || estadisticasBD.length === 0) {
       return this.generarMetricasVacias(totalEsperados);
     }
@@ -212,10 +217,10 @@ export class EstadisticasService {
     };
   }
 
-  private extraerPreguntasConPagina(estadisticasBD: any[]) {
+  private extraerPreguntasConPagina(estadisticasBD: Partial<Estadistica>[]) {
     return estadisticasBD.flatMap(est => 
-      (est.constructos_paginas || []).flatMap((pagina: any) => 
-        (pagina.preguntas_pagina || []).map((preg: any) => ({
+      (est.constructos_paginas || []).flatMap((pagina) => 
+        (pagina.preguntas_pagina || []).map((preg) => ({
           ...preg,
           numero_pagina: pagina.numero_pagina
         }))
@@ -223,7 +228,7 @@ export class EstadisticasService {
     );
   }
 
-  private calcularDistribucionGenero(estadisticasBD: any[]) {
+  private calcularDistribucionGenero(estadisticasBD: Partial<Estadistica>[]) {
     return estadisticasBD.reduce((acc, est) => {
       const genero = est.datos_respondente?.genero || 'No especificado';
       acc[genero] = (acc[genero] || 0) + 1;
@@ -232,7 +237,7 @@ export class EstadisticasService {
   }
 
   private calcularPromediosPorPagina(preguntasConPagina: any[], nombresConstructos: string[]) {
-    const acumulador = preguntasConPagina.reduce((acc: any, preg: any) => {
+    const acumulador = preguntasConPagina.reduce((acc: Record<number, Record<string, { suma: number; cantidad: number }>>, preg) => {
       const pNum = preg.numero_pagina;
       
       if (!acc[pNum]) acc[pNum] = {};
@@ -244,9 +249,9 @@ export class EstadisticasService {
     }, {});
 
     return Object.entries(acumulador)
-      .map(([pNum, preguntasData]: [string, any]) => {
+      .map(([pNum, preguntasData]) => {
 
-        const preguntas = Object.entries(preguntasData).reduce((pAcc: any, [textoPregunta, datos]: [string, any]) => {
+        const preguntas = Object.entries(preguntasData).reduce((pAcc: any, [textoPregunta, datos]) => {
           pAcc[textoPregunta] = Number((datos.suma / datos.cantidad).toFixed(1));
           return pAcc;
         }, {});
@@ -266,7 +271,7 @@ export class EstadisticasService {
       .sort((a, b) => a.numero_pagina - b.numero_pagina); 
   }
 
-  private calcularSatisfaccionGeneral(preguntasConPagina: any[]) {
+  private calcularSatisfaccionGeneral(preguntasConPagina: PreguntaAplanada[]) {
     const preguntasSatisfaccion = preguntasConPagina.filter(preg => 
       preg.pregunta.toLowerCase().includes('satisfacción general') || 
       preg.pregunta.toLowerCase().includes('satisfaccion general')
@@ -278,9 +283,9 @@ export class EstadisticasService {
     return Number((suma / preguntasSatisfaccion.length).toFixed(1));
   }
 
-  private calcularFiabilidadCronbach(estadisticasBD: any[], ultimaPagina: number, nombresConstructos: string[], paginaFiltro?: number) {
+  private calcularFiabilidadCronbach(estadisticasBD: Partial<Estadistica>[], ultimaPagina: number, nombresConstructos: string[], paginaFiltro?: number) {
     const resultados: any[] = [];
-    const paginasMap = new Map<number, any[]>(); 
+    const paginasMap = new Map<number, PuntajesRespondente[]>(); 
 
     estadisticasBD.forEach(est => {
       (est.constructos_paginas || []).forEach((pagina: any) => {
@@ -327,7 +332,7 @@ export class EstadisticasService {
     return resultados.sort((a, b) => a.numero_pagina - b.numero_pagina);
   }
 
-  private procesarFormulaCronbach(respondentes: any[], preguntas: string[]): number {
+  private procesarFormulaCronbach(respondentes: PuntajesRespondente[], preguntas: string[]): number {
     const k = preguntas.length;
     if (k < 2) return 0;
 
