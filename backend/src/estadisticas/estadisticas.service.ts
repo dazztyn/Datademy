@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { MapaPregunta } from './interfaces/mapa-pregunta.interface'; 
 import { GoogleFormDiseno } from './interfaces/diseno-google.interface';
 import { GoogleFormRespuesta, AnswerItem } from './interfaces/respuesta-google.interface'; 
-import { PaginaConstructo } from './interfaces/pagina-constructo.interface';
 import { Estadistica } from './schemas/estadisticas.schema';
 import { PreguntaAplanada } from './interfaces/pregunta-aplanada.interface';
 import { PaginaTemp } from './interfaces/pagina-temp.interface';
+import { ResultadoCronbach } from './interfaces/resultado-cronbach.interface';
+import { PuntajesRespondente } from './interfaces/puntajes-respondente.type';
 
-type PuntajesRespondente = Record<string, number>;
 
 @Injectable()
 export class EstadisticasService {
@@ -74,13 +74,16 @@ export class EstadisticasService {
     }, {} as Record<string, MapaPregunta>);
   }
 
-  private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
-    
-    const datos: Record<string, any> = { 
-      metadatos_adicionales: new Map<string, string>()
+  private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) 
+  {
+    const metadatosExtra = new Map<string, string>();
+
+    const datos: Record<string, string | Map<string, string>> = { 
+      metadatos_adicionales: metadatosExtra
     };
-    this.CAMPOS_DEMOGRAFICOS.forEach(campo => datos[campo] = 'No especificado');
     
+    this.CAMPOS_DEMOGRAFICOS.forEach(campo => datos[campo] = 'No especificado');
+
     Object.keys(respuestasUsuario)
       .filter(qId => mapaPreguntas[qId]?.pagina === 1) 
       .forEach(qId => {
@@ -94,18 +97,44 @@ export class EstadisticasService {
         if (claveEncontrada) {
           datos[this.diccionarioClaves[claveEncontrada]] = valorNormalizado;
         } else {
-          datos.metadatos_adicionales.set(metadata.titulo, valorNormalizado);
+          metadatosExtra.set(metadata.titulo, valorNormalizado);
         }
       });
 
-    return datos;
+        return datos;
   }
+  // private extraerDatosPersonales(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
+    
+  //   const datos: Record<string, any> = { 
+  //     metadatos_adicionales: new Map<string, string>()
+  //   };
+  //   this.CAMPOS_DEMOGRAFICOS.forEach(campo => datos[campo] = 'No especificado');
+    
+  //   Object.keys(respuestasUsuario)
+  //     .filter(qId => mapaPreguntas[qId]?.pagina === 1) 
+  //     .forEach(qId => {
+  //       const metadata = mapaPreguntas[qId];
+  //       const valorCrudo = respuestasUsuario[qId].textAnswers?.answers?.[0]?.value || 'Sin respuesta';
+  //       const valorNormalizado = this.normalizarTexto(valorCrudo);
+  //       const tituloLimpio = metadata.titulo.toLowerCase();
+
+  //       const claveEncontrada = this.clavesOrdenadas.find(clave => tituloLimpio.includes(clave));
+
+  //       if (claveEncontrada) {
+  //         datos[this.diccionarioClaves[claveEncontrada]] = valorNormalizado;
+  //       } else {
+  //         datos.metadatos_adicionales.set(metadata.titulo, valorNormalizado);
+  //       }
+  //     });
+
+  //   return datos;
+  // }
 
   private procesarConstructos(respuestasUsuario: Record<string, AnswerItem>, mapaPreguntas: Record<string, MapaPregunta>) {
     
     const paginas = Object.keys(respuestasUsuario)
       .filter(qId => mapaPreguntas[qId]?.pagina > 1)
-      .reduce((acc, qId) => {
+      .reduce<Record<number, PaginaTemp>>((acc, qId) => {
         const metadata = mapaPreguntas[qId];
         const valor = respuestasUsuario[qId].textAnswers?.answers?.[0]?.value || 'Sin respuesta';
         const puntaje = metadata.opciones.indexOf(valor) + 1;
@@ -117,13 +146,13 @@ export class EstadisticasService {
         });
 
         return acc;
-      }, {} as Record<number, any>);
+      }, {});
 
     return Object.values(paginas).map(p => ({
       numero_pagina: p.numero_pagina,
       preguntas_pagina: p.preguntas
-        .sort((a: any, b: any) => a.orden - b.orden) 
-        .map(({ orden, ...preguntaLimpia }: any) => preguntaLimpia)
+        .sort((a, b) => a.orden - b.orden) 
+        .map(({ orden, ...preguntaLimpia }) => preguntaLimpia)
     }));
   }
 
@@ -236,7 +265,7 @@ export class EstadisticasService {
     }, {} as Record<string, number>);
   }
 
-  private calcularPromediosPorPagina(preguntasConPagina: any[], nombresConstructos: string[]) {
+  private calcularPromediosPorPagina(preguntasConPagina: PreguntaAplanada[], nombresConstructos: string[]) {
     const acumulador = preguntasConPagina.reduce((acc: Record<number, Record<string, { suma: number; cantidad: number }>>, preg) => {
       const pNum = preg.numero_pagina;
       
@@ -251,7 +280,7 @@ export class EstadisticasService {
     return Object.entries(acumulador)
       .map(([pNum, preguntasData]) => {
 
-        const preguntas = Object.entries(preguntasData).reduce((pAcc: any, [textoPregunta, datos]) => {
+        const preguntas = Object.entries(preguntasData).reduce((pAcc: Record<string, number>, [textoPregunta, datos]) => {
           pAcc[textoPregunta] = Number((datos.suma / datos.cantidad).toFixed(1));
           return pAcc;
         }, {});
@@ -284,7 +313,7 @@ export class EstadisticasService {
   }
 
   private calcularFiabilidadCronbach(estadisticasBD: Partial<Estadistica>[], ultimaPagina: number, nombresConstructos: string[], paginaFiltro?: number) {
-    const resultados: any[] = [];
+    const resultados: ResultadoCronbach[] = [];
     const paginasMap = new Map<number, PuntajesRespondente[]>(); 
 
     estadisticasBD.forEach(est => {
