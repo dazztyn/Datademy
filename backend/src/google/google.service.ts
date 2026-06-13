@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { google } from 'googleapis';
+import { google, forms_v1 } from 'googleapis';
 import { ArchivoGoogleDrive } from './interfaces/archivo-google.interface';
 
 @Injectable()
@@ -102,7 +102,7 @@ export class GoogleService
         formId: idFormulario,
       });
 
-      return respuesta.data.responses || [];
+      return (respuesta.data.responses as forms_v1.Schema$FormResponse[]) || [];
     } catch (error) {
       console.error('Error al obtener las respuestas de Google Forms:', error);
       throw new Error('No se pudieron recuperar las respuestas desde Google.');
@@ -131,7 +131,7 @@ export class GoogleService
       });
 
       console.log(`Vigilancia activada para el formulario: ${idFormulario}`);
-      return respuesta.data;
+      return respuesta.data as forms_v1.Schema$Watch;;
     } catch (error) {
       console.error('Error al activar el Watch en Google Forms:', error);
       throw new Error('No se pudo vincular el formulario con Pub/Sub.');
