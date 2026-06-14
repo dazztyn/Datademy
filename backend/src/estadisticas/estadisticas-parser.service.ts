@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MAPEO_DEMOGRAFICO, CAMPOS_BASE } from './config/demograficos.config';
+import { CAMPOS_BASE, ALIAS_ORDENADOS } from './config/demograficos.config';
 import { GoogleFormDiseno } from './interfaces/diseno-google.interface';
 import { GoogleFormRespuesta, AnswerItem } from './interfaces/respuesta-google.interface';
 import { MapaPregunta } from './interfaces/mapa-pregunta.interface';
@@ -47,16 +47,10 @@ export class EstadisticasParserService {
         const valorNormalizado = this.normalizarTexto(valorCrudo);
         const tituloLimpio = metadata.titulo.toLowerCase();
 
-        let campoEncontrado;
-        for (const [campoInterno, aliasArray] of Object.entries(MAPEO_DEMOGRAFICO)) {
-          if (aliasArray.some(alias => tituloLimpio.includes(alias))) {
-            campoEncontrado = campoInterno;
-            break;
-          }
-        }
+        const coincidencia = ALIAS_ORDENADOS.find(item => tituloLimpio.includes(item.alias));
 
-        if (campoEncontrado) {
-          datos[campoEncontrado] = valorNormalizado;
+        if (coincidencia) {
+          datos[coincidencia.clave] = valorNormalizado;
         } else {
           metadatosExtra.set(metadata.titulo, valorNormalizado);
         }

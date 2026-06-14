@@ -9,3 +9,7 @@ export const MAPEO_DEMOGRAFICO: Record<string, string[]> = {
 };
 
 export const CAMPOS_BASE = Object.keys(MAPEO_DEMOGRAFICO);
+
+export const ALIAS_ORDENADOS = Object.entries(MAPEO_DEMOGRAFICO)
+  .flatMap(([clave, aliasArray]) => aliasArray.map(alias => ({ clave, alias })))
+  .sort((a, b) => b.alias.length - a.alias.length);

@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { EstadisticasService } from './estadisticas.service';
+import { Model} from 'mongoose';
 import { EstadisticaDocument } from './schemas/estadisticas.schema';
 import { FormulariosService } from 'src/formularios/formularios.service';
+import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service';
+import { EstadisticasFormatterService } from './estadisticas-formatter.service';
 
 @Injectable()
 export class EstadisticasConsultasService {
@@ -17,7 +18,8 @@ export class EstadisticasConsultasService {
   };
 
   constructor(
-    private readonly estadisticasService: EstadisticasService,
+    private readonly analiticasService: EstadisticasAnaliticasService,
+    private readonly formatterService: EstadisticasFormatterService,
     @InjectModel('Estadistica') private readonly estadisticaModelo: Model<EstadisticaDocument>,
     private readonly formulariosService: FormulariosService
   ) {}
@@ -43,7 +45,7 @@ export class EstadisticasConsultasService {
     return {
       estado: 'exito',
       total_respuestas: estadisticas.length,
-      datos: this.estadisticasService.formatearParaFrontend(estadisticas)
+      datos: this.formatterService.formatearParaFrontend(estadisticas)
     };
   }
 
@@ -73,7 +75,7 @@ export class EstadisticasConsultasService {
 
     return {
       status: 'exito',
-      metricas: this.estadisticasService.calcularMetricasAnaliticas(estadisticas, nombresConstructos, totalEsperados, paginaFiltro)
+      metricas: this.analiticasService.calcularMetricasAnaliticas(estadisticas, nombresConstructos, totalEsperados, paginaFiltro)
     };
   }
 
@@ -146,7 +148,7 @@ export class EstadisticasConsultasService {
     .lean()
     .exec();
 
-    const metricas = this.estadisticasService.calcularMetricasAnaliticas(estadisticas, nombresConstructos, totalEsperados);
+    const metricas = this.analiticasService.calcularMetricasAnaliticas(estadisticas, nombresConstructos, totalEsperados);
 
     return {
       id_proceso: proceso._id.toString(),

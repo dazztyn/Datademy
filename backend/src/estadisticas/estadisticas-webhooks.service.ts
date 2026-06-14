@@ -2,15 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, mongo } from 'mongoose';
 import { GoogleService } from '../google/google.service';
-import { EstadisticasService } from './estadisticas.service';
 import { EstadisticaDocument } from './schemas/estadisticas.schema';
 import { FormulariosService } from 'src/formularios/formularios.service';
+import { EstadisticasParserService } from './estadisticas-parser.service';
 
 @Injectable()
 export class EstadisticasWebhooksService {
   constructor(
     private readonly googleService: GoogleService,
-    private readonly estadisticasService: EstadisticasService,
+    private readonly parserService: EstadisticasParserService,
     @InjectModel('Estadistica') private readonly estadisticaModelo: Model<EstadisticaDocument>,
     private readonly formulariosService: FormulariosService
   ) {}
@@ -35,7 +35,7 @@ export class EstadisticasWebhooksService {
       const existe = await this.estadisticaModelo.exists({ id_respuesta_google: idRespuestaGoogle });
       if (existe) continue; 
 
-      const documentoListo = this.estadisticasService.procesarEncuesta(
+      const documentoListo = this.parserService.procesarEncuesta(
         diseno, 
         respuestaCruda, 
         idRespuestaGoogle, 
