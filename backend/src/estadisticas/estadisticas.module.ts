@@ -8,6 +8,7 @@ import { EstadisticasWebhooksService } from './estadisticas-webhooks.service';
 import { EstadisticasConsultasService } from './estadisticas-consultas.service';
 import { EstadisticasSeederService } from './estadisticas-seeder.service';
 import { FormulariosModule } from 'src/formularios/formularios.module';
+import { EstadisticasMathService } from './estadisticas-math.service';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { FormulariosModule } from 'src/formularios/formularios.module';
     EstadisticasService,
     EstadisticasWebhooksService,
     EstadisticasConsultasService,
-    EstadisticasSeederService
+    EstadisticasSeederService,
+    EstadisticasMathService
   ],
   exports: [
     EstadisticasService,

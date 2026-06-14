@@ -1,6 +1,4 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { EstudianteEstrategia } from './estrategias/estudiante.estrategia';
-import { SocioEstrategia } from './estrategias/socio.estrategia';
 import { InjectModel } from '@nestjs/mongoose';
 import { Proceso, ProcesoDocument } from './schemas/proceso.schema';
 import { Model, ClientSession, UpdateQuery } from 'mongoose';
@@ -14,8 +12,6 @@ import { FiltroPlantillas } from './interfaces/FiltroPlantillas';
 @Injectable()
 export class FormulariosService {
   constructor(
-    // private readonly estudianteEstrategia: EstudianteEstrategia,
-    // private readonly socioEstrategia: SocioEstrategia,
     @InjectModel(Proceso.name) private procesoModelo: Model<ProcesoDocument>,
     @InjectModel(Plantilla.name) private plantillaModelo: Model<PlantillaDocument>,
     @InjectModel(Configuracion.name) private configuracionModelo: Model<ConfiguracionDocument>,
@@ -51,18 +47,6 @@ export class FormulariosService {
       throw new Error('Hubo un problema al intentar leer la base de datos.');
     }
   }
-
-  // ejecutarProcesamiento(tipo: string, datos: Record<string, string | number | boolean>) {
-  //   if (tipo === 'estudiante') {
-  //     return this.estudianteEstrategia.procesarFormulario(datos as Record<string, string>);
-  //   } 
-    
-  //   if (tipo === 'socio') {
-  //     return this.socioEstrategia.procesarFormulario(datos as Record<string, string>);
-  //   }
-
-  //   throw new BadRequestException('Tipo de formulario no válido. Use "estudiante" o "socio".');
-  // }
   
   async actualizar(usuario_id: string, id: string, datos: ActualizarProcesoDto | UpdateQuery<ProcesoDocument>) {
     try 
