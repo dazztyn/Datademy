@@ -83,37 +83,21 @@ export class FormulariosOrquestadorService {
     }
   }
 
-  async eliminarProcesoCompleto(usuario_id: string, idProceso: string) {
-    const session = await this.connection.startSession();
-    session.startTransaction();
-
-    try {
-      const proceso = await this.formulariosService.obtenerProcesoInterno(usuario_id, idProceso);
-
-      await this.formulariosService.eliminarProcesoDeBD(usuario_id, idProceso, session);
-
-      if (proceso.formulario_socios?.id_google_form) {
-        await this.googleService.enviarArchivoAPapelera(proceso.formulario_socios.id_google_form);
+  async eliminarProcesoCompleto(usuario_id: string, idProceso: string) 
+  {
+    await this.formulariosService.actualizar(
+      usuario_id, 
+      idProceso, 
+      { 
+        estado: 'borrado_pendiente' 
       }
-      
-      if (proceso.formulario_estudiantes?.id_google_form) {
-        await this.googleService.enviarArchivoAPapelera(proceso.formulario_estudiantes.id_google_form);
-      }
+    );
 
-      await session.commitTransaction();
-
-      return {
-        estado: 'exito',
-        idProcesoEliminado: idProceso
-      };
-
-    } catch (error) {
-      await session.abortTransaction();
-      console.error('Error crítico al eliminar proceso. Transacción abortada:', error);
-      throw new InternalServerErrorException('No se pudo completar la eliminación. Los datos en base de datos fueron protegidos.');
-    } finally {
-      session.endSession();
-    }
+    return {
+      estado: 'exito',
+      mensaje: 'El proceso ha sido marcado para eliminación. Se procesará en segundo plano.',
+      idProceso: idProceso
+    };
   }
   
   async vincularFormularioExistente(

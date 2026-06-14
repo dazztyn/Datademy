@@ -17,6 +17,13 @@ export class Proceso
   @Prop({ required: true })
   anio!: number;
 
+  @Prop({ 
+    type: String, 
+    enum: ['activo', 'borrado_pendiente'], 
+    default: 'activo' 
+  })
+  estado!: 'activo' | 'borrado_pendiente';
+
   @Prop({ type: Object })
   formulario_estudiantes?: {
     id_google_form: string;
