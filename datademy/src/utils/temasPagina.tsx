@@ -12,13 +12,7 @@ export const temasPagina: Record<string, TemaPagina> = {
     fondoHasta: '#7ed957',
     colorInforme: '#0097b2',
   },
-  '/detalles/alumnos': {
-    sidebar: '#6d28d9',
-    fondoDesde: '#ede9fe',
-    fondoHasta: '#c4b5fd',
-    colorInforme: '#6d28d9',
-  },
-  '/detalles/socios': {
+  '/detalles/listado': {
     sidebar: '#6d28d9',
     fondoDesde: '#ede9fe',
     fondoHasta: '#c4b5fd',
@@ -35,6 +29,12 @@ export const temasPagina: Record<string, TemaPagina> = {
     fondoDesde: '#fef9c3',
     fondoHasta: '#fde68a',
     colorInforme: '#b45309',
+  },
+  '/detalles/informe': {
+    sidebar: '#bd0d42',
+    fondoDesde: '#87cae9',
+    fondoHasta: '#a56dc2',
+    colorInforme: '#870546',
   },
 }
 

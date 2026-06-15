@@ -8,6 +8,8 @@ import iconoListar from '../assets/LIST.png'
 import iconoGraficos from '../assets/DATA.png'
 import iconoCronbach from '../assets/ALPHA.png'
 import iconoRefresh from '../assets/REFRESH.png'
+import iconoVolver from '../assets/HOME.png'
+import iconoCompletar from '../assets/CHECK.png'
 
 interface SidebarItem {
   icono: string
@@ -75,6 +77,11 @@ export default function Sidebar() {
           onClick={() => navigate('/detalles/completar')}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl bg-white/15 hover:bg-white/20 transition-colors"
         >
+          <img
+            src={iconoCompletar}
+            alt="Completar datos"
+            className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
+          />
           <span className={`text-xs font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Completar datos
           </span>
@@ -106,22 +113,41 @@ export default function Sidebar() {
 
       <div className="px-3 flex flex-col gap-2 mt-4">
         <button
-          onClick={() => navigate('/detalles/informe')}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white hover:opacity-90 transition-opacity overflow-hidden"
-        >
-          <span
-            className={`duration-300  transition-all text-xs font-semibold whitespace-nowrap overflow-hidden  ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}
-            style={{ color: temaBarra.sidebar }}
+            onClick={() => navigate('/detalles/informe')}
+            className="flex items-center justify-center gap-3 px-3 py-2.5 rounded-xl bg-white hover:opacity-90 transition-all overflow-hidden"
           >
-            Generar informe
-          </span>
-        </button>
+            <span
+              className={`text-xs font-semibold whitespace-nowrap transition-all duration-300 ${
+                open
+                  ? 'opacity-100 max-w-xs'
+                  : 'opacity-0 max-w-0'
+              }`}
+              style={{ color: temaBarra.sidebar }}
+            >
+              Generar informe
+            </span>
+
+            <span
+              className={`absolute text-lg font-bold transition-all duration-300 ${
+                open
+                  ? 'opacity-0 scale-75'
+                  : 'opacity-100 scale-100'
+              }`}
+              style={{ color: temaBarra.sidebar }}
+            >
+              π
+            </span>
+          </button>
 
         <button
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
         >
-          <span className="text-white text-base flex-shrink-0">←</span>
+          <img
+            src={iconoVolver}
+            alt="Volver al dashboard"
+            className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
+          />
           <span className={`transition-all duration-300 overflow-hidden text-xs text-white whitespace-nowrap  ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Volver
           </span>

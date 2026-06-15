@@ -37,7 +37,7 @@ export default function GenerarInforme() {
   const [mesInicio, setMesInicio] = useState('')
   const [mesFinal, setMesFinal] = useState('')
   const [anio, setAnio] = useState(String(new Date().getFullYear()))
-
+  
   const [nombreUsuario, setNombreUsuario] = useState('')
   const [ciudad, setCiudad] = useState('')
 
@@ -46,21 +46,22 @@ export default function GenerarInforme() {
   const [numSemestre, setNumSemestre] = useState('')
   const [pronombre, setPronombre] = useState<'el' | 'la'>('el')
   const [nombreDocente, setNombreDocente] = useState('')
-
+  const [carpetaConfigurada, setCarpetaConfigurada] = useState(false)
+  const [plantillaConfigurada, setPlantillaConfigurada] = useState(false)
   const [generando, setGenerando] = useState(false)
 
-  const totalEstudiantes = metricas?.total_encuestados ?? 0
-  const totalRespuestas = metricas?.total_encuestados ?? 0
-  const porcRespuestas = totalEstudiantes > 0
-    ? ((totalRespuestas / totalEstudiantes) * 100).toFixed(1)
-    : '0'
+  const totalEstudiantes = metricas?.total_esperados ?? 0
+    const totalRespuestas = metricas?.total_encuestados ?? 0
+    const porcRespuestas = metricas?.tasa_respuesta_porcentaje.toFixed(1) ?? '0'
   const { abrirPicker: abrirPickerCarpeta } = useGooglePicker({
   modo: 'carpeta',
   onSeleccionada: async (id) => {
     mostrar('Configurando carpeta destino...', 'cargando')
     try {
       await configurarReportes({ idCarpeta: id })
+      setCarpetaConfigurada(true)
       mostrar('Carpeta destino configurada', 'exito')
+      
     } catch {
       mostrar('Error al configurar carpeta', 'error')
     }
@@ -73,20 +74,21 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
     mostrar('Configurando plantilla...', 'cargando')
     try {
       await configurarReportes({ idPlantilla: id })
+      setPlantillaConfigurada(true)
       mostrar('Plantilla configurada correctamente', 'exito')
     } catch {
       mostrar('Error al configurar plantilla', 'error')
     }
   }
 })
-  const datosGenero = metricas ? {
-    labels: Object.keys(metricas.distribucion_genero),
-    datasets: [{
-      data: Object.values(metricas.distribucion_genero),
-      backgroundColor: COLORES,
-      borderWidth: 0,
-    }]
-  } : null
+    const datosGenero = metricas ? {
+      labels: metricas.distribucion_genero.map(d => d.genero),
+      datasets: [{
+        data: metricas.distribucion_genero.map(d => d.cantidad),
+        backgroundColor: COLORES,
+        borderWidth: 0,
+      }]
+    } : null
 
   const handleGenerar = async () => {
     if (!idProceso) return
@@ -180,7 +182,7 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
   )
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="space-y-6 w-full">
         <div className={seccionClass}>
   <h3 className={tituloSeccion}>Configuración del informe</h3>
   <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">
@@ -188,23 +190,36 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
   </p>
   <div className="grid grid-cols-2 gap-3">
     <button
-      onClick={abrirPickerCarpeta}
-      className="flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-colors text-left"
-    >
-      <div>
-        <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Carpeta destino</p>
-        <p className="text-xs text-slate-400">Seleccionar en Drive</p>
-      </div>
-    </button>
-    <button
-      onClick={abrirPickerPlantilla}
-      className="flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-colors text-left"
-    >
-      <div>
-        <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Plantilla del informe</p>
-        <p className="text-xs text-slate-400">Seleccionar en Drive</p>
-      </div>
-    </button>
+  onClick={abrirPickerCarpeta}
+  className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-colors text-left
+    ${carpetaConfigurada
+      ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
+      : 'border-dashed border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500'
+    }`}
+>
+  <div>
+    <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Carpeta destino</p>
+    <p className={`text-xs ${carpetaConfigurada ? 'text-green-500' : 'text-slate-400'}`}>
+      {carpetaConfigurada ? '✓ Configurada' : 'Seleccionar en Drive'}
+    </p>
+  </div>
+</button>
+
+<button
+  onClick={abrirPickerPlantilla}
+  className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-colors text-left
+    ${plantillaConfigurada
+      ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
+      : 'border-dashed border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500'
+    }`}
+>
+  <div>
+    <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Plantilla del informe</p>
+    <p className={`text-xs ${plantillaConfigurada ? 'text-green-500' : 'text-slate-400'}`}>
+      {plantillaConfigurada ? '✓ Configurada' : 'Seleccionar en Drive'}
+    </p>
+  </div>
+</button>
   </div>
 </div>
       <div className={seccionClass}>
@@ -325,12 +340,12 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
       />
     </div>
     <div className="flex gap-2 flex-wrap">
-      {Object.entries(metricas.distribucion_genero).map(([genero, count], i) => {
-        const total = Object.values(metricas.distribucion_genero).reduce((a, b) => a + b, 0)
-        const pct = ((count / total) * 100).toFixed(1)
+      {metricas.distribucion_genero.map((item, i) => {
+        const total = metricas.distribucion_genero.reduce((a, b) => a + b.cantidad, 0)
+        const pct = ((item.cantidad / total) * 100).toFixed(1)
         return (
-          <span key={genero} className="text-xs px-2 py-1 rounded-full text-white" style={{ backgroundColor: COLORES[i % COLORES.length] }}>
-            {genero}: {count} ({pct}%)
+          <span key={item.genero} className="text-xs px-2 py-1 rounded-full text-white" style={{ backgroundColor: COLORES[i % COLORES.length] }}>
+            {item.genero}: {item.cantidad} ({pct}%)
           </span>
         )
       })}
@@ -345,8 +360,12 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
 
       <button
         onClick={handleGenerar}
-        disabled={generando}
-        className="w-full py-3 rounded-xl text-white text-sm font-medium transition-all disabled:opacity-60 hover:opacity-90"
+        disabled={generando || !carpetaConfigurada || !plantillaConfigurada}
+        className="w-full py-3 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        style={(!carpetaConfigurada || !plantillaConfigurada || generando)
+          ? { background: '#94a3b8', color: 'white' }
+          : { background: `linear-gradient(to right, ${tema.fondoDesde}, ${tema.fondoHasta})`, color: 'white' }
+        }
       >
         {generando ? 'Generando...' : 'Generar informe'}
       </button>

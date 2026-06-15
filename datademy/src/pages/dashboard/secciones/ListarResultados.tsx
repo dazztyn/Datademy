@@ -5,6 +5,7 @@ import type { FiltrosResultados, Respuesta } from '../../../services/estadistico
 import ModalRespuestas from '../../../components/ModalRespuestas'
 import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
 
+
 const CAMPOS_FIJOS = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'Nombre', 'Nombre de organización']
 
 export default function ListarResultados() {
@@ -14,17 +15,11 @@ export default function ListarResultados() {
   const [respuestaSeleccionada, setRespuestaSeleccionada] = useState<Respuesta | null>(null)
   const { resultados, cargando, error } = useResultados(idProceso, filtros)
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, tipoActivo)
+
+
   useEffect(() => {
     setFiltros({ tipo: tipoActivo })
   }, [tipoActivo])
-
-  const camposFijos = (r: Respuesta) => ({
-    edad: r.edad,
-    genero: r.genero,
-    nivel_formativo: r.nivel_formativo,
-    sede: r.sede,
-    carrera: r.carrera,
-  })
 
   if (!idProceso) {
     return (
