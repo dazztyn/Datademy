@@ -20,43 +20,58 @@ export class EstadisticasWebhooksService {
     if (!procesoAsociado) throw new NotFoundException('Formulario no encontrado en el sistema');
 
     const usuarioIdReal = procesoAsociado.usuario_id;
-    const procesoIdReal = procesoAsociado._id.toString();
+    const procesoIdReal = procesoAsociado._id?.toString() || procesoAsociado.id;
     const tipoFormularioReal = procesoAsociado.formulario_estudiantes?.id_google_form === idFormulario 
       ? 'estudiantes' : 'socios';
 
     const diseno = await this.googleService.obtenerDisenoFormulario(idFormulario);
     const listaRespuestas = await this.googleService.obtenerTodasLasRespuestas(idFormulario);
 
-    let nuevasGuardadas = 0;
+    if (!listaRespuestas || listaRespuestas.length === 0) return { estado: 'exito', guardadas: 0 };
+
+    const idsRespuestasGoogle = listaRespuestas.map(r => r.responseId);
+    
+    const encuestasExistentes = await this.estadisticaModelo
+      .find({ id_respuesta_google: { $in: idsRespuestasGoogle } })
+      .select('id_respuesta_google')
+      .lean()
+      .exec();
+    
+    const setIdsExistentes = new Set(encuestasExistentes.map(e => e.id_respuesta_google));
+    
+    type NuevaEstadistica = ReturnType<typeof this.parserService.procesarEncuesta> & { tipo_formulario: string };
+    const nuevasEstadisticas: NuevaEstadistica[] = [];
 
     for (const respuestaCruda of listaRespuestas) {
-      const idRespuestaGoogle = respuestaCruda.responseId;
-
-      const existe = await this.estadisticaModelo.exists({ id_respuesta_google: idRespuestaGoogle });
-      if (existe) continue; 
+      if (setIdsExistentes.has(respuestaCruda.responseId)) continue; 
 
       const documentoListo = this.parserService.procesarEncuesta(
         diseno, 
         respuestaCruda, 
-        idRespuestaGoogle, 
+        respuestaCruda.responseId, 
         usuarioIdReal, 
         procesoIdReal
       );
 
-      const nuevaEstadistica = new this.estadisticaModelo({
+      nuevasEstadisticas.push({
         ...documentoListo,
         tipo_formulario: tipoFormularioReal
       });
-      try {
-        await nuevaEstadistica.save();
-        nuevasGuardadas++;
-      } catch (error: unknown) {
-        
-        if (error instanceof mongo.MongoServerError && error.code === 11000) {
-          console.warn(`Aviso: Intento de guardar respuesta duplicada evitado (${idRespuestaGoogle})`);
-        } else {
-          throw error;
-        }
+    }
+
+    if (nuevasEstadisticas.length === 0) return { estado: 'exito', guardadas: 0 };
+
+    let nuevasGuardadas = 0;
+    try {
+
+      const resultado = await this.estadisticaModelo.insertMany(nuevasEstadisticas, { ordered: false });
+      nuevasGuardadas = resultado.length;
+    } catch (error: unknown) {
+      if (error instanceof mongo.MongoBulkWriteError && error.code === 11000) {
+        nuevasGuardadas = error.insertedCount || 0;
+        console.warn(`Aviso de concurrencia: Se ignoraron inserciones duplicadas al procesar el Webhook.`);
+      } else {
+        throw error
       }
     }
 
@@ -66,7 +81,6 @@ export class EstadisticasWebhooksService {
 
   async sincronizarProcesoManual(procesoId: string, usuarioId: string) {
     const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
-    
     let totalGuardadas = 0;
     let mensajes: string[] = [];
 

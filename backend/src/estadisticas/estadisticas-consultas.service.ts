@@ -5,6 +5,8 @@ import { EstadisticaDocument } from './schemas/estadisticas.schema';
 import { FormulariosService } from 'src/formularios/formularios.service';
 import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service';
 import { EstadisticasFormatterService } from './estadisticas-formatter.service';
+import { ProcesoComparativa } from './interfaces/proceso-comparativo.interface';
+import { MetricaConstructo } from './interfaces/metrica-constructo.interface';
 
 @Injectable()
 export class EstadisticasConsultasService {
@@ -25,7 +27,7 @@ export class EstadisticasConsultasService {
   ) {}
 
   async obtenerResultadosTabulares(procesoId: string, usuarioId: string, filtros: Record<string, string>) {
-    const queryMongo: Record<string, any> = { proceso_id: procesoId, usuario_id: usuarioId };
+    const queryMongo: Record<string, string | number | boolean | Record<string, unknown>> = { proceso_id: procesoId, usuario_id: usuarioId };
 
     Object.entries(filtros)
       .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '') 
@@ -50,7 +52,7 @@ export class EstadisticasConsultasService {
   }
 
   async obtenerMetricasAnaliticas(procesoId: string, usuarioId: string, filtros: Record<string, string>, paginaFiltro?: number) {
-    const queryMongo: Record<string, any> = { proceso_id: procesoId, usuario_id: usuarioId };
+    const queryMongo: Record<string, string | number | boolean | Record<string, unknown>> = { proceso_id: procesoId, usuario_id: usuarioId };
     const tipoFormulario = filtros['tipo'] || 'estudiantes';
 
     Object.entries(filtros)
@@ -80,7 +82,7 @@ export class EstadisticasConsultasService {
   }
 
   async obtenerOpcionesFiltrosDisponibles(procesoId: string, usuarioId: string, tipoFormulario: string = 'estudiantes') {
-    const queryBase = { proceso_id: procesoId, usuario_id: usuarioId, tipo_formulario: tipoFormulario };
+    const queryBase: Record<string, string | number | boolean | Record<string, unknown>> = { proceso_id: procesoId, usuario_id: usuarioId, tipo_formulario: tipoFormulario };
 
     if (tipoFormulario === 'estudiantes') {
       const [carreras, sedes, generos, niveles] = await Promise.all([
@@ -158,10 +160,16 @@ export class EstadisticasConsultasService {
     };
   }
 
-  private calcularVariacionesHistoricas(comparativaOrdenada: any[]) {
+  private calcularVariacionesHistoricas(comparativaOrdenada: ProcesoComparativa[]) {
     return comparativaOrdenada.map((item, index) => {
       let variacionSatisfaccion: number | null = null; 
-      let variacionesConstructos = [];
+      
+      let variacionesConstructos: 
+      {
+        nombre_constructo: string;
+        promedio_actual: number;
+        variacion_respecto_anterior: number | null;
+      }[] = [];
 
       if (index > 0) {
         const anterior = comparativaOrdenada[index - 1].metricas;
@@ -171,9 +179,9 @@ export class EstadisticasConsultasService {
           variacionSatisfaccion = Number((actual.promedio_satisfaccion_general - anterior.promedio_satisfaccion_general).toFixed(1));
         }
 
-        variacionesConstructos = actual.promedios_por_pagina.map((constructoActual: any) => {
+        variacionesConstructos = actual.promedios_por_pagina.map((constructoActual: MetricaConstructo) => {
           const constructoAnterior = anterior.promedios_por_pagina.find(
-            (c: any) => c.nombre_constructo === constructoActual.nombre_constructo
+            (c: MetricaConstructo) => c.nombre_constructo === constructoActual.nombre_constructo
           );
 
           let variacion: number | null = null;
