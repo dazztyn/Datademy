@@ -8,14 +8,13 @@ export default function Login() {
   const { guardarTokens } = useAuth()
   const navigate = useNavigate()
 
-  useEffect(() => {
-    const token = searchParams.get('token')
-    const gToken = searchParams.get('gToken')
-    if (token && gToken) {
-      guardarTokens(token, gToken)
-      navigate('/dashboard')
-    }
-  }, [])
+useEffect(() => {
+  const gToken = searchParams.get('gToken')
+  if (gToken) {
+    guardarTokens(gToken)
+    navigate('/dashboard')
+  }
+}, [])
 
   const handleLogin = () => {
     window.location.href = import.meta.env.VITE_API_URL + '/auth/google'

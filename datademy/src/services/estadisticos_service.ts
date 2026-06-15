@@ -55,7 +55,7 @@ export async function obtenerMetricas(
   const url = `${BASE_URL}/estadisticas/${idProceso}/metricas?${params.toString()}`
   const response = await fetch(url, { 
     headers: getHeaders(),
-    credentials: 'include' 
+    credentials: 'include',
   })
   if (!response.ok) throw new Error('Error al obtener métricas')
   const data: MetricasResponse = await response.json()
@@ -65,7 +65,7 @@ export async function sincronizarManual(idProceso: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/estadisticas/${idProceso}/sincronizar-manual`, {
     method: 'POST',
     headers: getHeaders(),
-    credentials: 'include'
+    credentials: 'include',
   })
   if (!response.ok) throw new Error('Error al sincronizar')
 }
@@ -108,7 +108,7 @@ export async function obtenerResultados(
   if (filtros.nivel_formativo) params.append('nivel_formativo', filtros.nivel_formativo)
 
   const url = `${BASE_URL}/estadisticas/${idProceso}/resultados?${params.toString()}`
-  const response = await fetch(url, { headers: getHeaders(), credentials: 'include' })
+  const response = await fetch(url, { headers: getHeaders(), credentials: 'include', })
   if (!response.ok) throw new Error('Error al obtener resultados')
   return response.json()
 }
@@ -126,7 +126,7 @@ export async function obtenerFiltrosDisponibles(
 ): Promise<FiltrosDisponibles> {
   const response = await fetch(
     `${BASE_URL}/estadisticas/${idProceso}/filtros-disponibles?tipo=${tipo}`,
-    { headers: getHeaders(), credentials: 'include'}
+    { headers: getHeaders(), credentials: 'include',}
   )
   if (!response.ok) throw new Error('Error al obtener filtros')
   const data = await response.json()
