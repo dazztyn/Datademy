@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Res, Post } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
@@ -44,5 +44,27 @@ export class AuthController {
       maxAge: tiempoVida8Horas,
     });
     return res.redirect(`${urlFrontendBase}/dashboard`);
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  verificarSesion(@Req() req: any) {
+    return {
+      estado: 'exito',
+      usuario: req.user
+    };
+  }
+
+  @Post('logout')
+  cerrarSesionBackend(@Res() res: Response) {
+    const opcionesCookie = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax',
+    };
+    res.clearCookie('backendJwt', opcionesCookie);
+    res.clearCookie('googleAccessToken', opcionesCookie);
+    
+    return res.status(200).json({ estado: 'exito', mensaje: 'Sesión cerrada correctamente' });
   }
 }
