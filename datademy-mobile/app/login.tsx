@@ -28,7 +28,7 @@ export default function LoginScreen() {
 
       console.log("Token de Google nativo obtenido, enviando a NestJS...");
       
-      const rutaInicio = '/' as any;;
+      const rutaInicio = '/' as any;
       
       await guardarTokens('simulacion_jwt_123', tokens.accessToken);
       router.replace(rutaInicio);
@@ -93,20 +93,22 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
 
-        {/* BOTÓN DE BYPASS PARA DESARROLLO */}
-        <TouchableOpacity
-          onPress={() => {
-            const rutaInicio = '/' as any;
-            guardarTokens("token_de_prueba_jwt_123","token_de_prueba_google_abc");
-            router.replace(rutaInicio);
-          }}
-          activeOpacity={0.8}
-          className="w-full py-3 mt-4 rounded-xl bg-slate-700 flex-row items-center justify-center border border-slate-600"
-        >
-          <Text className="text-white text-sm font-medium">
-            Entrar como Desarrollador
-          </Text>
-        </TouchableOpacity>
+        {/* BOTÓN DE BYPASS PARA DESARROLLO 
+        
+          <TouchableOpacity
+            onPress={() => {
+              const rutaInicio = '/' as any;
+              guardarTokens("token_de_prueba_jwt_123","token_de_prueba_google_abc");
+              router.replace(rutaInicio);
+            }}
+            activeOpacity={0.8}
+            className="w-full py-3 mt-4 rounded-xl bg-slate-700 flex-row items-center justify-center border border-slate-600"
+          >
+            <Text className="text-white text-sm font-medium">
+              Entrar como Desarrollador
+            </Text>
+          </TouchableOpacity>
+        */}
         
       </View>
     </View>
