@@ -7,20 +7,54 @@ function getHeaders(): HeadersInit {
 }
 
 export interface Metricas {
+  total_esperados: number
   total_encuestados: number
-  distribucion_genero: Record<string, number>
+  tasa_respuesta_porcentaje: number
+  distribucion_genero: { genero: string; cantidad: number }[]
   promedios_por_pagina: {
     numero_pagina: number
-    promedio_constructo: number
     nombre_constructo?: string
-    preguntas: Record<string, number>
+    promedio_constructo: number
   }[]
   promedio_satisfaccion_general: number
+  detalle_por_dimension: {
+    numero_pagina: number
+    nombre_constructo: string
+    preguntas: {
+      pregunta: string
+      promedio: number
+      total_respuestas: number
+      distribucion_frecuencias: Record<string, number>
+    }[]
+  }[]
+  ranking_preguntas: {
+    top_3: { pregunta: string; promedio: number }[]
+    bottom_3: { pregunta: string; promedio: number }[]
+  }
+  nps_satisfaccion: {
+    score_nps: number
+    distribucion_porcentajes: {
+      promotores_pct: number
+      pasivos_pct: number
+      detractores_pct: number
+    }
+    cantidades_reales: {
+      promotores: number
+      pasivos: number
+      detractores: number
+      total: number
+    }
+  }
   fiabilidad_constructos: {
     numero_pagina: number
+    nombre_constructo: string
     alfa_cronbach_global: number
     alfa_si_se_elimina_pregunta: Record<string, number>
   }[]
+  satisfaccion_por_carrera: any[]
+  satisfaccion_por_sede: any[]
+  satisfaccion_por_organizacion: any[]
+  tabla_socios_comunitarios: any[]
 }
 
 export interface MetricasResponse {

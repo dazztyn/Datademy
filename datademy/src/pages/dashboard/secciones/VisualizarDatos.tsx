@@ -16,7 +16,7 @@ import type { FiltrosMetricas } from '../../../services/estadisticos_service'
 import { useTheme } from '../../../context/ThemeContext'
 import { temasPagina, temaDefault } from '../../../utils/temasPagina'
 import { useLocation } from 'react-router-dom'
-import { useCantidadPaginas } from '../../../hooks/useCantidadPaginas'
+
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
@@ -31,8 +31,8 @@ export default function Visualizar() {
   const { theme } = useTheme()
   const location = useLocation()
   const tema = temasPagina[location.pathname] ?? temaDefault
-  const { datosPaginas } = useCantidadPaginas(idProceso, tipoActivo)
-
+  const [constructoSeleccionado, setConstructoSeleccionado] = useState<number | undefined>(undefined)
+  
   const colorTexto = theme === 'dark' ? 'white' : tema.sidebar
   const colorGrid = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
   useEffect(() => {
@@ -43,14 +43,14 @@ export default function Visualizar() {
     setFiltros(prev => ({ ...prev, [campo]: valor || undefined }))
   }
 
-  const datosGenero = metricas?.distribucion_genero && Object.keys(metricas.distribucion_genero).length > 0 ? {
-    labels: Object.keys(metricas.distribucion_genero),
-    datasets: [{
-      data: Object.values(metricas.distribucion_genero),
-      backgroundColor: COLORES,
-      borderWidth: 0,
-    }]
-  } : null
+      const datosGenero = metricas ? {
+      labels: metricas.distribucion_genero.map(d => d.genero),
+      datasets: [{
+        data: metricas.distribucion_genero.map(d => d.cantidad),
+        backgroundColor: COLORES,
+        borderWidth: 0,
+      }]
+    } : null
 
   if (!idProceso) {
     return (
@@ -62,7 +62,7 @@ export default function Visualizar() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center bg-white/20 dark:bg-slate-900/40 rounded-xl p-1">
+      <div className="flex items-center bg-emerald-700 dark:bg-slate-900/40 rounded-xl p-1">
         {(['estudiantes', 'socios'] as const).map(tipo => (
           <button
             key={tipo}
@@ -142,20 +142,25 @@ export default function Visualizar() {
             </div>
           )}
           <div>
-  <label className="text-xs text-slate-400 mb-1 block">Constructo / Dimensión</label>
-  <select
-    value={filtros.pagina ?? ''}
-    onChange={e => actualizarFiltro('pagina', e.target.value ? Number(e.target.value) : undefined)}
-    className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-  >
-    <option value="">Todos los constructos</option>
-    {/* Mapeamos de forma segura la lista que nos entrega el backend */}
-    {filtrosDisponibles?.nombres_constructos?.map((constructo: { id: number; nombre: string }) => (
-      <option key={constructo.id} value={constructo.id}>
-        {constructo.nombre}
-      </option>
-    ))}
-  </select>
+
+    {filtrosDisponibles.nombres_constructos && filtrosDisponibles.nombres_constructos.length > 0 && (
+  <div>
+    <label className="text-xs text-slate-400 mb-1 block">Constructo</label>
+    <select
+      onChange={e => {
+        const val = e.target.value ? Number(e.target.value) : undefined
+        setConstructoSeleccionado(val)
+        actualizarFiltro('pagina', val)
+      }}
+      className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+    >
+      <option value="">Todos</option>
+      {filtrosDisponibles.nombres_constructos.map(c => (
+        <option key={c.id} value={c.id}>{c.nombre}</option>
+      ))}
+    </select>
+  </div>
+)}
 </div>
         </div>
       </div>
@@ -178,6 +183,12 @@ export default function Visualizar() {
                 {metricas.promedio_satisfaccion_general.toFixed(1)}
               </p>
               <p className="text-xs text-slate-400 mt-1">sobre 7.0</p>
+            </div>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+              <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Tasa de respuesta</p>
+              <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+                {metricas.tasa_respuesta_porcentaje}%
+              </p>
             </div>
             {datosGenero && Object.keys(metricas.distribucion_genero).length > 0 && (
               <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
@@ -205,94 +216,98 @@ export default function Visualizar() {
               </div>
             )}
           </div>
-{metricas?.promedios_por_pagina && metricas.promedios_por_pagina.length > 0 && metricas.promedios_por_pagina.map(constructo => {
-  // 🌟 VALIDACIÓN: Si por alguna razón el constructo o sus preguntas no existen, saltamos este renderizado
-  if (!constructo) return null;
-  const preguntas = Object.entries(constructo?.preguntas ?? {})
-            const etiquetas = preguntas.map((_, i) => `Pregunta ${i + 1}`)
-            const valores = preguntas.map(([, v]) => Number(v.toFixed(2)))
+{metricas.detalle_por_dimension
+  .filter((_, i) => i < metricas.detalle_por_dimension.length - 1)
+  .filter(c => constructoSeleccionado === undefined || c.numero_pagina === constructoSeleccionado)
+  .map(constructo => {
+  const preguntas = constructo.preguntas
+  const etiquetas = preguntas.map((_, i) => `Pregunta ${i + 1}`)
+  const valores = preguntas.map(p => Number(p.promedio.toFixed(2)))
 
-            const datosConstructo = {
-              labels: etiquetas,
-              datasets: [{
-                label: 'Promedio',
-                data: valores,
-                backgroundColor: tema.sidebar,
-                borderRadius: 6,
-              }]
+  const datosConstructo = {
+    labels: etiquetas,
+    datasets: [{
+      label: 'Promedio',
+      data: valores,
+      backgroundColor: tema.sidebar,
+      borderRadius: 6,
+    }]
+  }
+
+  const promedio_constructo = metricas.promedios_por_pagina
+    .find(p => p.numero_pagina === constructo.numero_pagina)?.promedio_constructo ?? 0
+
+  return (
+    <div
+      key={constructo.numero_pagina}
+      className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">
+          {constructo.nombre_constructo ?? `Constructo — Página ${constructo.numero_pagina}`}
+        </h3>
+        <span className="text-xs text-slate-400 dark:text-slate-500">
+          Promedio: <strong style={{ color: tema.sidebar }}>{promedio_constructo.toFixed(2)}</strong>
+        </span>
+      </div>
+
+      <div style={{ height: `${preguntas.length * 44 + 40}px` }}>
+        <Bar
+          key={`bar-${constructo.numero_pagina}-${theme}`}
+          data={datosConstructo}
+          options={{
+            indexAxis: 'y',
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                min: 0,
+                max: 4,
+                ticks: { color: colorTexto },
+                grid: { color: colorGrid },
+              },
+              y: {
+                ticks: { color: colorTexto },
+                grid: { color: colorGrid },
+              },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
+                titleColor: theme === 'dark' ? 'white' : tema.sidebar,
+                bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
+                callbacks: {
+                  title: ctx => preguntas[ctx[0].dataIndex].pregunta,
+                  label: ctx => `Promedio: ${Number(ctx.raw).toFixed(2)}`
+                }
+              },
+            },
+            animation: false,
+          }}
+          plugins={[{
+            id: `labels-${constructo.numero_pagina}`,
+            afterDatasetsDraw(chart) {
+              const { ctx } = chart
+              chart.data.datasets.forEach((_, datasetIndex) => {
+                const meta = chart.getDatasetMeta(datasetIndex)
+                meta.data.forEach((bar, index) => {
+                  const value = chart.data.datasets[datasetIndex].data[index] as number
+                  ctx.save()
+                  ctx.fillStyle = colorTexto
+                  ctx.font = 'bold 11px sans-serif'
+                  ctx.textAlign = 'left'
+                  ctx.textBaseline = 'middle'
+                  ctx.fillText(value.toFixed(2), bar.x + 6, bar.y)
+                  ctx.restore()
+                })
+              })
             }
-
-            return (
-              <div
-                key={constructo.numero_pagina}
-                className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                    {constructo.nombre_constructo ?? `Constructo — Página ${constructo.numero_pagina}`}
-                  </h3>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">
-                    Promedio: <strong style={{ color: tema.sidebar }}>{constructo.promedio_constructo.toFixed(2)}</strong>
-                  </span>
-                </div>
-
-                <div style={{ height: `${preguntas.length * 44 + 40}px` }}>
-                  <Bar
-                    key={`bar-${constructo.numero_pagina}-${theme}`}
-                    data={datosConstructo}
-                    options={{
-                      indexAxis: 'y',
-                      maintainAspectRatio: false,
-                      scales: {
-                        x: {
-                          min: 0,
-                          max: 7,
-                          ticks: { color: colorTexto },
-                          grid: { color: colorGrid },
-                        },
-                        y: {
-                          ticks: { color: colorTexto },
-                          grid: { color: colorGrid },
-                        },
-                      },
-                      plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                          backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
-                          titleColor: theme === 'dark' ? 'white' : tema.sidebar,
-                          bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
-                          callbacks: {
-                            title: ctx => Object.keys(constructo.preguntas)[ctx[0].dataIndex],
-                            label: ctx => `Promedio: ${Number(ctx.raw).toFixed(2)}`
-                          }
-                        },
-                      },
-                      animation: false,
-                    }}
-                    plugins={[{
-                      id: `labels-${constructo.numero_pagina}`,
-                      afterDatasetsDraw(chart) {
-                        const { ctx } = chart
-                        chart.data.datasets.forEach((_, datasetIndex) => {
-                          const meta = chart.getDatasetMeta(datasetIndex)
-                          meta.data.forEach((bar, index) => {
-                            const value = chart.data.datasets[datasetIndex].data[index] as number
-                            ctx.save()
-                            ctx.fillStyle = colorTexto
-                            ctx.font = 'bold 11px sans-serif'
-                            ctx.textAlign = 'left'
-                            ctx.textBaseline = 'middle'
-                            ctx.fillText(value.toFixed(2), bar.x + 6, bar.y)
-                            ctx.restore()
-                          })
-                        })
-                      }
-                    }]}
-                  />
-                </div>
-              </div>
-            )
-          })}
+          }]}
+        />
+      </div>
+    </div>
+  )
+})}
         </>
       )}
     </div>
