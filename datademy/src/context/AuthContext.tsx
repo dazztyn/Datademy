@@ -4,7 +4,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   gToken: string | null
-  guardarTokens: (gToken: string) => void 
+  guardarTokens: (gToken: string) => void
   cerrarSesion: () => void
 }
 
@@ -16,32 +16,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [gToken, setGToken] = useState<string | null>(null)
 
-  useEffect(() => {
-    const verificarSesionBackend = async () => {
-      const savedGToken = sessionStorage.getItem('gToken')
-      
-      try {
-        const response = await fetch(`${BASE_URL}/auth/me`, {
-          method: 'GET',
-          credentials: 'include',
-        })
+ useEffect(() => {
+  const recuperarTokenDeGoogle = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/auth/google-token`, {
+        method: 'GET',
+        credentials: 'include',
+      })
 
-        if (response.ok) {
+      if (response.ok) {
+        const data = await response.json()
+        
+        if (data.estado === 'exito' && data.googleAccessToken) {
+          sessionStorage.setItem('isLoggedIn', 'true')
+          sessionStorage.setItem('gToken', data.googleAccessToken)
+          
           setIsAuthenticated(true)
-          setGToken(savedGToken)
+          setGToken(data.googleAccessToken) 
         } else {
           cerrarSesion()
         }
-      } catch (error) {
-        console.error('Error verificando sesión con el servidor:', error)
+      } else {
         cerrarSesion()
-      } finally {
-        setIsLoading(false)
       }
+    } catch (error) {
+      console.error('Error al recuperar el token de Google:', error)
+      cerrarSesion()
+    } finally {
+      setIsLoading(false) 
     }
+  }
 
-    verificarSesionBackend()
-  }, [])
+  recuperarTokenDeGoogle()
+}, [])
 
   const guardarTokens = (gToken: string) => {
     sessionStorage.setItem('isLoggedIn', 'true')

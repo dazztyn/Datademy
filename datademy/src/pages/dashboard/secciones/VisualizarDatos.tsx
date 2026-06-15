@@ -16,6 +16,7 @@ import type { FiltrosMetricas } from '../../../services/estadisticos_service'
 import { useTheme } from '../../../context/ThemeContext'
 import { temasPagina, temaDefault } from '../../../utils/temasPagina'
 import { useLocation } from 'react-router-dom'
+import { useCantidadPaginas } from '../../../hooks/useCantidadPaginas'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
@@ -30,19 +31,19 @@ export default function Visualizar() {
   const { theme } = useTheme()
   const location = useLocation()
   const tema = temasPagina[location.pathname] ?? temaDefault
+  const { datosPaginas } = useCantidadPaginas(idProceso, tipoActivo)
 
   const colorTexto = theme === 'dark' ? 'white' : tema.sidebar
   const colorGrid = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-
   useEffect(() => {
     setFiltros({ tipo: tipoActivo })
   }, [tipoActivo])
-
+  
   const actualizarFiltro = (campo: keyof FiltrosMetricas, valor: any) => {
     setFiltros(prev => ({ ...prev, [campo]: valor || undefined }))
   }
 
-  const datosGenero = metricas ? {
+  const datosGenero = metricas?.distribucion_genero && Object.keys(metricas.distribucion_genero).length > 0 ? {
     labels: Object.keys(metricas.distribucion_genero),
     datasets: [{
       data: Object.values(metricas.distribucion_genero),
@@ -61,7 +62,6 @@ export default function Visualizar() {
 
   return (
     <div className="space-y-6">
-      {/* Toggle */}
       <div className="flex items-center bg-white/20 dark:bg-slate-900/40 rounded-xl p-1">
         {(['estudiantes', 'socios'] as const).map(tipo => (
           <button
@@ -105,6 +105,18 @@ export default function Visualizar() {
               </select>
             </div>
           )}
+          {tipoActivo === 'socios' && filtrosDisponibles.organizaciones && filtrosDisponibles.organizaciones.length > 0 && (
+            <div>
+              <label className="text-xs text-slate-400 mb-1 block">Organización / Empresa</label>
+              <select
+                onChange={e => actualizarFiltro('organizacion', e.target.value)}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+              >
+                <option value="">Todas</option>
+                {filtrosDisponibles.organizaciones.map(o => <option key={o}>{o}</option>)}
+              </select>
+            </div>
+          )}
           {filtrosDisponibles.generos && filtrosDisponibles.generos.length > 0 && (
             <div>
               <label className="text-xs text-slate-400 mb-1 block">Género</label>
@@ -130,16 +142,21 @@ export default function Visualizar() {
             </div>
           )}
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">Página del formulario</label>
-            <input
-              type="number"
-              min={1}
-              value={filtros.pagina ?? ''}
-              onChange={e => actualizarFiltro('pagina', e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="Ej: 2"
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
+  <label className="text-xs text-slate-400 mb-1 block">Constructo / Dimensión</label>
+  <select
+    value={filtros.pagina ?? ''}
+    onChange={e => actualizarFiltro('pagina', e.target.value ? Number(e.target.value) : undefined)}
+    className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+  >
+    <option value="">Todos los constructos</option>
+    {/* Mapeamos de forma segura la lista que nos entrega el backend */}
+    {filtrosDisponibles?.nombres_constructos?.map((constructo: { id: number; nombre: string }) => (
+      <option key={constructo.id} value={constructo.id}>
+        {constructo.nombre}
+      </option>
+    ))}
+  </select>
+</div>
         </div>
       </div>
 
@@ -188,9 +205,10 @@ export default function Visualizar() {
               </div>
             )}
           </div>
-
-          {metricas.promedios_por_pagina.length > 0 && metricas.promedios_por_pagina.map(constructo => {
-            const preguntas = Object.entries(constructo.preguntas)
+{metricas?.promedios_por_pagina && metricas.promedios_por_pagina.length > 0 && metricas.promedios_por_pagina.map(constructo => {
+  // 🌟 VALIDACIÓN: Si por alguna razón el constructo o sus preguntas no existen, saltamos este renderizado
+  if (!constructo) return null;
+  const preguntas = Object.entries(constructo?.preguntas ?? {})
             const etiquetas = preguntas.map((_, i) => `Pregunta ${i + 1}`)
             const valores = preguntas.map(([, v]) => Number(v.toFixed(2)))
 

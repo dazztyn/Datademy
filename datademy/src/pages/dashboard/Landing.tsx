@@ -11,7 +11,7 @@ import { useGooglePicker } from '../../hooks/useGooglePicker'
 import Toast from '../../components/Toast'
 import { useToast } from '../../hooks/useToast'
 import { useProceso } from '../../context/ProcesoContext'
-
+import iconoCarpeta from '../../assets/FOLDER.png'
 export default function Landing() {
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -19,7 +19,7 @@ export default function Landing() {
   const { setIdProceso } = useProceso()
   const { toast, mostrar, cerrar } = useToast()
   const { formularios, cargando, error, recargar } = useFormularios()
-  const { abrirPicker: abrirPickerPlantillas } = useGooglePicker({
+  const { abrirPicker: abrirPickerPlantillas, isReady: isReadyPlantillas } = useGooglePicker({
   onSeleccionada: async (idCarpeta) => {
     mostrar('Sincronizando plantillas...', 'cargando')
     try {
@@ -31,7 +31,7 @@ export default function Landing() {
   }
 })
 
-const { abrirPicker: abrirPickerDestino } = useGooglePicker({
+const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePicker({
   onSeleccionada: async (idCarpeta) => {
     mostrar('Configurando carpeta destino...', 'cargando')
     try {
@@ -60,31 +60,40 @@ const { abrirPicker: abrirPickerDestino } = useGooglePicker({
           </h2>
           <div className="flex items-center gap-2">
             <button
-              onClick={abrirPickerPlantillas}
-              className="text-xs flex items-center gap-1 px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity "
-              style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
-            >
-                <img
-              src="/src/assets/FOLDER.png"
-              alt="Carpeta Plantillas"
-              className="w-5 h-5 object-contain flex-shrink-0"
-              style={{ filter: 'brightness(0) invert(1)' }}
-            />
-          Carpeta Plantillas
-            </button>
-            <button
-              onClick={abrirPickerDestino}
-              className="text-xs flex items-center gap-1 px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity"
-              style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
-            >
-                <img
-              src="/src/assets/FOLDER.png"
-              alt="Carpeta Destino"
-              className="w-5 h-5 object-contain flex-shrink-0"
-              style={{ filter: 'brightness(0) invert(1)' }}
-            />
-          Carpeta Destino
-            </button>
+        onClick={abrirPickerPlantillas}
+        disabled={!isReadyPlantillas}
+        className={`text-xs flex items-center gap-1.5 px-4 py-1.5 rounded-full text-white font-medium transition-all duration-200
+          ${isReadyPlantillas 
+            ? 'hover:opacity-90 active:scale-95 cursor-pointer shadow-md' 
+            : 'opacity-40 cursor-not-allowed filter grayscale'
+          }`}
+        style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+      >
+        <img
+          src={iconoCarpeta}
+          alt="Carpeta Plantillas"
+          className="w-4 h-4 object-contain flex-shrink-0 brightness-0 invert"
+        />
+        <span>Carpeta Plantillas</span>
+      </button>
+
+      <button
+        onClick={abrirPickerDestino}
+        disabled={!isReadyDestino} 
+        className={`text-xs flex items-center gap-1.5 px-4 py-1.5 rounded-full text-white font-medium transition-all duration-200
+          ${isReadyDestino 
+            ? 'hover:opacity-90 active:scale-95 cursor-pointer shadow-md' 
+            : 'opacity-40 cursor-not-allowed filter grayscale'
+          }`}
+        style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+      >
+        <img
+          src={iconoCarpeta}
+          alt="Carpeta Destino"
+          className="w-4 h-4 object-contain flex-shrink-0 brightness-0 invert"
+        />
+        <span>Carpeta Destino</span>
+      </button>
             <button
               onClick={() => setModalAbierto(true)}
               className="text-xs px-4 py-1.5 rounded-full text-white font-medium hover:opacity-90 transition-opacity"
