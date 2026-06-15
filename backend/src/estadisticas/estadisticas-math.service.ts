@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PuntajesRespondente } from './interfaces/puntajes-respondente.type';
 import { ResultadoCronbach } from './interfaces/resultado-cronbach.interface';
-import { Estadistica } from './schemas/estadisticas.schema';
+import { Estadistica, PaginaConstructo, RespuestaPregunta } from './schemas/estadisticas.schema';
 
 @Injectable()
 export class EstadisticasMathService {
@@ -17,7 +17,7 @@ export class EstadisticasMathService {
     const paginasMap = new Map<number, PuntajesRespondente[]>(); 
 
     estadisticasBD.forEach(est => {
-      (est.constructos_paginas || []).forEach((pagina: any) => {
+      (est.constructos_paginas || []).forEach((pagina: PaginaConstructo) => {
         const pNum = pagina.numero_pagina;
         
         if (pNum === ultimaPagina) return; 
@@ -26,7 +26,7 @@ export class EstadisticasMathService {
         if (!paginasMap.has(pNum)) paginasMap.set(pNum, []);
 
         const respuestasRespondente: Record<string, number> = {};
-        (pagina.preguntas_pagina || []).forEach((preg: any) => {
+        (pagina.preguntas_pagina || []).forEach((preg: RespuestaPregunta) => {
           respuestasRespondente[preg.pregunta] = preg.valor_numerico;
         });
 

@@ -25,7 +25,7 @@ export class ReportesService {
       
       const imagenesAInsertar = await this.docsService.identificarUbicacionGraficos(nuevoDocId, graficos);
 
-      const imagenesSubidas = await this.driveService.subirImagenesEnLotes(imagenesAInsertar, 3);
+      const imagenesSubidas = await this.driveService.subirImagenesEnLotes(imagenesAInsertar, 10);
       imagenesTemporalesIds = imagenesSubidas.map(img => img.imagenDrive.id);
 
       await this.docsService.aplicarCambios(nuevoDocId, imagenesSubidas, datosTexto);
@@ -39,8 +39,7 @@ export class ReportesService {
       const err = error as Error;
       throw new InternalServerErrorException('Error al generar el informe: ' + err.message);
     } finally {
-      // 6. Drive limpia su basura
-      await this.driveService.limpiarArchivosTemporales(imagenesTemporalesIds, 5);
+      await this.driveService.limpiarArchivosTemporales(imagenesTemporalesIds, 10);
     }
   }
 }
