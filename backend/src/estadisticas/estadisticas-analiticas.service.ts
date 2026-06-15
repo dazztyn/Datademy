@@ -38,6 +38,8 @@ export class EstadisticasAnaliticasService
       satisfaccion_por_organizacion: this.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'organizacion'),
       ranking_preguntas: this.calcularTopYBottomPreguntas(estadisticasBD),
       nps_satisfaccion: this.calcularNPS(estadisticasBD, ultimaPagina),
+      detalle_por_dimension: this.calcularDetallePreguntasPorDimension(estadisticasBD, nombresConstructos),
+      tabla_socios_comunitarios: this.obtenerListaSociosComunitarios(estadisticasBD),
       
       fiabilidad_constructos: this.mathService.calcularFiabilidadCronbach(
         estadisticasBD, 
@@ -126,30 +128,40 @@ export class EstadisticasAnaliticasService
   }
 
   private calcularSatisfaccionPorAtributo(estadisticasBD: Partial<Estadistica>[], ultimaPagina: number, atributo: string) {
-    const acumulador: Record<string, { suma: number; cantidad: number }> = {};
+    const acumulador = new Map<string, { suma: number; cantidad: number }>();
 
-    estadisticasBD.forEach(est => {
+    for (const est of estadisticasBD) {
       const valorAtributo = est.datos_respondente?.[atributo];
-      if (!valorAtributo || valorAtributo === 'No especificado' || valorAtributo === 'No especificada') return;
+      if (!valorAtributo || valorAtributo === 'No especificado' || valorAtributo === 'No especificada') continue;
+      if (!est.constructos_paginas) continue;
 
-      const paginaSatisfaccion = (est.constructos_paginas || []).find(p => p.numero_pagina === ultimaPagina);
-      
-      if (paginaSatisfaccion && paginaSatisfaccion.preguntas_pagina) {
-        const preguntasValidas = paginaSatisfaccion.preguntas_pagina.filter(preg => preg.valor_numerico > 0);
-        
-        if (preguntasValidas.length > 0) {
-          const suma = preguntasValidas.reduce((sum, preg) => sum + preg.valor_numerico, 0);
-          const promedioRespondente = suma / preguntasValidas.length;
-          
-          if (!acumulador[valorAtributo]) acumulador[valorAtributo] = { suma: 0, cantidad: 0 };
-          
-          acumulador[valorAtributo].suma += promedioRespondente;
-          acumulador[valorAtributo].cantidad += 1;
+      let suma = 0;
+      let cantidad = 0;
+
+      for (const pagina of est.constructos_paginas) {
+        if (pagina.numero_pagina === ultimaPagina && pagina.preguntas_pagina) {
+          for (const preg of pagina.preguntas_pagina) {
+            if (preg.valor_numerico > 0) {
+              suma += preg.valor_numerico;
+              cantidad++;
+            }
+          }
+          break;
         }
       }
-    });
 
-    return Object.entries(acumulador)
+      if (cantidad > 0) {
+        const promedioRespondente = suma / cantidad;
+        if (!acumulador.has(valorAtributo)) {
+          acumulador.set(valorAtributo, { suma: 0, cantidad: 0 });
+        }
+        const stats = acumulador.get(valorAtributo)!;
+        stats.suma += promedioRespondente;
+        stats.cantidad += 1;
+      }
+    }
+
+    return Array.from(acumulador.entries())
       .map(([nombre, datos]) => ({
         nombre,
         promedio: Number((datos.suma / datos.cantidad).toFixed(1))
@@ -157,22 +169,29 @@ export class EstadisticasAnaliticasService
       .sort((a, b) => b.promedio - a.promedio);
   }
 
-  private calcularTopYBottomPreguntas(estadisticasBD: Partial<Estadistica>[]) 
-  {
-    const acumulador: Record<string, { suma: number; cantidad: number }> = {};
-    estadisticasBD.forEach(est => {
-      (est.constructos_paginas || []).forEach(pagina => {
-        (pagina.preguntas_pagina || []).forEach(preg => {
-          if (preg.valor_numerico > 0) {
-            if (!acumulador[preg.pregunta]) acumulador[preg.pregunta] = { suma: 0, cantidad: 0 };
-            acumulador[preg.pregunta].suma += preg.valor_numerico;
-            acumulador[preg.pregunta].cantidad += 1;
-          }
-        });
-      });
-    });
+  private calcularTopYBottomPreguntas(estadisticasBD: Partial<Estadistica>[]) {
+    const acumulador = new Map<string, { suma: number; cantidad: number }>();
 
-    const promedios = Object.entries(acumulador)
+    for (const est of estadisticasBD) {
+      if (!est.constructos_paginas) continue;
+
+      for (const pagina of est.constructos_paginas) {
+        if (!pagina.preguntas_pagina) continue;
+
+        for (const preg of pagina.preguntas_pagina) {
+          if (preg.valor_numerico > 0) {
+            if (!acumulador.has(preg.pregunta)) {
+              acumulador.set(preg.pregunta, { suma: 0, cantidad: 0 });
+            }
+            const stats = acumulador.get(preg.pregunta)!;
+            stats.suma += preg.valor_numerico;
+            stats.cantidad += 1;
+          }
+        }
+      }
+    }
+
+    const promedios = Array.from(acumulador.entries())
       .map(([pregunta, datos]) => ({
         pregunta,
         promedio: Number((datos.suma / datos.cantidad).toFixed(1))
@@ -180,34 +199,43 @@ export class EstadisticasAnaliticasService
       .sort((a, b) => b.promedio - a.promedio);
 
     return {
-      top_3: promedios.slice(0, 3), 
+      top_3: promedios.slice(0, 3),
       bottom_3: promedios.slice(-3).reverse() 
     };
   }
 
   private calcularNPS(estadisticasBD: Partial<Estadistica>[], ultimaPagina: number) {
     let promotores = 0;
-    let pasivos = 0; 
+    let pasivos = 0;
     let detractores = 0;
     let totalValidos = 0;
 
-    estadisticasBD.forEach(est => {
-      const paginaSatisfaccion = (est.constructos_paginas || []).find(p => p.numero_pagina === ultimaPagina);
-      if (paginaSatisfaccion && paginaSatisfaccion.preguntas_pagina) {
-        const preguntasValidas = paginaSatisfaccion.preguntas_pagina.filter(preg => preg.valor_numerico > 0);
-        
-        if (preguntasValidas.length > 0) {
-          const suma = preguntasValidas.reduce((sum, preg) => sum + preg.valor_numerico, 0);
-          const promedio = suma / preguntasValidas.length;
-          
-          if (promedio >= 6) promotores++;
-          else if (promedio >= 5) pasivos++;
-          else detractores++;
-          
-          totalValidos++;
+    for (const est of estadisticasBD) {
+      if (!est.constructos_paginas) continue;
+
+      let suma = 0;
+      let cantidad = 0;
+
+      for (const pagina of est.constructos_paginas) {
+        if (pagina.numero_pagina === ultimaPagina && pagina.preguntas_pagina) {
+          for (const preg of pagina.preguntas_pagina) {
+            if (preg.valor_numerico > 0) {
+              suma += preg.valor_numerico;
+              cantidad++;
+            }
+          }
+          break;
         }
       }
-    });
+
+      if (cantidad > 0) {
+        const promedio = suma / cantidad;
+        if (promedio >= 6) promotores++;
+        else if (promedio >= 5) pasivos++;
+        else detractores++;
+        totalValidos++;
+      }
+    }
 
     if (totalValidos === 0) return null;
 
@@ -220,6 +248,78 @@ export class EstadisticasAnaliticasService
       distribucion_porcentajes: { promotores_pct, pasivos_pct, detractores_pct },
       cantidades_reales: { promotores, pasivos, detractores, total: totalValidos }
     };
+  }
+
+  private calcularDetallePreguntasPorDimension(estadisticasBD: Partial<Estadistica>[], nombresConstructos: string[]) {
+    const paginasMap = new Map<number, Map<string, { suma: number; cantidad: number; frecuencias: Record<number, number> }>>();
+
+
+    for (const est of estadisticasBD) {
+      if (!est.constructos_paginas) continue;
+
+      for (const pagina of est.constructos_paginas) {
+        if (!paginasMap.has(pagina.numero_pagina)) {
+          paginasMap.set(pagina.numero_pagina, new Map());
+        }
+        const mapaPreguntas = paginasMap.get(pagina.numero_pagina)!;
+
+        if (!pagina.preguntas_pagina) continue;
+
+        for (const preg of pagina.preguntas_pagina) {
+          const valor = preg.valor_numerico;
+          
+          if (valor > 0) {
+            if (!mapaPreguntas.has(preg.pregunta)) {
+              mapaPreguntas.set(preg.pregunta, { suma: 0, cantidad: 0, frecuencias: {} });
+            }
+            const stats = mapaPreguntas.get(preg.pregunta)!;
+            
+            stats.suma += valor;
+            stats.cantidad += 1;
+            stats.frecuencias[valor] = (stats.frecuencias[valor] || 0) + 1;
+          }
+        }
+      }
+    }
+
+    const resultado = Array.from(paginasMap.entries()).map(([numeroPagina, mapaPreguntas]) => {
+      const indiceNombre = numeroPagina - 2;
+      const nombreConstructo = nombresConstructos[indiceNombre] || `Dimensión ${numeroPagina}`;
+
+      const preguntas = Array.from(mapaPreguntas.entries()).map(([pregunta, stats]) => ({
+        pregunta,
+        promedio: Number((stats.suma / stats.cantidad).toFixed(1)),
+        total_respuestas: stats.cantidad,
+        distribucion_frecuencias: stats.frecuencias 
+      }));
+
+      return {
+        numero_pagina: numeroPagina,
+        nombre_constructo: nombreConstructo,
+        preguntas
+      };
+    });
+
+    return resultado.sort((a, b) => a.numero_pagina - b.numero_pagina);
+  }
+
+  private obtenerListaSociosComunitarios(estadisticasBD: Partial<Estadistica>[]) {
+    const sociosMap = new Map<string, string>();
+
+    for (const est of estadisticasBD) {
+      const org = est.datos_respondente?.organizacion;
+      const nombre = est.datos_respondente?.nombre;
+
+      if (org && org !== 'No especificada' && org !== 'No especificado') {
+        if (!sociosMap.has(org)) {
+          sociosMap.set(org, (nombre && nombre !== 'No especificado') ? nombre : 'Anónimo');
+        }
+      }
+    }
+    return Array.from(sociosMap.entries()).map(([organizacion, nombre_responsable]) => ({
+      organizacion,
+      nombre_responsable
+    }));
   }
 
 }
