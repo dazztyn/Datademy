@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import iconoReloj from '../assets/CLOCK.png'
+//import iconoReloj from '../assets/CLOCK.png'
 interface ToastProps {
   mensaje: string
   tipo: 'exito' | 'error' | 'cargando'
@@ -22,13 +22,14 @@ const estilos = {
  const iconos = {
     exito: <span className="w-5 h-5 flex items-center justify-center font-bold text-base">✓</span>,
     error: <span className="w-5 h-5 flex items-center justify-center font-bold text-base">✕</span>,
-    cargando: (
-      <img
-        src={iconoReloj}
-        alt="Cargando"
-        className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert animate-spin"
-      />
-    ),
+    cargando: <span className="w-5 h-5 flex items-center justify-center font-bold text-base animate-spin">🥵</span>,
+    // cargando: (
+    //   <img
+    //     src={iconoReloj}
+    //     alt="Cargando"
+    //     className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert animate-spin"
+    //   />
+    // ),
   }
 
   return (
