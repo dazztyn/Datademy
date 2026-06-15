@@ -112,8 +112,6 @@ export class GoogleService
   async activarVigilanciaRespuestas(idFormulario: string): Promise<any> {
     try {
       const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
-      
-      
       const nombreTema = 'projects/sistema-procesos-as/topics/respuestas-datademy';
 
       const respuesta = await formsApi.forms.watches.create({
@@ -133,6 +131,17 @@ export class GoogleService
       console.log(`Vigilancia activada para el formulario: ${idFormulario}`);
       return respuesta.data as forms_v1.Schema$Watch;;
     } catch (error) {
+      if (error instanceof Error) 
+      {
+        const googleError = error as Error & { code?: number | string; status?: number };
+        const mensajeDeError = googleError.message;
+        const codigo = Number(googleError.code || googleError.status || 0);
+        
+        if (mensajeDeError.includes('already exists') || codigo === 400) {
+          console.log(`[Google API] La vigilancia ya estaba activada para el formulario: ${idFormulario}. Omitiendo error.`);
+          return { estado: 'ya_existia' };
+        }
+      }
       console.error('Error al activar el Watch en Google Forms:', error);
       throw new Error('No se pudo vincular el formulario con Pub/Sub.');
     }
