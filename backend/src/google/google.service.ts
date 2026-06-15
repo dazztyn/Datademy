@@ -84,7 +84,7 @@ export class GoogleService
     }
   }
 
-  async obtenerDisenoFormulario(idFormulario: string): Promise<any> {
+  async obtenerDisenoFormulario(idFormulario: string): Promise<forms_v1.Schema$Form> {
     try {
       const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
       const respuesta = await formsApi.forms.get({ formId: idFormulario });

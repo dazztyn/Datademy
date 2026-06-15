@@ -4,6 +4,7 @@ import { EstadisticasConsultasService } from './estadisticas-consultas.service';
 import { EstadisticasSeederService } from './estadisticas-seeder.service';
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
 import { AuthGuard } from '@nestjs/passport';
+import { RecibirWebhookDto } from './dto/recibir-webhook.dto';
 
 interface RequestConUsuario extends Request {
   user: UsuarioActivo;
@@ -20,7 +21,7 @@ export class EstadisticasController {
 
   @Post('webhook/respuestas')
   @HttpCode(200)
-  async recibirNotificacionGoogle(@Body() cuerpoWebhook: any) {
+  async recibirNotificacionGoogle(@Body() cuerpoWebhook: RecibirWebhookDto) {
     try {
       console.log('=== WEBHOOK RECIBIDO DE GOOGLE ===');
       const atributos = cuerpoWebhook?.message?.attributes;

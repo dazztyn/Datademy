@@ -13,20 +13,18 @@ export class UsuariosService {
     return await this.usuarioModelo.findOne({ correo, activo: true }).exec();
   }
 
-  // Actualiza el perfil vacío con los datos reales de Google en el primer login
   async vincularCuentaGoogle(id: any, datos: { googleId: string, avatarUrl: string, nombre: string }) {
     return await this.usuarioModelo.findByIdAndUpdate(
       id, 
       { 
         googleId: datos.googleId, 
         avatarUrl: datos.avatarUrl,
-        nombre: datos.nombre // Actualiza el nombre por el que viene de Google
+        nombre: datos.nombre 
       }, 
-      { returnDocument: 'after'} // Devuelve el documento actualizado
+      { returnDocument: 'after'} 
     ).exec();
   }
 
-  // 3. Función para registrar manualmente a alguien (fase temprana de pruebas)
   async crearUsuarioManual(datos: { nombre: string, correo: string, rol: string }) {
     try {
       const nuevoUsuario = new this.usuarioModelo({
@@ -46,9 +44,8 @@ export class UsuariosService {
     }
   }
 
-  // funcion para crear un usuario al registrarse con google
-  async crearUsuarioAutomatico(perfilGoogle: any) {
-    // a futuro hacer esto con @ucn.cl para funcionarios
+  async crearUsuarioAutomatico(perfilGoogle: any) 
+  {
     const esAlumno = perfilGoogle.correo.endsWith('@alumnos.ucn.cl');
     const rolAsignado = esAlumno ? 'estudiante' : 'funcionario';
 
@@ -57,7 +54,7 @@ export class UsuariosService {
       correo: perfilGoogle.correo,
       googleId: perfilGoogle.googleId,
       avatarUrl: perfilGoogle.avatarUrl,
-      rol: rolAsignado, // Asigna 'estudiante' o 'funcionario'
+      rol: rolAsignado,
       activo: true
     });
 

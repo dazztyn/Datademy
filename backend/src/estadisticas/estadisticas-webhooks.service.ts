@@ -6,6 +6,8 @@ import { EstadisticaDocument } from './schemas/estadisticas.schema';
 import { FormulariosService } from 'src/formularios/formularios.service';
 import { EstadisticasParserService } from './estadisticas-parser.service';
 import { forms_v1 } from 'googleapis';
+import { GoogleFormDiseno } from './interfaces/diseno-google.interface';
+import { GoogleFormRespuesta } from './interfaces/respuesta-google.interface';
 
 @Injectable()
 export class EstadisticasWebhooksService {
@@ -37,6 +39,7 @@ export class EstadisticasWebhooksService {
       ? 'estudiantes' : 'socios';
 
     const diseno = await this.googleService.obtenerDisenoFormulario(idFormulario);
+    const disenoAdaptado = diseno as unknown as GoogleFormDiseno;
 
     let fechaFiltro: Date | undefined = undefined;
     
@@ -67,9 +70,11 @@ export class EstadisticasWebhooksService {
     for (const respuestaCruda of listaRespuestas) {
       if (setIdsExistentes.has(respuestaCruda.responseId!)) continue;
       
+      const respuestaAdaptada = respuestaCruda as unknown as GoogleFormRespuesta;
+
       const documentoListo = this.parserService.procesarEncuesta(
-        diseno, 
-        respuestaCruda as any, 
+        disenoAdaptado, 
+        respuestaAdaptada, 
         respuestaCruda.responseId!, 
         usuarioIdReal, 
         procesoIdReal
