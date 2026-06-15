@@ -14,6 +14,7 @@ import type { FiltrosMetricas } from '../../../services/estadisticos_service'
 import { useTheme } from '../../../context/ThemeContext'
 import { temasPagina, temaDefault } from '../../../utils/temasPagina'
 import { useLocation } from 'react-router-dom'
+import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
@@ -33,7 +34,7 @@ export default function Cronbach() {
   const { theme } = useTheme()
   const location = useLocation()
   const tema = temasPagina[location.pathname] ?? temaDefault
-
+  const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, tipoActivo)
   const colorTexto = theme === 'dark' ? 'white' : tema.sidebar
   const colorGrid = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
 
@@ -53,19 +54,43 @@ export default function Cronbach() {
     <div className="space-y-6">
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
-        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-3">Filtros</h3>
-        <div className="w-48">
-            <label className="text-xs text-slate-400 mb-1 block">Página del formulario</label>
-            <input
-            type="number"
-            min={1}
-            value={filtros.pagina ?? ''}
-            onChange={e => setFiltros(f => ({ ...f, pagina: e.target.value ? Number(e.target.value) : undefined }))}
-            placeholder="Ej: 2"
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-        </div>
-        </div>
+  <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-3">Filtros</h3>
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    
+    <div>
+      <label className="text-xs text-slate-400 mb-1 block">Constructo / Dimensión</label>
+      <select
+        value={filtros.pagina ?? ''}
+        onChange={e => setFiltros(f => ({ ...f, pagina: e.target.value ? Number(e.target.value) : undefined }))}
+        className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+      >
+        <option value="">Todos los constructos</option>
+        {filtrosDisponibles?.nombres_constructos?.map((c: { id: number; nombre: string }) => (
+          <option key={c.id} value={c.id}>
+            {c.nombre}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    {tipoActivo === 'estudiantes' && filtrosDisponibles?.carreras && (
+      <div>
+        <label className="text-xs text-slate-400 mb-1 block">Carrera</label>
+        <select
+          value={filtros.carrera ?? ''}
+          onChange={e => setFiltros(f => ({ ...f, carrera: e.target.value || undefined }))}
+          className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          <option value="">Todas las carreras</option>
+          {filtrosDisponibles.carreras.map((c: string) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+    )}
+
+  </div>
+</div>
 
       {cargando && <p className="text-center text-white/70 text-sm py-8 animate-pulse">Cargando análisis...</p>}
       {error && <p className="text-center text-red-300 text-sm py-8">{error}</p>}
