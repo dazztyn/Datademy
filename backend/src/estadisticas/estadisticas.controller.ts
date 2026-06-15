@@ -78,18 +78,18 @@ export class EstadisticasController {
 
   @Get(':idProceso/resultados')
   async obtenerResultadosFrontend(
-    @Req() req: any, 
+    @Req() req: RequestConUsuario, 
     @Param('idProceso') idProceso: string,
-    @Query() filtros: any 
+    @Query() filtros: Record<string, string> 
   ) {
     return await this.consultasService.obtenerResultadosTabulares(idProceso, req.user.userId, filtros);
   }
 
   @Get(':idProceso/metricas')
   async obtenerMetricasFrontend(
-    @Req() req: any,
+    @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
-    @Query() queryParams: any 
+    @Query() queryParams: Record<string, string> 
   ) {
     const { pagina, ...filtrosMongo } = queryParams;
     const paginaFiltroNum = pagina ? Number(pagina) : undefined;

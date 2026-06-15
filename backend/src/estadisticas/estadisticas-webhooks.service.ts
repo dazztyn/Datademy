@@ -5,6 +5,7 @@ import { GoogleService } from '../google/google.service';
 import { EstadisticaDocument } from './schemas/estadisticas.schema';
 import { FormulariosService } from 'src/formularios/formularios.service';
 import { EstadisticasParserService } from './estadisticas-parser.service';
+import { forms_v1 } from 'googleapis';
 
 @Injectable()
 export class EstadisticasWebhooksService {
@@ -15,7 +16,18 @@ export class EstadisticasWebhooksService {
     private readonly formulariosService: FormulariosService
   ) {}
 
-  async manejarNuevoWebhookGoogle(idFormulario: string) {
+  private async obtenerFechaUltimaSincronizacion(procesoId: string, tipoFormulario: string): Promise<Date | null> {
+    const ultima = await this.estadisticaModelo
+      .findOne({ proceso_id: procesoId, tipo_formulario: tipoFormulario })
+      .sort({ fecha_respuesta: -1 }) 
+      .select('fecha_respuesta') 
+      .lean()
+      .exec();
+
+    return ultima ? ultima.fecha_respuesta : null;
+  }
+
+  async manejarNuevoWebhookGoogle(idFormulario: string, esSincronizacionManual: boolean = false) {
     const procesoAsociado = await this.formulariosService.buscarPorIdFormularioGoogle(idFormulario);
     if (!procesoAsociado) throw new NotFoundException('Formulario no encontrado en el sistema');
 
@@ -25,34 +37,44 @@ export class EstadisticasWebhooksService {
       ? 'estudiantes' : 'socios';
 
     const diseno = await this.googleService.obtenerDisenoFormulario(idFormulario);
-    const listaRespuestas = await this.googleService.obtenerTodasLasRespuestas(idFormulario);
+
+    let fechaFiltro: Date | undefined = undefined;
+    
+    if (!esSincronizacionManual) {
+      const ultimaFecha = await this.obtenerFechaUltimaSincronizacion(procesoIdReal, tipoFormularioReal);
+      if (ultimaFecha) {
+        fechaFiltro = ultimaFecha;
+      }
+    }
+
+    const listaRespuestas = await this.googleService.obtenerTodasLasRespuestas(idFormulario, fechaFiltro);
 
     if (!listaRespuestas || listaRespuestas.length === 0) return { estado: 'exito', guardadas: 0 };
 
-    const idsRespuestasGoogle = listaRespuestas.map(r => r.responseId);
-    
+    const idsRespuestasGoogle = listaRespuestas.map(r => r.responseId!);
+
     const encuestasExistentes = await this.estadisticaModelo
       .find({ id_respuesta_google: { $in: idsRespuestasGoogle } })
       .select('id_respuesta_google')
       .lean()
       .exec();
-    
+      
     const setIdsExistentes = new Set(encuestasExistentes.map(e => e.id_respuesta_google));
     
     type NuevaEstadistica = ReturnType<typeof this.parserService.procesarEncuesta> & { tipo_formulario: string };
     const nuevasEstadisticas: NuevaEstadistica[] = [];
 
     for (const respuestaCruda of listaRespuestas) {
-      if (setIdsExistentes.has(respuestaCruda.responseId)) continue; 
-
+      if (setIdsExistentes.has(respuestaCruda.responseId!)) continue;
+      
       const documentoListo = this.parserService.procesarEncuesta(
         diseno, 
-        respuestaCruda, 
-        respuestaCruda.responseId, 
+        respuestaCruda as any, 
+        respuestaCruda.responseId!, 
         usuarioIdReal, 
         procesoIdReal
       );
-
+      
       nuevasEstadisticas.push({
         ...documentoListo,
         tipo_formulario: tipoFormularioReal
@@ -63,7 +85,6 @@ export class EstadisticasWebhooksService {
 
     let nuevasGuardadas = 0;
     try {
-
       const resultado = await this.estadisticaModelo.insertMany(nuevasEstadisticas, { ordered: false });
       nuevasGuardadas = resultado.length;
     } catch (error: unknown) {
@@ -85,15 +106,15 @@ export class EstadisticasWebhooksService {
     let mensajes: string[] = [];
 
     if (proceso.formulario_estudiantes?.id_google_form) {
-      const resultadoEstudiantes = await this.manejarNuevoWebhookGoogle(proceso.formulario_estudiantes.id_google_form);
+      const resultadoEstudiantes = await this.manejarNuevoWebhookGoogle(proceso.formulario_estudiantes.id_google_form, true);
       totalGuardadas += resultadoEstudiantes.guardadas;
-      mensajes.push(`Estudiantes: ${resultadoEstudiantes.guardadas} respuestas nuevas.`);
+      mensajes.push(`Estudiantes: ${resultadoEstudiantes.guardadas} respuestas recuperadas/nuevas.`);
     }
 
     if (proceso.formulario_socios?.id_google_form) {
-      const resultadoSocios = await this.manejarNuevoWebhookGoogle(proceso.formulario_socios.id_google_form);
+      const resultadoSocios = await this.manejarNuevoWebhookGoogle(proceso.formulario_socios.id_google_form, true);
       totalGuardadas += resultadoSocios.guardadas;
-      mensajes.push(`Socios: ${resultadoSocios.guardadas} respuestas nuevas.`);
+      mensajes.push(`Socios: ${resultadoSocios.guardadas} respuestas recuperadas/nuevas.`);
     }
 
     return {

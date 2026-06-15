@@ -95,12 +95,18 @@ export class GoogleService
     }
   }
 
-  async obtenerTodasLasRespuestas(idFormulario: string): Promise<any[]> {
+  async obtenerTodasLasRespuestas(idFormulario: string, ultimaSincronizacion?: Date): Promise<forms_v1.Schema$FormResponse[]> {
     try {
       const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
-      const respuesta = await formsApi.forms.responses.list({
+      const parametros: forms_v1.Params$Resource$Forms$Responses$List = {
         formId: idFormulario,
-      });
+      };
+
+      if (ultimaSincronizacion) {
+        parametros.filter = `timestamp > "${ultimaSincronizacion.toISOString()}"`;
+      }
+
+      const respuesta = await formsApi.forms.responses.list(parametros);
 
       return (respuesta.data.responses as forms_v1.Schema$FormResponse[]) || [];
     } catch (error) {
