@@ -9,9 +9,9 @@ export class EstadisticasFormatterService {
     return estadisticasBD.map(est => {
       const { id_respuesta_google, fecha_respuesta, datos_respondente, constructos_paginas } = est;
 
-      const preguntasAplanadas = (constructos_paginas || []).reduce((acc: Record<string, number>, pagina: any) => {
+      const preguntasAplanadas = (constructos_paginas || []).reduce((acc: Record<string, number | string>, pagina: any) => {
         (pagina.preguntas_pagina || []).forEach((preg: any) => {
-          acc[preg.pregunta] = preg.valor_numerico;
+          acc[preg.pregunta] = preg.valor_numerico > 0 ? preg.valor_numerico : preg.respuesta_texto;         
         });
         return acc;
       }, {});

@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req, Res } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Res, Post } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
@@ -16,6 +16,21 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async inicioSesionGoogle() {}
 
+  @Get('google-token')
+  @UseGuards(AuthGuard('jwt'))
+  obtenerTokenGoogle(@Req() req: any) 
+  {
+    const gToken = req.cookies['googleAccessToken'];
+    
+    if (!gToken) {
+      return { estado: 'error', mensaje: 'No hay token de Google o ha expirado' };
+    }
+
+    return {
+      estado: 'exito',
+      googleAccessToken: gToken
+    };
+  }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
@@ -44,5 +59,27 @@ export class AuthController {
       maxAge: tiempoVida8Horas,
     });
     return res.redirect(`${urlFrontendBase}/dashboard`);
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  verificarSesion(@Req() req: any) {
+    return {
+      estado: 'exito',
+      usuario: req.user
+    };
+  }
+
+  @Post('logout')
+  cerrarSesionBackend(@Res() res: Response) {
+    const opcionesCookie = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax',
+    };
+    res.clearCookie('backendJwt', opcionesCookie);
+    res.clearCookie('googleAccessToken', opcionesCookie);
+    
+    return res.status(200).json({ estado: 'exito', mensaje: 'Sesión cerrada correctamente' });
   }
 }

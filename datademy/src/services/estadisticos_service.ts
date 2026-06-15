@@ -25,6 +25,7 @@ export interface Metricas {
 
 export interface MetricasResponse {
   status: string
+  estado?: string
   metricas: Metricas
 }
 
@@ -36,7 +37,7 @@ export interface FiltrosMetricas {
   pagina?: number
   nivel_formativo?: string
   organizacion?: string
-  
+  nombres_constructos?: { id: number; nombre: string }[]
 }
 
 export async function obtenerMetricas(
@@ -50,12 +51,12 @@ export async function obtenerMetricas(
   if (filtros.genero) params.append('genero', filtros.genero)
   if (filtros.pagina !== undefined) params.append('pagina', String(filtros.pagina))
   if (filtros.nivel_formativo) params.append('nivel_formativo', filtros.nivel_formativo)
-    
+  if (filtros.organizacion) params.append('organizacion', filtros.organizacion)
 
   const url = `${BASE_URL}/estadisticas/${idProceso}/metricas?${params.toString()}`
   const response = await fetch(url, { 
     headers: getHeaders(),
-    credentials: 'include' 
+    credentials: 'include',
   })
   if (!response.ok) throw new Error('Error al obtener métricas')
   const data: MetricasResponse = await response.json()
@@ -65,7 +66,7 @@ export async function sincronizarManual(idProceso: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/estadisticas/${idProceso}/sincronizar-manual`, {
     method: 'POST',
     headers: getHeaders(),
-    credentials: 'include'
+    credentials: 'include',
   })
   if (!response.ok) throw new Error('Error al sincronizar')
 }
@@ -77,6 +78,7 @@ export interface Respuesta {
   nivel_formativo?: string
   sede?: string
   carrera?: string
+  organizacion?: string
   [key: string]: any
 }
 
@@ -93,6 +95,7 @@ export interface FiltrosResultados {
   genero?: string
   nivel_formativo?: string
   organizacion?: string
+  nombres_constructos?: { id: number; nombre: string }[]
 }
 
 export async function obtenerResultados(
@@ -106,9 +109,10 @@ export async function obtenerResultados(
   if (filtros.sede) params.append('sede', filtros.sede)
   if (filtros.genero) params.append('genero', filtros.genero)
   if (filtros.nivel_formativo) params.append('nivel_formativo', filtros.nivel_formativo)
+  if (filtros.organizacion) params.append('organizacion', filtros.organizacion)
 
   const url = `${BASE_URL}/estadisticas/${idProceso}/resultados?${params.toString()}`
-  const response = await fetch(url, { headers: getHeaders(), credentials: 'include' })
+  const response = await fetch(url, { headers: getHeaders(), credentials: 'include', })
   if (!response.ok) throw new Error('Error al obtener resultados')
   return response.json()
 }
@@ -118,6 +122,7 @@ export interface FiltrosDisponibles {
   generos?: string[]
   niveles_formativos?: string[]
   organizaciones?: string[]
+  nombres_constructos?: { id: number; nombre: string }[]
 }
 
 export async function obtenerFiltrosDisponibles(
@@ -126,9 +131,26 @@ export async function obtenerFiltrosDisponibles(
 ): Promise<FiltrosDisponibles> {
   const response = await fetch(
     `${BASE_URL}/estadisticas/${idProceso}/filtros-disponibles?tipo=${tipo}`,
-    { headers: getHeaders(), credentials: 'include'}
+    { headers: getHeaders(), credentials: 'include',}
   )
   if (!response.ok) throw new Error('Error al obtener filtros')
   const data = await response.json()
-  return data.filtros_disponibles
+  return data.filtros_disponibles ?? {}
+}
+export interface CantidadPaginasResponse {
+  estado: string
+  cantidad_paginas_total: number
+  cantidad_constructos: number
+}
+
+export async function obtenerCantidadPaginas(
+  idProceso: string,
+  tipo: 'estudiantes' | 'socios'
+): Promise<CantidadPaginasResponse> {
+  const response = await fetch(
+    `${BASE_URL}/formularios/${idProceso}/cantidad-constructos?tipo=${tipo}`,
+    { headers: getHeaders(), credentials: 'include' }
+  )
+  if (!response.ok) throw new Error('Error al obtener cantidad de páginas')
+  return response.json()
 }

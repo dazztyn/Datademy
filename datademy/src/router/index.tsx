@@ -7,10 +7,20 @@ import ListarResultados from '../pages/dashboard/secciones/ListarResultados'
 import Cronbach from '../pages/dashboard/secciones/Cronbach'
 import CompletarDatos from '../pages/dashboard/secciones/CompletarDatos'
 import GenerarInforme from '../pages/dashboard/secciones/GenerarInforme'
+import { useAuth } from '../context/AuthContext'
 
 function RutaProtegida({ children }: { children: React.ReactNode }) {
-  const jwt = sessionStorage.getItem('jwt')
-  return jwt ? <>{children}</> : <Navigate to="/login" />
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-slate-900">
+        <p className="text-white/60 text-sm animate-pulse">Verificando credenciales...</p>
+      </div>
+    )
+  }
+
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
 }
 export default function Router() {
   return (

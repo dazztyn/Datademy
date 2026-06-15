@@ -84,6 +84,14 @@ export class EstadisticasConsultasService {
   async obtenerOpcionesFiltrosDisponibles(procesoId: string, usuarioId: string, tipoFormulario: string = 'estudiantes') {
     const queryBase: Record<string, string | number | boolean | Record<string, unknown>> = { proceso_id: procesoId, usuario_id: usuarioId, tipo_formulario: tipoFormulario };
 
+    const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
+    const configFormulario = tipoFormulario === 'estudiantes' ? proceso.formulario_estudiantes : proceso.formulario_socios;
+    const nombresConstructos = configFormulario?.nombres_constructos || [];
+    const constructosConId = nombresConstructos.map((nombre, index) => ({
+      id: index + 2,
+      nombre: nombre
+    }));
+
     if (tipoFormulario === 'estudiantes') {
       const [carreras, sedes, generos, niveles] = await Promise.all([
         this.estadisticaModelo.distinct('datos_respondente.carrera', queryBase),
@@ -98,7 +106,8 @@ export class EstadisticasConsultasService {
           carreras: carreras.filter(c => c !== 'No especificada'),
           sedes: sedes.filter(s => s !== 'No especificada'),
           generos: generos.filter(g => g !== 'No especificado'),
-          niveles_formativos: niveles.filter(n => n !== 'No especificado')
+          niveles_formativos: niveles.filter(n => n !== 'No especificado'),
+          nombres_constructos: constructosConId
         }
       };
     }
@@ -113,7 +122,8 @@ export class EstadisticasConsultasService {
         estado: 'exito',
         filtros_disponibles: {
           organizaciones: organizaciones.filter(o => o !== 'No especificada'),
-          generos: generos.filter(g => g !== 'No especificado')
+          generos: generos.filter(g => g !== 'No especificado'),
+          nombres_constructos: constructosConId
         }
       };
     }

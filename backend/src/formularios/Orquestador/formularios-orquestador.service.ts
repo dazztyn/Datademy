@@ -1,5 +1,5 @@
 
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { FormulariosService } from '../formularios.service';
 import { GoogleService } from 'src/google/google.service';
 import { InjectConnection } from '@nestjs/mongoose'; 
@@ -136,6 +136,34 @@ export class FormulariosOrquestadorService {
       console.error('Error al vincular formulario existente:', error);
       throw new InternalServerErrorException('No se pudo vincular el formulario. Verifique que el ID sea correcto y tenga permisos.');
     }
+  }
+
+  async obtenerCantidadConstructos(usuario_id: string, idProceso: string, tipoFormulario: 'estudiantes' | 'socios') 
+  {
+    const proceso = await this.formulariosService.obtenerProcesoInterno(usuario_id, idProceso);
+    const configFormulario = tipoFormulario === 'estudiantes' ? proceso.formulario_estudiantes : proceso.formulario_socios;
+
+    if (!configFormulario || !configFormulario.id_google_form) {
+      throw new BadRequestException(`El formulario de ${tipoFormulario} aún no ha sido vinculado a este proceso.`);
+    }
+
+    const diseno = await this.googleService.obtenerDisenoFormulario(configFormulario.id_google_form);
+
+    let cantidadPaginas = 1;
+    if (diseno.items) {
+      diseno.items.forEach(item => {
+        if (item.pageBreakItem) cantidadPaginas++;
+      });
+    }
+
+    let cantidadConstructos = cantidadPaginas - 2;
+    if (cantidadConstructos < 0) cantidadConstructos = 0;
+
+    return {
+      estado: 'exito',
+      cantidad_paginas_total: cantidadPaginas,
+      cantidad_constructos: cantidadConstructos
+    };
   }
 
 }

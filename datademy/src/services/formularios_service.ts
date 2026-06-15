@@ -47,7 +47,7 @@ export async function obtenerPlantillas(tipo?: 'estudiantes' | 'socios'): Promis
   const url = tipo
     ? `${BASE_URL}/formularios/plantillas?tipo=${tipo}`
     : `${BASE_URL}/formularios/plantillas`
-  const response = await fetch(url, { headers: getHeaders(), credentials: 'include' })
+  const response = await fetch(url, { headers: getHeaders(), credentials: 'include', })
   if (!response.ok) throw new Error('Error al obtener plantillas')
   const data: PlantillasResponse = await response.json()
   return data.datos

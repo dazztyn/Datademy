@@ -8,6 +8,7 @@ export function useFiltrosDisponibles(idProceso: string | null, tipo: 'estudiant
 
   useEffect(() => {
     if (!idProceso) return
+    setFiltros({}) 
     setCargando(true)
     obtenerFiltrosDisponibles(idProceso, tipo)
       .then(setFiltros)

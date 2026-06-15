@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param, Get, Delete, Query, UseGuards, Req} from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Get, Delete, Query, UseGuards, Req, BadRequestException} from '@nestjs/common';
 import { FormulariosService } from './formularios.service';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
@@ -95,6 +95,23 @@ export class FormulariosController {
   async obtenerPlantillas(@Req() req: RequestConUsuario, @Query('tipo') tipo?: string) 
   {
     return await this.formulariosService.obtenerPlantillasCacheadas(req.user.userId, tipo);
+  }
+
+  @Get(':idProceso/cantidad-constructos')
+  async obtenerCantidadConstructos(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string,
+    @Query('tipo') tipoFormulario: 'estudiantes' | 'socios'
+  ) {
+    if (!tipoFormulario || (tipoFormulario !== 'estudiantes' && tipoFormulario !== 'socios')) {
+      throw new BadRequestException('Debes especificar el tipo de formulario (?tipo=estudiantes o ?tipo=socios)');
+    }
+
+    return await this.orquestadorService.obtenerCantidadConstructos(
+      req.user.userId,
+      idProceso,
+      tipoFormulario
+    );
   }
   
   @Delete(':id')

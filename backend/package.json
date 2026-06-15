@@ -88,5 +88,9 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "allowScripts": {
+    "@nestjs/core@11.1.19": true,
+    "unrs-resolver@1.11.1": true
   }
 }
