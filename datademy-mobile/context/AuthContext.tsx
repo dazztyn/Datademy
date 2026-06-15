@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 interface AuthContextType {
   jwt: string | null;
@@ -16,7 +17,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [gToken, setGToken] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
 
-  // Al abrir la app, revisamos si el usuario ya tenía sesión iniciada en el SecureStore
   useEffect(() => {
     async function cargarTokens() {
       try {
@@ -45,10 +45,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const cerrarSesion = async () => {
-    await SecureStore.deleteItemAsync('jwt');
-    await SecureStore.deleteItemAsync('gToken');
-    setJwt(null);
-    setGToken(null);
+    // si no habia sesion de google, se ignora el error
+    try {
+      await GoogleSignin.signOut();
+    } catch (error) {
+      console.log('No había sesión nativa de Google para cerrar.');
+    }
+      
+      // luego se borran los tokens locales
+    try {
+      await SecureStore.deleteItemAsync('jwt');
+      await SecureStore.deleteItemAsync('gToken');
+      setJwt(null);
+      setGToken(null);
+    } catch (error) {
+      console.error('Error al borrar los tokens locales:', error);
+    }
   };
 
   return (

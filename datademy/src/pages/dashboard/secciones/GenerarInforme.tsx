@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react'
 import { useProceso } from '../../../context/ProcesoContext'
 import { useMetricas } from '../../../hooks/useMetricas'
-import { useAuth } from '../../../context/AuthContext'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { useToast } from '../../../hooks/useToast'
 import { configurarReportes } from '../../../services/informes_service'
@@ -18,10 +17,8 @@ const COLORES = ['#5fb7bb', '#0d438b', '#7f458f']
 const BASE_URL = import.meta.env.VITE_API_URL
 
 function getHeaders(): HeadersInit {
-  const jwt = sessionStorage.getItem('jwt')
   return {
     'Content-Type': 'application/json',
-    ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
   }
 }
 
@@ -31,7 +28,7 @@ export default function GenerarInforme() {
   const { toast, mostrar, cerrar } = useToast()
   const location = useLocation()
   const tema = temasPagina[location.pathname] ?? temaDefault
-  const pieRef = useRef<any>(null)
+  const pieRef = useRef<ChartJS<'pie'> | null>(null)
 
   const [asignatura, setAsignatura] = useState('')
   const [modulo, setModulo] = useState('')
@@ -127,6 +124,7 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
       const response = await fetch(`${BASE_URL}/reportes/generar`, {
         method: 'POST',
         headers: getHeaders(),
+        credentials: 'include',
         body: JSON.stringify({
           nombreCarrera: carrera,
           datosTexto,
@@ -349,7 +347,6 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
         onClick={handleGenerar}
         disabled={generando}
         className="w-full py-3 rounded-xl text-white text-sm font-medium transition-all disabled:opacity-60 hover:opacity-90"
-        style={{ background: 'linear-gradient(to right, #f59e0b, #ea580c)' }}
       >
         {generando ? 'Generando...' : 'Generar informe'}
       </button>

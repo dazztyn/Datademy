@@ -4,6 +4,11 @@ import { temasPagina, temaDefault } from '../utils/temasPagina'
 import { useProceso } from '../context/ProcesoContext'
 import { sincronizarManual } from '../services/estadisticos_service'
 
+import iconoListar from '../assets/LIST.png'
+import iconoGraficos from '../assets/DATA.png'
+import iconoCronbach from '../assets/ALPHA.png'
+import iconoRefresh from '../assets/REFRESH.png'
+
 interface SidebarItem {
   icono: string
   titulo: string
@@ -11,10 +16,11 @@ interface SidebarItem {
 }
 
 const items: SidebarItem[] = [
-  { icono: '/src/assets/LIST.png', titulo: 'Listar resultados', ruta: '/detalles/listado' },
-  { icono: '/src/assets/DATA.png', titulo: 'Gráficos generales', ruta: '/detalles/graficos' },
-  { icono: '/src/assets/ALPHA.png', titulo: 'Alfa de Cronbach', ruta: '/detalles/cronbach' },
+{ icono: iconoListar, titulo: 'Listar resultados', ruta: '/detalles/listado' },
+  { icono: iconoGraficos, titulo: 'Gráficos generales', ruta: '/detalles/graficos' },
+  { icono: iconoCronbach, titulo: 'Alfa de Cronbach', ruta: '/detalles/cronbach' },
 ]
+
 export default function Sidebar() {
   const [open, setOpen] = useState(false)
   const [sync, setSync] = useState(false)
@@ -24,7 +30,7 @@ export default function Sidebar() {
 
   const temaBarra = temasPagina[location.pathname] ?? temaDefault
 
-  const referesh = async () => {
+  const handleRefresh = async () => {
     if (!idProceso || sync) return
     setSync(true)
     try {
@@ -41,23 +47,23 @@ export default function Sidebar() {
     <div
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
-      className="h-screen sticky top-0 flex flex-col py-4 transition-all duration-300 ease-in-out z-40 shadow-lg"
-      style={{
-        backgroundColor: temaBarra.sidebar,
-        width: open ? '13rem' : '4rem',
-      }}
+      className={`h-screen sticky top-0 flex flex-col py-4 transition-all duration-300 ease-in-out z-40 shadow-lg ${
+        open ? 'w-52' : 'w-16'
+      }`}
+      style={{ backgroundColor: temaBarra.sidebar }}
     >
       <div className="px-3 mb-2">
         <button
-          onClick={referesh}
+          onClick={handleRefresh}
           title="Sincronizar datos"
-          className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-white/10 transition-all ${sync ? 'animate-spin' : ''}`}
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-white/10 transition-all text-left"
         >
           <img
-            src="/src/assets/REFRESH.png"
+            src={iconoRefresh}
             alt="Refresh"
-            className="w-5 h-5 object-contain flex-shrink-0"
-            style={{ filter: 'brightness(0) invert(1)' }}
+            className={`w-5 h-5 object-contain flex-shrink-0 brightness-0 invert ${
+              sync ? 'animate-spin' : ''
+            }`}
           />
           <span className={`text-xs text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Sincronizar
@@ -82,14 +88,13 @@ export default function Sidebar() {
             <button
               key={item.ruta}
               onClick={() => navigate(item.ruta)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left
-                ${activo ? 'bg-white/20' : 'hover:bg-white/10'}`}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left w-full
+                ${activo ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'}`}
             >
               <img
                 src={item.icono}
                 alt={item.titulo}
-                className="w-6 h-6 flex-shrink-0 object-contain"
-                style={{ filter: ' brightness(0) invert(1)' }}
+                className="w-5 h-5 flex-shrink-0 object-contain brightness-0 invert"
               />
               <span className={`text-sm font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
                 {item.titulo}

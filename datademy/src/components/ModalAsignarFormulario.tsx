@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Plantilla } from '../types/formulario'
 import { obtenerPlantillas, vincularFormulario } from '../services/formularios_service'
-
+import { useToast } from '../hooks/useToast' 
+import Toast from './Toast.tsx'
 interface ModalAsignarFormularioProps {
   idProceso: string
   tipoFormulario: 'estudiantes' | 'socios'
@@ -17,32 +18,38 @@ export default function ModalAsignarFormulario({
   onAsignado,
   onVincularExistente,
 }: ModalAsignarFormularioProps) {
+  const { toast, mostrar, cerrar } = useToast()
   const [plantillas, setPlantillas] = useState<Plantilla[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [seleccionada, setSeleccionada] = useState<string | null>(null)
 
   const [nombre, setNombre] = useState('')
   const [guardando, setGuardando] = useState(false)
-  const [errorAlGuardar, setErrorAlGuardar] = useState<string | null>(null) //Era más facil así, no lo cuestionen
 
     useEffect(() => {
       obtenerPlantillas(tipoFormulario)
         .then(setPlantillas)
-        .catch(() => setError('No se pudieron cargar las plantillas'))
+        .catch(() => mostrar('No se pudieron cargar las plantillas', 'error'))
         .finally(() => setLoading(false))
     }, [])
   const handleVincular = async () => {
-    if (!seleccionada) return setErrorAlGuardar('Por favor seleccione una plantilla')
-    if (!nombre.trim()) return setErrorAlGuardar('Por favor ingrese un nombre para el formulario')
+    if (!seleccionada) {
+      return mostrar('Por favor seleccione una plantilla', 'error')
+    }
+    if (!nombre.trim()) {
+      return mostrar('Por favor ingrese un nombre para el formulario', 'error')
+    }
     setGuardando(true)
-    setErrorAlGuardar(null)
+    mostrar('Asignando formulario...', 'cargando')
     try {
       await vincularFormulario(idProceso, seleccionada, nombre.trim(), tipoFormulario)
-      onAsignado()
-      onCerrar()
+      mostrar('Formulario asignado con éxito', 'exito')
+      setTimeout(() => {
+        onAsignado()
+        onCerrar()
+      }, 800)
     } catch {
-      setErrorAlGuardar('Error al asignar, por favor intente de nuevo')
+      mostrar('Error al asignar, por favor intente de nuevo', 'error')
     } finally {
       setGuardando(false)
     }
@@ -67,10 +74,7 @@ export default function ModalAsignarFormulario({
             </p>
           </div>
         )}
-        {error && (
-          <p className="text-sm text-red-400 py-4 text-center">{error}</p>
-        )}
-        {!loading && !error && (
+        {!loading && (
           <div className="mb-4 max-h-48 overflow-y-auto flex flex-col gap-2">
             {plantillas.map(plantilla => (
               <button
@@ -88,7 +92,7 @@ export default function ModalAsignarFormulario({
           </div>
         )}
 
-        {!loading && !error && (
+        {!loading && (
           <div className="mb-4">
             <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
               Nombre del formulario
@@ -103,9 +107,6 @@ export default function ModalAsignarFormulario({
           </div>
         )}
 
-        {errorAlGuardar && (
-          <p className="text-xs text-red-400 mb-3">{errorAlGuardar}</p>
-        )}
         {onVincularExistente && (
           <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-2">
             ¿Ya tienes un formulario creado?{' '}
@@ -130,13 +131,13 @@ export default function ModalAsignarFormulario({
           <button
             onClick={handleVincular}
             disabled={guardando || loading}
-            className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium transition-all disabled:opacity-60"
-            style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+            className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium transition-all disabled:opacity-60 hover:opacity-95 bg-gradient-to-r from-[#5fb7bb] to-[#0d438b] shadow-md shadow-blue-900/10"
           >
             {guardando ? 'Asignando...' : 'Asignar'}
           </button>
         </div>
       </div>
+      {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={cerrar} />}
     </div>
   )
 }

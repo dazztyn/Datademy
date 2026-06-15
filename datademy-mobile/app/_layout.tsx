@@ -7,10 +7,6 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { View, ActivityIndicator } from 'react-native';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
-
 function InitialLayout() {
   const { jwt, cargando } = useAuth();
   const segments = useSegments();
@@ -22,11 +18,9 @@ function InitialLayout() {
     const enPantallaDeLogin = segments[0] === 'login';
 
     if (!jwt && !enPantallaDeLogin) {
-      // Si NO hay token y NO está en el login, lo mandamos al login
       router.replace('/login');
     } else if (jwt && enPantallaDeLogin) {
-      // Si SÍ hay token y ESTÁ en el login, lo mandamos al inicio
-      router.replace('/(tabs)');
+      router.replace('/');
     }
   }, [jwt, cargando, segments]);
 
@@ -38,9 +32,12 @@ function InitialLayout() {
     );
   }
 
-  return (
+return (
     <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="detalles" options={{ headerShown: false }} />
+      <Stack.Screen name="respuestas-estudiantes" options={{ headerShown: false }} />
+      <Stack.Screen name="respuestas-socios" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
     </Stack>
@@ -49,7 +46,6 @@ function InitialLayout() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthProvider>

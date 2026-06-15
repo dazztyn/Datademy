@@ -1,24 +1,28 @@
 import { Controller, Post, Body, HttpCode, BadRequestException, Get, UseGuards, Req, Param, Query } from '@nestjs/common';
-import { RecibirWebhookDto } from './dto/recibir-webhook.dto';
-import { EstadisticasOrquestadorService } from './estadisticas-orquestador.service';
+import { EstadisticasWebhooksService } from './estadisticas-webhooks.service';
+import { EstadisticasConsultasService } from './estadisticas-consultas.service';
+import { EstadisticasSeederService } from './estadisticas-seeder.service';
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
 import { AuthGuard } from '@nestjs/passport';
 
-interface RequestConUsuario extends Request 
-{
+interface RequestConUsuario extends Request {
   user: UsuarioActivo;
 }
 
 @Controller('estadisticas')
+@UseGuards(AuthGuard('jwt'))
 export class EstadisticasController {
-  constructor(private readonly orquestador: EstadisticasOrquestadorService) {}
+  constructor(
+    private readonly webhooksService: EstadisticasWebhooksService,
+    private readonly consultasService: EstadisticasConsultasService,
+    private readonly seederService: EstadisticasSeederService
+  ) {}
 
   @Post('webhook/respuestas')
   @HttpCode(200)
   async recibirNotificacionGoogle(@Body() cuerpoWebhook: any) {
     try {
       console.log('=== WEBHOOK RECIBIDO DE GOOGLE ===');
-
       const atributos = cuerpoWebhook?.message?.attributes;
 
       if (!atributos || !atributos.formId) {
@@ -31,10 +35,7 @@ export class EstadisticasController {
         return { estado: 'ignorado_tipo_evento' };
       }
 
-      const idFormulario = atributos.formId;
-      
-      await this.orquestador.manejarNuevoWebhookGoogle(idFormulario);
-
+      await this.webhooksService.manejarNuevoWebhookGoogle(atributos.formId);
       return { estado: 'recibido' };
     } catch (error) {
       console.error('Error al procesar el Webhook de Google:', error);
@@ -43,18 +44,16 @@ export class EstadisticasController {
   }
 
   @Post(':idProceso/generar-dummy')
-  @UseGuards(AuthGuard('jwt'))
   async generarDatosPrueba(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
     @Body('cantidad') cantidad: number
   ) {
     const cantidadSegura = cantidad || 50; 
-    return await this.orquestador.generarVolumenDummy(idProceso, req.user.userId, cantidadSegura);
+    return await this.seederService.generarVolumenDummy(idProceso, req.user.userId, cantidadSegura);
   }
 
   @Get('comparativa-global')
-  @UseGuards(AuthGuard('jwt'))
   async obtenerComparativaGlobal(
     @Req() req: RequestConUsuario,
     @Query('procesos') procesosUrl: string,
@@ -63,34 +62,30 @@ export class EstadisticasController {
     if (!procesosUrl) {
       throw new BadRequestException('Debes enviar al menos un ID de proceso para comparar (procesos=id1,id2)');
     }
-
     const procesosIds = procesosUrl.split(',');
     const tipoSeguro = tipo || 'estudiantes';
 
-    return await this.orquestador.obtenerComparativaGlobal(req.user.userId, procesosIds, tipoSeguro);
+    return await this.consultasService.obtenerComparativaGlobal(req.user.userId, procesosIds, tipoSeguro);
   }
 
   @Post(':idProceso/sincronizar-manual')
-  @UseGuards(AuthGuard('jwt'))
   async sincronizarDatosManualmente(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string
   ) {
-    return await this.orquestador.sincronizarProcesoManual(idProceso, req.user.userId);
+    return await this.webhooksService.sincronizarProcesoManual(idProceso, req.user.userId);
   }
 
   @Get(':idProceso/resultados')
-  @UseGuards(AuthGuard('jwt'))
   async obtenerResultadosFrontend(
     @Req() req: any, 
     @Param('idProceso') idProceso: string,
     @Query() filtros: any 
   ) {
-    return await this.orquestador.obtenerResultadosTabulares(idProceso, req.user.userId, filtros);
+    return await this.consultasService.obtenerResultadosTabulares(idProceso, req.user.userId, filtros);
   }
 
   @Get(':idProceso/metricas')
-  @UseGuards(AuthGuard('jwt'))
   async obtenerMetricasFrontend(
     @Req() req: any,
     @Param('idProceso') idProceso: string,
@@ -99,7 +94,7 @@ export class EstadisticasController {
     const { pagina, ...filtrosMongo } = queryParams;
     const paginaFiltroNum = pagina ? Number(pagina) : undefined;
 
-    return await this.orquestador.obtenerMetricasAnaliticas(
+    return await this.consultasService.obtenerMetricasAnaliticas(
       idProceso, 
       req.user.userId, 
       filtrosMongo, 
@@ -108,14 +103,12 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/filtros-disponibles')
-  @UseGuards(AuthGuard('jwt'))
   async obtenerOpcionesFiltros(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
     @Query('tipo') tipo?: string 
   ) {
     const tipoSeguro = tipo || 'estudiantes'; 
-    return await this.orquestador.obtenerOpcionesFiltrosDisponibles(idProceso, req.user.userId, tipoSeguro);
+    return await this.consultasService.obtenerOpcionesFiltrosDisponibles(idProceso, req.user.userId, tipoSeguro);
   }
-
 }

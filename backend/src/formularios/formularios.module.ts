@@ -4,8 +4,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { FormulariosService } from './formularios.service';
 import { FormulariosController } from './formularios.controller';
 import { Proceso, ProcesoSchema } from './schemas/proceso.schema';
-import { EstudianteEstrategia } from './estrategias/estudiante.estrategia';
-import { SocioEstrategia } from './estrategias/socio.estrategia';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
 import { GoogleModule } from 'src/google/google.module';
 import { Plantilla, PlantillaSchema } from './schemas/plantilla.schema';
@@ -23,8 +21,6 @@ import { Configuracion, ConfiguracionSchema } from './schemas/configuracion.sche
   controllers: [FormulariosController],
   providers: [
     FormulariosService,
-    EstudianteEstrategia,
-    SocioEstrategia,
     FormulariosOrquestadorService
   ],
   exports: [FormulariosService],

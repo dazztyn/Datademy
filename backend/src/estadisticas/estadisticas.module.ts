@@ -1,11 +1,16 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EstadisticasController } from './estadisticas.controller';
-import { EstadisticasService } from './estadisticas.service';
 import { Estadistica, EstadisticaSchema } from './schemas/estadisticas.schema';
 import { GoogleModule } from '../google/google.module';
-import { EstadisticasOrquestadorService } from './estadisticas-orquestador.service';
+import { EstadisticasWebhooksService } from './estadisticas-webhooks.service';
+import { EstadisticasConsultasService } from './estadisticas-consultas.service';
+import { EstadisticasSeederService } from './estadisticas-seeder.service';
 import { FormulariosModule } from 'src/formularios/formularios.module';
+import { EstadisticasMathService } from './estadisticas-math.service';
+import { EstadisticasParserService } from './estadisticas-parser.service';
+import { EstadisticasFormatterService } from './estadisticas-formatter.service';
+import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service';
 
 @Module({
   imports: [
@@ -15,12 +20,19 @@ import { FormulariosModule } from 'src/formularios/formularios.module';
   ],
   controllers: [EstadisticasController],
   providers: [
-    EstadisticasService,
-    EstadisticasOrquestadorService
+    EstadisticasWebhooksService,
+    EstadisticasConsultasService,
+    EstadisticasSeederService,
+    EstadisticasMathService,
+    EstadisticasParserService,
+    EstadisticasFormatterService,
+    EstadisticasAnaliticasService
   ],
   exports: [
-    EstadisticasService,
-    EstadisticasOrquestadorService
+    EstadisticasWebhooksService,
+    EstadisticasConsultasService,
+    EstadisticasFormatterService,
+    EstadisticasAnaliticasService
   ]
 })
 export class EstadisticasModule {}

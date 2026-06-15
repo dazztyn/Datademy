@@ -1,34 +1,71 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
 interface AuthContextType {
-  jwt: string | null
+  isAuthenticated: boolean
+  isLoading: boolean
   gToken: string | null
-  guardarTokens: (jwt: string, gToken: string) => void
+  guardarTokens: (gToken: string) => void
   cerrarSesion: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const BASE_URL = import.meta.env.VITE_API_URL
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [jwt, setJwt] = useState<string | null>(sessionStorage.getItem('jwt'))
-  const [gToken, setGToken] = useState<string | null>(sessionStorage.getItem('gToken'))
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [gToken, setGToken] = useState<string | null>(null)
 
-  const guardarTokens = (jwt: string, gToken: string) => {
-    sessionStorage.setItem('jwt', jwt)
+ useEffect(() => {
+  const recuperarTokenDeGoogle = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/auth/google-token`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        
+        if (data.estado === 'exito' && data.googleAccessToken) {
+          sessionStorage.setItem('isLoggedIn', 'true')
+          sessionStorage.setItem('gToken', data.googleAccessToken)
+          
+          setIsAuthenticated(true)
+          setGToken(data.googleAccessToken) 
+        } else {
+          cerrarSesion()
+        }
+      } else {
+        cerrarSesion()
+      }
+    } catch (error) {
+      console.error('Error al recuperar el token de Google:', error)
+      cerrarSesion()
+    } finally {
+      setIsLoading(false) 
+    }
+  }
+
+  recuperarTokenDeGoogle()
+}, [])
+
+  const guardarTokens = (gToken: string) => {
+    sessionStorage.setItem('isLoggedIn', 'true')
     sessionStorage.setItem('gToken', gToken)
-    setJwt(jwt)
+    setIsAuthenticated(true)
     setGToken(gToken)
   }
 
   const cerrarSesion = () => {
-    sessionStorage.removeItem('jwt')
+    sessionStorage.removeItem('isLoggedIn')
     sessionStorage.removeItem('gToken')
-    setJwt(null)
+    setIsAuthenticated(false)
     setGToken(null)
   }
 
   return (
-    <AuthContext.Provider value={{ jwt, gToken, guardarTokens, cerrarSesion }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, gToken, guardarTokens, cerrarSesion }}>
       {children}
     </AuthContext.Provider>
   )

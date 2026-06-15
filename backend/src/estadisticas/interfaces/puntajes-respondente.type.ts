@@ -1,0 +1,1 @@
+export type PuntajesRespondente = Record<string, number>;

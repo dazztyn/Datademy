@@ -36,7 +36,6 @@ export default function ListarResultados() {
 
   return (
     <div className="space-y-4">
-      {/* Toggle */}
       <div className="flex items-center bg-white/20 dark:bg-slate-900/40 rounded-xl p-1">
         {(['estudiantes', 'socios'] as const).map(tipo => (
           <button

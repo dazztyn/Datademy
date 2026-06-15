@@ -55,7 +55,7 @@ export class PaginaConstructo {
   nombre_constructo?: string; 
 
   @Prop({ type: [RespuestaPreguntaSchema], required: true })
-  preguestas_pagina!: RespuestaPregunta[];
+  preguntas_pagina!: RespuestaPregunta[];
 }
 const PaginaConstructoSchema = SchemaFactory.createForClass(PaginaConstructo);
 
@@ -85,3 +85,5 @@ export class Estadistica {
 }
 
 export const EstadisticaSchema = SchemaFactory.createForClass(Estadistica);
+
+EstadisticaSchema.index({ proceso_id: 1, usuario_id: 1, tipo_formulario: 1 });

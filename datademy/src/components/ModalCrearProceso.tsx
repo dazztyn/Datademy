@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { crearFormulario } from '../services/formularios_service'
-
+import { useToast } from '../hooks/useToast' 
+import Toast from '../components/Toast'
 interface ModalCrearProcesoProps {
   onCerrar: () => void
   onCreado: () => void
@@ -10,18 +11,23 @@ export default function ModalCrearProceso({ onCerrar, onCreado }: ModalCrearProc
   const [nombre, setNombre] = useState('')
   const [year, setYear] = useState(new Date().getFullYear())
   const [save, setSave] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { toast, mostrar, cerrar } = useToast()
 
   const handleCrear = async () => {
-    if (!nombre.trim()) return setError('Por favor ingrese un nombre para el proceso')
+   if (!nombre.trim()) {
+      return mostrar('Por favor ingrese un nombre para el proceso', 'error')
+    }
     setSave(true)
-    setError(null)
+    mostrar('Creando nuevo proceso...', 'cargando')
     try {
       await crearFormulario(nombre.trim(), year)
-      onCreado()
-      onCerrar()
+      mostrar('Proceso creado correctamente', 'exito')
+      setTimeout(() => {
+        onCreado()
+        onCerrar()
+      }, 800)
     } catch {
-      setError('Error al crear el proceso, por favor intente de nuevo')
+      mostrar('Error al crear el proceso, por favor intente de nuevo', 'error')
     } finally {
       setSave(false)
     }
@@ -59,11 +65,6 @@ export default function ModalCrearProceso({ onCerrar, onCreado }: ModalCrearProc
             />
           </div>
         </div>
-
-        {error && (
-          <p className="text-xs text-red-400 mb-3">{error}</p>
-        )}
-
         <div className="flex gap-2">
           <button
             onClick={onCerrar}
@@ -74,13 +75,13 @@ export default function ModalCrearProceso({ onCerrar, onCreado }: ModalCrearProc
           <button
             onClick={handleCrear}
             disabled={save || !nombre.trim()}
-            className="flex-1 transition-all text-white text-sm font-medium py-2.5 rounded-xl disabled:opacity-60"
-            style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+            className="flex-1 transition-all text-white text-sm font-medium py-2.5 rounded-xl disabled:opacity-60 hover:opacity-95 bg-gradient-to-r from-[#5fb7bb] to-[#0d438b] shadow-md shadow-blue-900/10"
           >
             {save ? 'Creando proceso...' : 'Crear proceso'}
           </button>
         </div>
       </div>
+      {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={cerrar} />}
     </div>
   )
 }

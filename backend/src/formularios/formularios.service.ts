@@ -1,9 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { EstudianteEstrategia } from './estrategias/estudiante.estrategia';
-import { SocioEstrategia } from './estrategias/socio.estrategia';
 import { InjectModel } from '@nestjs/mongoose';
 import { Proceso, ProcesoDocument } from './schemas/proceso.schema';
-import { Model } from 'mongoose';
+import { Model, ClientSession, UpdateQuery } from 'mongoose';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
 import { Plantilla, PlantillaDocument } from './schemas/plantilla.schema';
@@ -14,8 +12,6 @@ import { FiltroPlantillas } from './interfaces/FiltroPlantillas';
 @Injectable()
 export class FormulariosService {
   constructor(
-    private readonly estudianteEstrategia: EstudianteEstrategia,
-    private readonly socioEstrategia: SocioEstrategia,
     @InjectModel(Proceso.name) private procesoModelo: Model<ProcesoDocument>,
     @InjectModel(Plantilla.name) private plantillaModelo: Model<PlantillaDocument>,
     @InjectModel(Configuracion.name) private configuracionModelo: Model<ConfiguracionDocument>,
@@ -24,7 +20,10 @@ export class FormulariosService {
 
   async obtenerTodosLosProcesos(usuario_id: string) {
     try {
-      const procesos = await this.procesoModelo.find({ usuario_id }).sort({ createdAt: -1 }).exec();
+      const procesos = await this.procesoModelo
+      .find({ usuario_id, estado: 'activo' })
+      .sort({ createdAt: -1 })
+      .exec();
       
       const procesosFormateados = procesos.map((proceso) => {
         const doc = proceso.toObject();
@@ -48,20 +47,8 @@ export class FormulariosService {
       throw new Error('Hubo un problema al intentar leer la base de datos.');
     }
   }
-
-  ejecutarProcesamiento(usuario_id: string, tipo: string, datos: any) {
-    if (tipo === 'estudiante') {
-      return this.estudianteEstrategia.procesarFormulario(datos);
-    } 
-    
-    if (tipo === 'socio') {
-      return this.socioEstrategia.procesarFormulario(datos);
-    }
-
-    throw new BadRequestException('Tipo de formulario no válido. Use "estudiante" o "socio".');
-  }
   
-  async actualizar(usuario_id: string, id: string, datos: ActualizarProcesoDto) {
+  async actualizar(usuario_id: string, id: string, datos: ActualizarProcesoDto | UpdateQuery<ProcesoDocument>) {
     try 
     {
       const actualizado = await this.procesoModelo
@@ -175,14 +162,14 @@ export class FormulariosService {
     const proceso = await this.procesoModelo.findOne({ _id: id, usuario_id }).exec();
     if (!proceso) 
     {
-      throw new Error('El proceso que intentas eliminar no existe.');
+      throw new Error('El proceso que intentas buscar no existe.');
     }
     return proceso;
   }
 
-  async eliminarProcesoDeBD(usuario_id: string, id: string) 
+  async eliminarProcesoDeBD(usuario_id: string, id: string, session?: ClientSession) 
   {
-    await this.procesoModelo.findOneAndDelete({ _id: id, usuario_id }).exec();
+    await this.procesoModelo.findOneAndDelete({ _id: id, usuario_id }, { session }).exec();
     return { estado: 'exito', mensaje: 'Registro eliminado de la base de datos.' };
   }
 
@@ -204,12 +191,12 @@ export class FormulariosService {
     totalEsperados: number
   ) {
     const campoBase = `formulario_${tipoFormulario}`;
-    const datosAActualizar = {
+    const datosAActualizar: UpdateQuery<ProcesoDocument> = {
       [`${campoBase}.nombres_constructos`]: nombresConstructos,
       [`${campoBase}.total_esperados`]: totalEsperados
     };
 
-    return await this.actualizar(usuario_id, idProceso, datosAActualizar as any);
+    return await this.actualizar(usuario_id, idProceso, datosAActualizar);
   }
 
 }

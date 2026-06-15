@@ -1,58 +1,63 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
+import { useRouter, Href } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
-import { makeRedirectUri } from 'expo-auth-session';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
-
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  scopes: [
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/documents'
+  ],
+});
 
 export default function LoginScreen() {
   const router = useRouter();
   const { guardarTokens } = useAuth();
+  const [cargando, setCargando] = useState(false);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    redirectUri: makeRedirectUri(),
-  });
+  const iniciarSesionGoogle = async () => {
+    try {
+      setCargando(true);
+      await GoogleSignin.hasPlayServices();
+      
+      // Lanza el popup nativo de Google
+      const userInfo = await GoogleSignin.signIn();
+      const tokens = await GoogleSignin.getTokens();
 
-  useEffect(() => {
-    if (request) {
-      console.log("=== DEBUG GOOGLE AUTH ===");
-      console.log("La URL exacta de redirección es:", request.redirectUri);
-    }
-  }, [request]);
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-      if (authentication?.accessToken) {
-        enviarTokenAlBackend(authentication.accessToken);
+      console.log("Token de Google nativo obtenido, enviando a NestJS...");
+      
+      const rutaInicio = '/' as any;
+      
+      await guardarTokens('simulacion_jwt_123', tokens.accessToken);
+      router.replace(rutaInicio);
+      
+      
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('Login cancelado por el usuario');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log('Login en progreso');
+      } else {
+        console.error('Error en Google Sign In:', error);
       }
+    } finally {
+      setCargando(false);
     }
-  }, [response]);
-
-  const enviarTokenAlBackend = async (googleAccessToken: string) => {
-    console.log("Token de Google obtenido, enviando a NestJS...");
-    await guardarTokens('simulacion_jwt_123', googleAccessToken);
-    router.replace('/(tabs)'); 
   };
 
   return (
     <View className="flex-1 items-center justify-center bg-slate-900 px-4">
       <View className="bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm px-8 py-10 flex-col items-center border border-slate-700">
 
-      {/* Zona de Logos Institucionales */}
+        {/* Zona de Logos Institucionales */}
         <View className="flex-row items-center justify-center w-full mb-6">
           <Image 
             source={require('../assets/images/LOGODIDEC.png')}
             style={{ width: 100, height: 60, marginRight: 20 }}
             resizeMode="contain"
           />
-          
           <Image 
             source={require('../assets/images/logo-ucn.png')} 
             style={{ width: 85, height: 85 }} 
@@ -69,12 +74,12 @@ export default function LoginScreen() {
         </Text>
 
         <TouchableOpacity
-          onPress={() => promptAsync()}
-          disabled={!request}
+          onPress={iniciarSesionGoogle}
+          disabled={cargando}
           activeOpacity={0.8}
           className="w-full py-3 rounded-xl bg-blue-600 flex-row items-center justify-center shadow-sm"
         >
-          {!request ? (
+          {cargando ? (
             <ActivityIndicator color="white" size="small" />
           ) : (
             <>
@@ -88,19 +93,22 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
 
-        {/* BOTÓN DE BYPASS PARA DESARROLLO */}
-        <TouchableOpacity
-          onPress={() => {
-            guardarTokens("token_de_prueba_jwt_123","token_de_prueba_google_abc");
-            router.replace('/');
-          }}
-          activeOpacity={0.8}
-          className="w-full py-3 mt-4 rounded-xl bg-slate-700 flex-row items-center justify-center border border-slate-600"
-        >
-          <Text className="text-white text-sm font-medium">
-            Entrar como Desarrollador
-          </Text>
-        </TouchableOpacity>
+        {/* BOTÓN DE BYPASS PARA DESARROLLO 
+        
+          <TouchableOpacity
+            onPress={() => {
+              const rutaInicio = '/' as any;
+              guardarTokens("token_de_prueba_jwt_123","token_de_prueba_google_abc");
+              router.replace(rutaInicio);
+            }}
+            activeOpacity={0.8}
+            className="w-full py-3 mt-4 rounded-xl bg-slate-700 flex-row items-center justify-center border border-slate-600"
+          >
+            <Text className="text-white text-sm font-medium">
+              Entrar como Desarrollador
+            </Text>
+          </TouchableOpacity>
+        */}
         
       </View>
     </View>

@@ -1,5 +1,5 @@
 
-import { IsString, IsNumber, IsNotEmpty, IsObject, ValidateNested, IsOptional } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, IsObject, ValidateNested, IsOptional, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 import { GoogleDatosDto } from './google-datos.dto';
 
@@ -24,4 +24,8 @@ export class CrearProcesoDto {
   @ValidateNested()
   @Type(() => GoogleDatosDto)
   formulario_socios!: GoogleDatosDto;
+
+  @IsOptional()
+  @IsIn(['activo', 'borrado_pendiente'], { message: 'Estado no válido' })
+  estado?: 'activo' | 'borrado_pendiente';
 }
