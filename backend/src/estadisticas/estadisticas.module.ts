@@ -16,8 +16,7 @@ import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service
   imports: [
     MongooseModule.forFeature([{ name: Estadistica.name, schema: EstadisticaSchema }]),
     GoogleModule,
-    FormulariosModule,
-    EstadisticasParserService
+    FormulariosModule
   ],
   controllers: [EstadisticasController],
   providers: [
