@@ -10,6 +10,7 @@ interface RequestConUsuario extends Request {
 }
 
 @Controller('estadisticas')
+@UseGuards(AuthGuard('jwt'))
 export class EstadisticasController {
   constructor(
     private readonly webhooksService: EstadisticasWebhooksService,
@@ -43,7 +44,6 @@ export class EstadisticasController {
   }
 
   @Post(':idProceso/generar-dummy')
-  @UseGuards(AuthGuard('jwt'))
   async generarDatosPrueba(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
@@ -54,7 +54,6 @@ export class EstadisticasController {
   }
 
   @Get('comparativa-global')
-  @UseGuards(AuthGuard('jwt'))
   async obtenerComparativaGlobal(
     @Req() req: RequestConUsuario,
     @Query('procesos') procesosUrl: string,
@@ -70,7 +69,6 @@ export class EstadisticasController {
   }
 
   @Post(':idProceso/sincronizar-manual')
-  @UseGuards(AuthGuard('jwt'))
   async sincronizarDatosManualmente(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string
@@ -79,7 +77,6 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/resultados')
-  @UseGuards(AuthGuard('jwt'))
   async obtenerResultadosFrontend(
     @Req() req: any, 
     @Param('idProceso') idProceso: string,
@@ -89,7 +86,6 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/metricas')
-  @UseGuards(AuthGuard('jwt'))
   async obtenerMetricasFrontend(
     @Req() req: any,
     @Param('idProceso') idProceso: string,
@@ -107,7 +103,6 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/filtros-disponibles')
-  @UseGuards(AuthGuard('jwt'))
   async obtenerOpcionesFiltros(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
