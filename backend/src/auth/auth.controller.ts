@@ -1,9 +1,10 @@
-import { Controller, Get, UseGuards, Req, Res, Post } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Res, Post, UnauthorizedException, Body} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
 import type { RequestConPerfilGoogle } from './interfaces/request-con-perfil-google.interface';
+import { OAuth2Client } from 'google-auth-library';
 
 @Controller('auth')
 export class AuthController {
@@ -81,5 +82,38 @@ export class AuthController {
     res.clearCookie('googleAccessToken', opcionesCookie);
     
     return res.status(200).json({ estado: 'exito', mensaje: 'Sesión cerrada correctamente' });
+  }
+
+  @Post('mobile-login')
+  async loginMovil(@Body('idToken') idToken: string) {
+    const client = new OAuth2Client();
+    try {
+
+      const ticket = await client.verifyIdToken({
+        idToken: idToken,
+        audience: [
+          this.configService.get<string>('GOOGLE_CLIENT_ID')!,
+          this.configService.get<string>('GOOGLE_ANDROID_CLIENT_ID')!
+        ],
+      });
+      const payload = ticket.getPayload();
+
+      const perfilGoogle = {
+        correo: payload!.email!,
+        nombre: payload!.name!,
+        googleId: payload!.sub,
+        avatarUrl: payload!.picture || '',
+        accessToken: 'token_gestionado_en_movil' // El móvil guarda su propio token
+      };
+
+      // 3. Pasamos por tu lógica de seguridad (bloqueo de correos, creación de BD, etc)
+      const resultado = await this.authService.validarUsuarioGoogle(perfilGoogle);
+
+      return { backendJwt: resultado.tokens.backendJwt };
+
+    } catch (error) {
+      console.error('Error verificando token de Google desde el móvil:', error);
+      throw new UnauthorizedException('Token de Google inválido o expirado');
+    }
   }
 }
