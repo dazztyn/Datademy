@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Estadistica } from './schemas/estadisticas.schema';
 import { CAMPOS_BASE } from './config/demograficos.config';
+import { PaginaConstructo, RespuestaPregunta } from './interfaces/pagina-constructo.interface';
 
 @Injectable()
 export class EstadisticasFormatterService {
@@ -9,8 +10,8 @@ export class EstadisticasFormatterService {
     return estadisticasBD.map(est => {
       const { id_respuesta_google, fecha_respuesta, datos_respondente, constructos_paginas } = est;
 
-      const preguntasAplanadas = (constructos_paginas || []).reduce((acc: Record<string, number | string>, pagina: any) => {
-        (pagina.preguntas_pagina || []).forEach((preg: any) => {
+      const preguntasAplanadas = (constructos_paginas || []).reduce((acc: Record<string, number | string>, pagina: PaginaConstructo) => {
+        (pagina.preguntas_pagina || []).forEach((preg: RespuestaPregunta) => {
           acc[preg.pregunta] = preg.valor_numerico > 0 ? preg.valor_numerico : preg.respuesta_texto;         
         });
         return acc;
