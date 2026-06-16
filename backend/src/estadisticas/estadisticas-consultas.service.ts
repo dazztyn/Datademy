@@ -8,6 +8,7 @@ import { EstadisticasFormatterService } from './estadisticas-formatter.service';
 import { ProcesoComparativa } from './interfaces/proceso-comparativo.interface';
 import { MetricaConstructo } from './interfaces/metrica-constructo.interface';
 import { TipoFormulario } from '../common/enum/tipo-formulario.enum';
+import { EstadisticasRepository } from './estadisticas.repository';
 
 @Injectable()
 export class EstadisticasConsultasService {
@@ -23,7 +24,7 @@ export class EstadisticasConsultasService {
   constructor(
     private readonly analiticasService: EstadisticasAnaliticasService,
     private readonly formatterService: EstadisticasFormatterService,
-    @InjectModel('Estadistica') private readonly estadisticaModelo: Model<EstadisticaDocument>,
+    private readonly repositorio: EstadisticasRepository,
     private readonly formulariosService: FormulariosService
   ) {}
 
@@ -39,11 +40,7 @@ export class EstadisticasConsultasService {
         }
       });
 
-    const estadisticas = await this.estadisticaModelo
-      .find(queryMongo)
-      .sort({ fecha_respuesta: -1 })
-      .lean()
-      .exec(); 
+    const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, '', { fecha_respuesta: -1 });
 
     return {
       estado: 'exito',
@@ -64,11 +61,7 @@ export class EstadisticasConsultasService {
           queryMongo[campoMapeadoMongo] = valor;
         }
       });
-    const estadisticas = await this.estadisticaModelo
-      .find(queryMongo)
-      .select('constructos_paginas datos_respondente -_id')
-      .lean()
-      .exec();
+    const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, 'constructos_paginas datos_respondente -_id'); 
 
     const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
     const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
@@ -95,10 +88,10 @@ export class EstadisticasConsultasService {
 
     if (tipoFormulario === TipoFormulario.ESTUDIANTES) {
       const [carreras, sedes, generos, niveles] = await Promise.all([
-        this.estadisticaModelo.distinct('datos_respondente.carrera', queryBase),
-        this.estadisticaModelo.distinct('datos_respondente.sede', queryBase),
-        this.estadisticaModelo.distinct('datos_respondente.genero', queryBase),
-        this.estadisticaModelo.distinct('datos_respondente.nivel_formativo', queryBase)
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.carrera', queryBase),
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.sede', queryBase),
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.genero', queryBase),
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.nivel_formativo', queryBase)
       ]);
 
       return {
@@ -115,8 +108,8 @@ export class EstadisticasConsultasService {
 
     if (tipoFormulario === TipoFormulario.SOCIOS) {
       const [organizaciones, generos] = await Promise.all([
-        this.estadisticaModelo.distinct('datos_respondente.organizacion', queryBase),
-        this.estadisticaModelo.distinct('datos_respondente.genero', queryBase)
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.organizacion', queryBase),
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.genero', queryBase)
       ]);
 
       return {
@@ -152,14 +145,10 @@ export class EstadisticasConsultasService {
     const nombresConstructos = configFormulario?.nombres_constructos || [];
     const totalEsperados = configFormulario?.total_esperados || 0;
 
-    const estadisticas = await this.estadisticaModelo.find({ 
-      proceso_id: procesoId, 
-      usuario_id: usuarioId, 
-      tipo_formulario: tipoFormulario 
-    })
-    .select('constructos_paginas datos_respondente.genero -_id')
-    .lean()
-    .exec();
+    const estadisticas = await this.repositorio.buscarPorQuery(
+      { proceso_id: procesoId, usuario_id: usuarioId, tipo_formulario: tipoFormulario },
+      'constructos_paginas datos_respondente.genero -_id'
+    );
 
     const metricas = this.analiticasService.calcularMetricasAnaliticas(estadisticas, nombresConstructos, totalEsperados);
 
