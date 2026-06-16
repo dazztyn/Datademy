@@ -513,7 +513,7 @@ export default function GenerarInforme() {
                   />
                 </div>
 
-                <div style={{ position: 'absolute', left: '-9999px', width: '360px', height: '280px' }}>
+                <div style={{ position: 'absolute', left: '-9999px', width: '720px', height: '480px' }}>
                   <Pie
                     ref={pieRef}
                     data={datosGenero}
@@ -524,7 +524,7 @@ export default function GenerarInforme() {
                         legend: { position: 'right', labels: { font: { size: 16 }, boxWidth: 18 } },
                         datalabels: {
                           color: 'white',
-                          font: { weight: 'bold', size: 9 },
+                          font: { weight: 'bold', size: 18 },
                           formatter: (value, ctx) => {
                             const total = (ctx.chart.data.datasets[0].data as number[]).reduce((a, b) => a + b, 0)
                             const pct = ((value / total) * 100).toFixed(1)
