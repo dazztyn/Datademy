@@ -12,6 +12,10 @@ import { EstadisticasParserService } from './estadisticas-parser.service';
 import { EstadisticasFormatterService } from './estadisticas-formatter.service';
 import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service';
 import { EstadisticasRepository } from './estadisticas.repository';
+import { DemograficosCalculator } from './calculadoras/demograficos.calculator';
+import { RankingCalculator } from './calculadoras/ranking.calculator';
+import { NpsCalculator } from './calculadoras/nps.calculator';
+import { SatisfaccionCalculator } from './calculadoras/satisfaccion.calculator';
 
 @Module({
   imports: [
@@ -28,7 +32,11 @@ import { EstadisticasRepository } from './estadisticas.repository';
     EstadisticasParserService,
     EstadisticasFormatterService,
     EstadisticasAnaliticasService,
-    EstadisticasRepository
+    EstadisticasRepository,
+    NpsCalculator,
+    RankingCalculator,
+    DemograficosCalculator,
+    SatisfaccionCalculator
   ],
   exports: [
     EstadisticasWebhooksService,
