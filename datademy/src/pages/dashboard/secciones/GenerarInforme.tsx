@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useProceso } from '../../../context/ProcesoContext'
 import { useMetricas } from '../../../hooks/useMetricas'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
@@ -11,6 +11,8 @@ import { temasPagina, temaDefault } from '../../../utils/temasPagina'
 import { useLocation } from 'react-router-dom'
 import { useGooglePicker } from '../../../hooks/useGooglePicker'
 import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
+import { usePersistedState } from '../../../hooks/usePersistentState'
+import { useInforme } from '../../../context/InformeContext'
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels)
 const COLORES = ['#5fb7bb', '#0d438b', '#7f458f']
@@ -23,36 +25,40 @@ function getHeaders(): HeadersInit {
 
 export default function GenerarInforme() {
   const { idProceso } = useProceso()
-  const [urlInforme, setUrlInforme] = useState<string | null>(null)
-  const [estadoJob, setEstadoJob] = useState<'idle' | 'procesando' | 'completado' | 'error'>('idle')
+  const { estadoJob, urlInforme, iniciarPolling, resetear } = useInforme()
   const { toast, mostrar, cerrar } = useToast()
   const location = useLocation()
   const tema = temasPagina[location.pathname] ?? temaDefault
   const pieRef = useRef<ChartJS<'pie'> | null>(null)
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, 'estudiantes')
 
-  const [asignatura, setAsignatura] = useState('')
-  const [modulo, setModulo] = useState('')
-  const [carrera, setCarrera] = useState('')
-  const [programa, setPrograma] = useState('')
-  const [mesInicio, setMesInicio] = useState('')
-  const [mesFinal, setMesFinal] = useState('')
-  const [anio, setAnio] = useState(String(new Date().getFullYear()))
-  const [nombreUsuario, setNombreUsuario] = useState('')
-  const [sede, setSede] = useState('')
+  const [asignatura, setAsignatura] = usePersistedState('asignatura', '')
+  const [modulo, setModulo] = usePersistedState('modulo', '')
+  const [carrera, setCarrera] = usePersistedState('carrera', '')
+  const [programa, setPrograma] = usePersistedState('programa', '')
+  const [mesInicio, setMesInicio] = usePersistedState('mesInicio', '')
+  const [mesFinal, setMesFinal] = usePersistedState('mesFinal', '')
+  const [anio, setAnio] = usePersistedState('anio', String(new Date().getFullYear()))
+  const [nombreUsuario, setNombreUsuario] = usePersistedState('nombreUsuario', '')
+  const [sede, setSede] = usePersistedState('sede', '')
+  const [nombreDocente, setNombreDocente] = usePersistedState('nombreDocente', '')
+
+  const [carpetaConfigurada, setCarpetaConfigurada] = usePersistedState('carpetaConfigurada', false)
+  const [plantillaConfigurada, setPlantillaConfigurada] = usePersistedState('plantillaConfigurada', false)
+  const [generando, setGenerando] = usePersistedState('generando', false)
+  const [mostrarPopup, setMostrarPopup] = useState(false)
+
+
   const [tipoAsignatura, setTipoAsignatura] = useState<'Obligatoria' | 'Electiva'>('Obligatoria')
   const [ciclo, setCiclo] = useState<'Básico' | 'Profesional'>('Básico')
   const [numSemestre, setNumSemestre] = useState('')
   const [pronombre, setPronombre] = useState<'el' | 'la'>('el')
-  const [nombreDocente, setNombreDocente] = useState('')
-  const [carpetaConfigurada, setCarpetaConfigurada] = useState(false)
-  const [plantillaConfigurada, setPlantillaConfigurada] = useState(false)
-  const [generando, setGenerando] = useState(false)
 
   const { metricas } = useMetricas(idProceso, {
     tipo: 'estudiantes',
     carrera: carrera || undefined,
     sede: sede || undefined,
+    nivel_formativo: programa || undefined,
   })
 
   const totalEstudiantes = metricas?.total_esperados ?? 0
@@ -95,87 +101,64 @@ export default function GenerarInforme() {
       borderWidth: 0,
     }]
   } : null
-
-  const iniciarPolling = (id: string) => {
-    const intervalo = setInterval(async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/reportes/estado/${id}`, {
-          headers: getHeaders(),
-          credentials: 'include',
-        })
-        if (!response.ok) throw new Error()
-        const data = await response.json()
-
-        if (data.estado === 'completado') {
-          clearInterval(intervalo)
-          setEstadoJob('completado')
-          setUrlInforme(data.resultado.url_informe)
-          setGenerando(false)
-          mostrar('¡Informe generado correctamente!', 'exito')
-        } else if (data.estado === 'error') {
-          clearInterval(intervalo)
-          setEstadoJob('error')
-          setGenerando(false)
-          mostrar(data.mensaje ?? 'Error al generar el informe', 'error')
-        }
-      } catch {
-        clearInterval(intervalo)
-        setEstadoJob('error')
-        setGenerando(false)
-        mostrar('Error al verificar el estado del informe', 'error')
-      }
-    }, 3000)
+  useEffect(() => {
+  if (estadoJob === 'completado' && urlInforme) {
+    setMostrarPopup(true)
+  }
+}, [estadoJob, urlInforme])
+const handleGenerar = async () => {
+  if (!idProceso) return
+  if (!asignatura || !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente || !programa) {
+    return mostrar('Por favor completa todos los campos obligatorios', 'error')
+  }
+  if (!carpetaConfigurada || !plantillaConfigurada) {
+    return mostrar('Debes configurar la carpeta y plantilla del informe', 'error')
   }
 
-  const handleGenerar = async () => {
-    if (!idProceso) return
-    if (!asignatura || !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente) {
-      return mostrar('Por favor completa todos los campos obligatorios', 'error')
+  setGenerando(true)
+  resetear()
+  mostrar('Enviando solicitud...', 'cargando')
+
+  try {
+    let graficos: Record<string, string> = {}
+    if (pieRef.current) {
+      graficos['GraficoGenero'] = pieRef.current.toBase64Image()
     }
-    if (!carpetaConfigurada || !plantillaConfigurada) {
-      return mostrar('Debes configurar la carpeta y plantilla del informe', 'error')
+
+    const datosTexto: Record<string, string> = {
+      AsignaturaModulo: modulo ? `${asignatura} - ${modulo}` : asignatura,
+      CarreraPrograma: programa ? `${carrera} - ${programa}` : carrera,
+      Periodo: `${mesInicio}-${mesFinal} / ${anio}`,
+      Anio: anio,
+      NombreUsuario: nombreUsuario,
+      Ciudad: sede,
+      TotalEstudiantes: String(totalEstudiantes),
+      TotalRespuestas: String(totalRespuestas),
+      PorcRespuestas: `${porcRespuestas}%`,
+      NombreDocente: nombreDocente,
+      ToggleCiclo: ciclo,
+        NumSemestre: numSemestre,
+        TogglePronombre: pronombre,
+      ToggleAsignatura: tipoAsignatura,
     }
 
-    setGenerando(true)
-    setEstadoJob('procesando')
-    setUrlInforme(null)
-    mostrar('Enviando solicitud...', 'cargando')
+    const response = await fetch(`${BASE_URL}/reportes/generar`, {
+      method: 'POST',
+      headers: getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ nombreCarrera: carrera, datosTexto, graficos }),
+    })
 
-    try {
-      let graficos: Record<string, string> = {}
-      if (pieRef.current) {
-        graficos['GraficoGenero'] = pieRef.current.toBase64Image()
-      }
-
-      const datosTexto: Record<string, string> = {
-        AsignaturaModulo: modulo ? `${asignatura} - ${modulo}` : asignatura,
-        CarreraPrograma: programa ? `${carrera} - ${programa}` : carrera,
-        Periodo: `${mesInicio}-${mesFinal} / ${anio}`,
-        Anio: anio,
-        NombreUsuario: nombreUsuario,
-        Ciudad: sede,
-        TotalEstudiantes: String(totalEstudiantes),
-        TotalRespuestas: String(totalRespuestas),
-        PorcRespuestas: `${porcRespuestas}%`,
-      }
-
-      const response = await fetch(`${BASE_URL}/reportes/generar`, {
-        method: 'POST',
-        headers: getHeaders(),
-        credentials: 'include',
-        body: JSON.stringify({ nombreCarrera: carrera, datosTexto, graficos }),
-      })
-
-      if (!response.ok) throw new Error('Error al iniciar generación')
-      const data = await response.json()
-      mostrar('Informe en cola, procesando...', 'cargando')
-      iniciarPolling(data.jobId)
-    } catch {
-      mostrar('Error al enviar la solicitud', 'error')
-      setGenerando(false)
-      setEstadoJob('idle')
-    }
+    if (!response.ok) throw new Error()
+    const data = await response.json()
+    mostrar('Informe en cola, procesando...', 'cargando')
+    iniciarPolling(data.jobId)
+  } catch {
+    mostrar('Error al enviar la solicitud', 'error')
+  } finally {
+    setGenerando(false)
   }
+}
 
   if (!idProceso) {
     return (
@@ -215,7 +198,6 @@ export default function GenerarInforme() {
 
   return (
     <div className="space-y-6 w-full">
-      {/* Configuración */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Configuración del informe</h3>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">
@@ -255,7 +237,6 @@ export default function GenerarInforme() {
         </div>
       </div>
 
-      {/* Datos generales */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Datos generales</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -278,7 +259,12 @@ export default function GenerarInforme() {
           </div>
           <div>
             <label className={labelClass}>Programa</label>
-            <input type="text" value={programa} onChange={e => setPrograma(e.target.value)} placeholder="Ej: Pregrado" className={inputClass} />
+            <select value={programa} onChange={e => setPrograma(e.target.value)} className={inputClass}>
+              <option value="">Selecciona un programa...</option>
+              {filtrosDisponibles?.niveles_formativos?.map((p: string) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
           </div>
         </div>
         <div>
@@ -311,7 +297,6 @@ export default function GenerarInforme() {
         </div>
       </div>
 
-      {/* Contexto asignatura */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Contexto de asignatura</h3>
         <div className="grid grid-cols-2 gap-4">
@@ -338,7 +323,6 @@ export default function GenerarInforme() {
         </div>
       </div>
 
-      {/* Caracterización */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Caracterización estudiantes</h3>
         {metricas ? (
@@ -362,7 +346,7 @@ export default function GenerarInforme() {
                 <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
                   Gráfico de género (se incluirá en el informe)
                 </p>
-                <div style={{ width: '380px', height: '260px', margin: '20px' }}>
+                <div style={{ width: '360px', height: '240px', margin: '20px' }}>
                   <Pie
                     ref={pieRef}
                     data={datosGenero}
@@ -422,32 +406,47 @@ export default function GenerarInforme() {
         ) : 'Generar informe'}
       </button>
 
-      {/* Resultado */}
-      {estadoJob === 'completado' && urlInforme && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-green-700 dark:text-green-300">Informe listo</p>
-            <p className="text-xs text-green-500 dark:text-green-400">Se generó correctamente en Google Drive</p>
-          </div>
-          <a
-            href={urlInforme}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs px-4 py-2 rounded-xl text-white font-medium"
-            style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+      {mostrarPopup && urlInforme && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setMostrarPopup(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center"
+            onClick={e => e.stopPropagation()}
           >
-            Abrir →
-          </a>
+            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+              <span className="text-xl text-green-600 dark:text-green-400">✓</span>
+            </div>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-1">
+              ¡Informe generado con éxito!
+            </h2>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mb-6 leading-relaxed">
+              El documento se ha guardado correctamente en tu Google Drive.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setMostrarPopup(false)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                Cerrar
+              </button>
+              
+              <a
+                href={urlInforme}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMostrarPopup(false)}
+                className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium text-center shadow-sm hover:opacity-95 transition-opacity flex items-center justify-center"
+                style={{ background: `linear-gradient(to right, ${tema.fondoDesde}, ${tema.fondoHasta})` }}
+              >
+                Ver informe
+              </a>
+            </div>
+          </div>
         </div>
       )}
-
-      {estadoJob === 'error' && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-2xl p-4">
-          <p className="text-sm font-medium text-red-600 dark:text-red-400">Error al generar el informe</p>
-          <p className="text-xs text-red-400 dark:text-red-500 mt-1">Revisa la configuración e intenta de nuevo</p>
-        </div>
-      )}
-
+      
       {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={cerrar} />}
     </div>
   )

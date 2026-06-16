@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { temasPagina, temaDefault } from '../utils/temasPagina'
 import { useProceso } from '../context/ProcesoContext'
 import { sincronizarManual } from '../services/estadisticos_service'
+import { useInforme } from '../context/InformeContext'
 
 import iconoListar from '../assets/LIST.png'
 import iconoGraficos from '../assets/DATA.png'
@@ -29,7 +30,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const { idProceso } = useProceso()
-
+  const { estadoJob, urlInforme } = useInforme()
   const temaBarra = temasPagina[location.pathname] ?? temaDefault
 
   const handleRefresh = async () => {
@@ -112,32 +113,35 @@ export default function Sidebar() {
       </div>
 
       <div className="px-3 flex flex-col gap-2 mt-4">
-        <button
-            onClick={() => navigate('/detalles/informe')}
-            className="flex items-center justify-center gap-3 px-3 py-2.5 rounded-xl bg-white hover:opacity-90 transition-all overflow-hidden"
-          >
-            <span
-              className={`text-xs font-semibold whitespace-nowrap transition-all duration-300 ${
-                open
-                  ? 'opacity-100 max-w-xs'
-                  : 'opacity-0 max-w-0'
-              }`}
-              style={{ color: temaBarra.sidebar }}
-            >
-              Generar informe
-            </span>
-
-            <span
-              className={`absolute text-lg font-bold transition-all duration-300 ${
-                open
-                  ? 'opacity-0 scale-75'
-                  : 'opacity-100 scale-100'
-              }`}
-              style={{ color: temaBarra.sidebar }}
-            >
-              π
-            </span>
-          </button>
+<button
+  onClick={() => navigate('/detalles/informe')}
+  className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white hover:opacity-90 transition-opacity overflow-hidden"
+>
+  <span className="relative flex-shrink-0">
+    <span
+      className={`text-base font-bold transition-all duration-300 ${
+        estadoJob === 'procesando' ? 'animate-pulse' : ''
+      }`}
+      style={{
+        color: estadoJob === 'completado' ? '#22c55e' : temaBarra.sidebar
+      }}
+    >
+      π
+    </span>
+    {estadoJob === 'procesando' && (
+      <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+    )}
+    {estadoJob === 'completado' && (
+      <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full" />
+    )}
+  </span>
+  <span
+    className={`text-xs font-semibold whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}
+    style={{ color: temaBarra.sidebar }}
+  >
+    Generar informe
+  </span>
+</button>
 
         <button
           onClick={() => navigate('/dashboard')}
