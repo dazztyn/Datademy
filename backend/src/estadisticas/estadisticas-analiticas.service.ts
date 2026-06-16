@@ -36,7 +36,7 @@ export class EstadisticasAnaliticasService
     const totalEncuestados = estadisticasBD.length;
     const tasaRespuesta = totalEsperados > 0 ? Number(((totalEncuestados / totalEsperados) * 100).toFixed(1)) : 0;
 
-    const promediosPorPagina = this.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos);
+    const promediosPorPagina = this.satisfaccionCalculator.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos);
 
     const promedioSatisfaccionConstructos = promediosPorPagina.length > 0 
       ? Number((promediosPorPagina.reduce((acc, p) => acc + p.promedio_constructo, 0) / promediosPorPagina.length).toFixed(1)) 
@@ -49,14 +49,14 @@ export class EstadisticasAnaliticasService
       distribucion_genero: this.demograficosCalculator.calcularDistribucionGenero(estadisticasBD),
       promedios_por_pagina: this.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos),
       promedio_satisfaccion_constructos: promedioSatisfaccionConstructos,
-      promedio_satisfaccion_general: this.calcularSatisfaccionGeneral(todasLasPreguntas),
+      promedio_satisfaccion_general: this.satisfaccionCalculator.calcularSatisfaccionGeneral(todasLasPreguntas),
       satisfaccion_por_carrera: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'carrera'),
       satisfaccion_por_sede: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'sede'),
       satisfaccion_por_organizacion: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'organizacion'),
       ranking_preguntas: this.rankingCalculator.calcular(estadisticasBD),
       nps_satisfaccion: this.npsCalculator.calcular(estadisticasBD, ultimaPagina),
       tabla_socios_comunitarios: this.demograficosCalculator.obtenerListaSociosComunitarios(estadisticasBD),
-      detalle_por_dimension: this.calcularDetallePreguntasPorDimension(estadisticasBD, nombresConstructos),
+      detalle_por_dimension: this.satisfaccionCalculator.calcularDetallePreguntasPorDimension(estadisticasBD, nombresConstructos),
       fiabilidad_constructos: this.mathService.calcularFiabilidadCronbach(
         estadisticasBD, 
         ultimaPagina, 
@@ -90,32 +90,6 @@ export class EstadisticasAnaliticasService
     });
   }
 
-  private calcularSatisfaccionGeneral(todasLasPreguntas: PreguntaAplanada[]) {
-    const paginasNumeros = todasLasPreguntas.map(p => p.numero_pagina);
-    if (paginasNumeros.length === 0) return 0;
-    
-    const ultimaPagina = Math.max(...paginasNumeros);
-
-    let preguntasSatisfaccion = todasLasPreguntas.filter(p => 
-      p.numero_pagina === ultimaPagina && 
-      p.pregunta.toLowerCase().includes('satisfacción general') &&
-      p.valor_numerico > 0
-    );
-    
-    if (preguntasSatisfaccion.length === 0) {
-      preguntasSatisfaccion = todasLasPreguntas.filter(p => 
-        p.numero_pagina === ultimaPagina && 
-        p.valor_numerico >= 1 && 
-        p.valor_numerico <= 7
-      );
-    }
-    
-    if (preguntasSatisfaccion.length === 0) return 0;
-
-    const sumaTotal = preguntasSatisfaccion.reduce((sum, p) => sum + p.valor_numerico, 0);
-    return Number((sumaTotal / preguntasSatisfaccion.length).toFixed(1));
-  }
-
   private extraerPreguntasConPagina(estadisticasBD: Partial<Estadistica>[]): PreguntaAplanada[] {
     return estadisticasBD.flatMap(est => 
       (est.constructos_paginas || []).flatMap((pagina) => 
@@ -146,101 +120,6 @@ export class EstadisticasAnaliticasService
       promedio_satisfaccion_general: 0,
       fiabilidad_constructos: []
     };
-  }
-
-  private calcularSatisfaccionPorAtributo(estadisticasBD: Partial<Estadistica>[], ultimaPagina: number, atributo: string) {
-    const acumulador = new Map<string, { suma: number; cantidad: number }>();
-
-    for (const est of estadisticasBD) {
-      const valorAtributo = est.datos_respondente?.[atributo];
-      if (!valorAtributo || valorAtributo === 'No especificado' || valorAtributo === 'No especificada') continue;
-      if (!est.constructos_paginas) continue;
-
-      let suma = 0;
-      let cantidad = 0;
-
-      for (const pagina of est.constructos_paginas) {
-        if (pagina.numero_pagina === ultimaPagina && pagina.preguntas_pagina) {
-          for (const preg of pagina.preguntas_pagina) {
-            if (preg.valor_numerico > 0) {
-              suma += preg.valor_numerico;
-              cantidad++;
-            }
-          }
-          break;
-        }
-      }
-
-      if (cantidad > 0) {
-        const promedioRespondente = suma / cantidad;
-        if (!acumulador.has(valorAtributo)) {
-          acumulador.set(valorAtributo, { suma: 0, cantidad: 0 });
-        }
-        const stats = acumulador.get(valorAtributo)!;
-        stats.suma += promedioRespondente;
-        stats.cantidad += 1;
-      }
-    }
-
-    return Array.from(acumulador.entries())
-      .map(([nombre, datos]) => ({
-        nombre,
-        promedio: Number((datos.suma / datos.cantidad).toFixed(1))
-      }))
-      .sort((a, b) => b.promedio - a.promedio);
-  }
-
-  private calcularDetallePreguntasPorDimension(estadisticasBD: Partial<Estadistica>[], nombresConstructos: string[]) {
-    const paginasMap = new Map<number, Map<string, { suma: number; cantidad: number; frecuencias: Record<number, number> }>>();
-
-
-    for (const est of estadisticasBD) {
-      if (!est.constructos_paginas) continue;
-
-      for (const pagina of est.constructos_paginas) {
-        if (!paginasMap.has(pagina.numero_pagina)) {
-          paginasMap.set(pagina.numero_pagina, new Map());
-        }
-        const mapaPreguntas = paginasMap.get(pagina.numero_pagina)!;
-
-        if (!pagina.preguntas_pagina) continue;
-
-        for (const preg of pagina.preguntas_pagina) {
-          const valor = preg.valor_numerico;
-          
-          if (valor > 0) {
-            if (!mapaPreguntas.has(preg.pregunta)) {
-              mapaPreguntas.set(preg.pregunta, { suma: 0, cantidad: 0, frecuencias: {} });
-            }
-            const stats = mapaPreguntas.get(preg.pregunta)!;
-            
-            stats.suma += valor;
-            stats.cantidad += 1;
-            stats.frecuencias[valor] = (stats.frecuencias[valor] || 0) + 1;
-          }
-        }
-      }
-    }
-
-    const resultado = Array.from(paginasMap.entries()).map(([numeroPagina, mapaPreguntas]) => {
-      const indiceNombre = numeroPagina - 2;
-      const nombreConstructo = nombresConstructos[indiceNombre] || `Dimensión ${numeroPagina}`;
-
-      const preguntas = Array.from(mapaPreguntas.entries()).map(([pregunta, stats]) => ({
-        pregunta,
-        promedio: Number((stats.suma / stats.cantidad).toFixed(1)),
-        total_respuestas: stats.cantidad,
-        distribucion_frecuencias: stats.frecuencias 
-      }));
-
-      return {
-        numero_pagina: numeroPagina,
-        nombre_constructo: nombreConstructo,
-        preguntas
-      };
-    });
-
-    return resultado.sort((a, b) => a.numero_pagina - b.numero_pagina);
   }
 
 }
