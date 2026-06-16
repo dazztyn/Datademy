@@ -194,7 +194,6 @@ export default function GenerarInforme() {
     } catch {
       mostrar('Error al enviar la solicitud', 'error')
     } finally {
-      cerrar()
       setGenerando(false)
     }
   }
@@ -358,8 +357,6 @@ export default function GenerarInforme() {
           </div>
         </div>
       </div>
-
-      {/* ── Datos personales ── */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Datos personales</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -480,7 +477,7 @@ export default function GenerarInforme() {
                     data={datosGenero}
                     options={{
                       maintainAspectRatio: false,
-                      devicePixelRatio: 3,
+                      devicePixelRatio: 2,
                       plugins: {
                         legend: { position: 'right' },
                         datalabels: {
@@ -549,8 +546,7 @@ export default function GenerarInforme() {
                         <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
                           {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
-                        {/* Visible chart — WITH datalabels, with enough right padding for the labels */}
-                        <div style={{ height: `${preguntas.length * 36 + 32}px`, paddingRight: '40px' }}>
+                        <div style={{ height: `${preguntas.length * 24 + 32}px`, paddingRight: '40px', width: '720px' }}>
                           <Bar
                             ref={(el) => {
                               barrasRefs.current[constructo.numero_pagina] = el
