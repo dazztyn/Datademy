@@ -4,6 +4,7 @@ import { FormulariosService } from '../formularios.service';
 import { GoogleService } from 'src/google/google.service';
 import { InjectConnection } from '@nestjs/mongoose'; 
 import { Connection } from 'mongoose';
+import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 
 
 @Injectable()
@@ -19,7 +20,7 @@ export class FormulariosOrquestadorService {
     idProceso: string,
     idPlantilla: string,
     nombreNuevoFormulario: string,
-    tipoFormulario: 'socios' | 'estudiantes'
+    tipoFormulario: TipoFormulario
   ) 
   {
 
@@ -104,7 +105,7 @@ export class FormulariosOrquestadorService {
     usuario_id: string,
     idProceso: string,
     idFormularioExistente: string,
-    tipoFormulario: 'socios' | 'estudiantes'
+    tipoFormulario: TipoFormulario
   ) {
     try {
       const diseno = await this.googleService.obtenerDisenoFormulario(idFormularioExistente);
@@ -138,10 +139,10 @@ export class FormulariosOrquestadorService {
     }
   }
 
-  async obtenerCantidadConstructos(usuario_id: string, idProceso: string, tipoFormulario: 'estudiantes' | 'socios') 
+  async obtenerCantidadConstructos(usuario_id: string, idProceso: string, tipoFormulario: TipoFormulario) 
   {
     const proceso = await this.formulariosService.obtenerProcesoInterno(usuario_id, idProceso);
-    const configFormulario = tipoFormulario === 'estudiantes' ? proceso.formulario_estudiantes : proceso.formulario_socios;
+    const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
 
     if (!configFormulario || !configFormulario.id_google_form) {
       throw new BadRequestException(`El formulario de ${tipoFormulario} aún no ha sido vinculado a este proceso.`);

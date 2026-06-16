@@ -4,6 +4,7 @@ import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
+import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 
 interface RequestConUsuario extends Request 
 {
@@ -31,7 +32,7 @@ export class FormulariosController {
     @Param('idProceso') idProceso: string, 
     @Body('idPlantilla') idPlantilla: string,
     @Body('nombreNuevoFormulario') nombreNuevoFormulario: string,
-    @Body('tipoFormulario') tipoFormulario: 'socios' | 'estudiantes'
+    @Body('tipoFormulario') tipoFormulario: TipoFormulario
   ) {
     return await this.orquestadorService.crearYVincularFormulario(
       req.user.userId,
@@ -59,7 +60,7 @@ export class FormulariosController {
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
     @Body('idGoogleForm') idGoogleForm: string,
-    @Body('tipoFormulario') tipoFormulario: 'socios' | 'estudiantes'
+    @Body('tipoFormulario') tipoFormulario: TipoFormulario
   ) {
     return await this.orquestadorService.vincularFormularioExistente(
       req.user.userId,
@@ -73,7 +74,7 @@ export class FormulariosController {
   async configurarMetadatos(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
-    @Body('tipoFormulario') tipoFormulario: 'socios' | 'estudiantes',
+    @Body('tipoFormulario') tipoFormulario: TipoFormulario,
     @Body('nombresConstructos') nombresConstructos: string[],
     @Body('totalEsperados') totalEsperados: number
   ) {
@@ -101,9 +102,9 @@ export class FormulariosController {
   async obtenerCantidadConstructos(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
-    @Query('tipo') tipoFormulario: 'estudiantes' | 'socios'
+    @Query('tipo') tipoFormulario: TipoFormulario
   ) {
-    if (!tipoFormulario || (tipoFormulario !== 'estudiantes' && tipoFormulario !== 'socios')) {
+    if (!tipoFormulario || !Object.values(TipoFormulario).includes(tipoFormulario)) {
       throw new BadRequestException('Debes especificar el tipo de formulario (?tipo=estudiantes o ?tipo=socios)');
     }
 
