@@ -8,6 +8,7 @@ import { EstadisticasParserService } from './estadisticas-parser.service';
 import { forms_v1 } from 'googleapis';
 import { GoogleFormDiseno } from './interfaces/diseno-google.interface';
 import { GoogleFormRespuesta } from './interfaces/respuesta-google.interface';
+import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 
 @Injectable()
 export class EstadisticasWebhooksService {
@@ -18,7 +19,7 @@ export class EstadisticasWebhooksService {
     private readonly formulariosService: FormulariosService
   ) {}
 
-  private async obtenerFechaUltimaSincronizacion(procesoId: string, tipoFormulario: string): Promise<Date | null> {
+  private async obtenerFechaUltimaSincronizacion(procesoId: string, tipoFormulario: TipoFormulario): Promise<Date | null> {
     const ultima = await this.estadisticaModelo
       .findOne({ proceso_id: procesoId, tipo_formulario: tipoFormulario })
       .sort({ fecha_respuesta: -1 }) 
@@ -36,7 +37,7 @@ export class EstadisticasWebhooksService {
     const usuarioIdReal = procesoAsociado.usuario_id;
     const procesoIdReal = procesoAsociado._id?.toString() || procesoAsociado.id;
     const tipoFormularioReal = procesoAsociado.formulario_estudiantes?.id_google_form === idFormulario 
-      ? 'estudiantes' : 'socios';
+      ? TipoFormulario.ESTUDIANTES : TipoFormulario.SOCIOS;
 
     const diseno = await this.googleService.obtenerDisenoFormulario(idFormulario);
     const disenoAdaptado = diseno as unknown as GoogleFormDiseno;
