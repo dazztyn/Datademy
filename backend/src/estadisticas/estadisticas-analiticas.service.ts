@@ -26,12 +26,19 @@ export class EstadisticasAnaliticasService
     const totalEncuestados = estadisticasBD.length;
     const tasaRespuesta = totalEsperados > 0 ? Number(((totalEncuestados / totalEsperados) * 100).toFixed(1)) : 0;
 
+    const promediosPorPagina = this.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos);
+
+    const promedioSatisfaccionConstructos = promediosPorPagina.length > 0 
+      ? Number((promediosPorPagina.reduce((acc, p) => acc + p.promedio_constructo, 0) / promediosPorPagina.length).toFixed(1)) 
+      : 0;
+    
     return {
       total_esperados: totalEsperados,
       total_encuestados: estadisticasBD.length,
       tasa_respuesta_porcentaje: tasaRespuesta,
       distribucion_genero: this.calcularDistribucionGenero(estadisticasBD),
       promedios_por_pagina: this.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos),
+      promedio_satisfaccion_constructos: promedioSatisfaccionConstructos,
       promedio_satisfaccion_general: this.calcularSatisfaccionGeneral(todasLasPreguntas),
       satisfaccion_por_carrera: this.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'carrera'),
       satisfaccion_por_sede: this.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'sede'),
@@ -64,11 +71,13 @@ export class EstadisticasAnaliticasService
   private calcularPromediosPorPagina(preguntas: PreguntaAplanada[], nombresConstructos: string[]) {
     const sumasPorPagina: Record<number, { suma: number; cantidad: number }> = {};
     preguntas.forEach(p => {
-      if (!sumasPorPagina[p.numero_pagina]) {
-        sumasPorPagina[p.numero_pagina] = { suma: 0, cantidad: 0 };
+      if (p.valor_numerico > 0) {
+        if (!sumasPorPagina[p.numero_pagina]) {
+          sumasPorPagina[p.numero_pagina] = { suma: 0, cantidad: 0 };
+        }
+        sumasPorPagina[p.numero_pagina].suma += p.valor_numerico;
+        sumasPorPagina[p.numero_pagina].cantidad += 1;
       }
-      sumasPorPagina[p.numero_pagina].suma += p.valor_numerico;
-      sumasPorPagina[p.numero_pagina].cantidad += 1;
     });
 
     return Object.keys(sumasPorPagina).map(pagina => {
@@ -87,7 +96,20 @@ export class EstadisticasAnaliticasService
     if (paginasNumeros.length === 0) return 0;
     
     const ultimaPagina = Math.max(...paginasNumeros);
-    const preguntasSatisfaccion = todasLasPreguntas.filter(p => p.numero_pagina === ultimaPagina);
+
+    let preguntasSatisfaccion = todasLasPreguntas.filter(p => 
+      p.numero_pagina === ultimaPagina && 
+      p.pregunta.toLowerCase().includes('satisfacción general') &&
+      p.valor_numerico > 0
+    );
+    
+    if (preguntasSatisfaccion.length === 0) {
+      preguntasSatisfaccion = todasLasPreguntas.filter(p => 
+        p.numero_pagina === ultimaPagina && 
+        p.valor_numerico >= 1 && 
+        p.valor_numerico <= 7
+      );
+    }
     
     if (preguntasSatisfaccion.length === 0) return 0;
 
