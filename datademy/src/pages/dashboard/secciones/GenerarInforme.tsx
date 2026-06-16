@@ -194,6 +194,7 @@ export default function GenerarInforme() {
     } catch {
       mostrar('Error al enviar la solicitud', 'error')
     } finally {
+      cerrar()
       setGenerando(false)
     }
   }
@@ -471,7 +472,7 @@ export default function GenerarInforme() {
                 <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
                   Gráfico de género (se incluirá en el informe)
                 </p>
-                <div style={{ width: '360px', height: '240px', margin: '0 0 12px 0' }}>
+                <div style={{ width: '180px', height: '120px', margin: '0 0 12px 0' }}>
                   <Pie
                     ref={pieRef}
                     data={datosGenero}
@@ -546,7 +547,7 @@ export default function GenerarInforme() {
                         <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
                           {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
-                        <div style={{ height: `${preguntas.length * 24 + 32}px`, paddingRight: '40px', width: '720px' }}>
+                        <div style={{ height: `${preguntas.length * 24 + 32}px`, paddingRight: '100px', width: '720px' }}>
                           <Bar
                             ref={(el) => {
                               barrasRefs.current[constructo.numero_pagina] = el
