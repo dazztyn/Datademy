@@ -54,20 +54,22 @@ export default function GenerarInforme() {
   const [carpetaConfigurada, setCarpetaConfigurada] = usePersistedState('carpetaConfigurada', false)
   const [plantillaConfigurada, setPlantillaConfigurada] = usePersistedState('plantillaConfigurada', false)
   const [generando, setGenerando] = usePersistedState('generando', false)
-  const [mostrarPopup, setMostrarPopup] = useState(false)
+  const [mostrarPopup, setMostrarPopup] = usePersistedState('informe_popup', false)
 
   const [tipoAsignatura, setTipoAsignatura] = useState<'Obligatoria' | 'Electiva'>('Obligatoria')
   const [ciclo, setCiclo] = useState<'Básico' | 'Profesional'>('Básico')
   const [numSemestre, setNumSemestre] = useState('')
   const [pronombre, setPronombre] = useState<'el' | 'la'>('el')
 
+  
   const { metricas } = useMetricas(idProceso, {
     tipo: 'estudiantes',
     carrera: carrera || undefined,
     sede: sede || undefined,
     nivel_formativo: programa || undefined,
   })
-
+  const { metricas: metricasSocios } = useMetricas(idProceso, { tipo: 'socios' })
+  const barrasSociosRefs = useRef<Record<string, ChartJS<'bar'> | null>>({})
   const totalEstudiantes = metricas?.total_esperados ?? 0
   const totalRespuestas = metricas?.total_encuestados ?? 0
   const porcRespuestas = fmt(metricas?.tasa_respuesta_porcentaje, 1)
@@ -114,19 +116,25 @@ export default function GenerarInforme() {
           ],
         }
       : null
-
   const constructosCaptura = (metricas?.detalle_por_dimension ?? [])
     .filter((_, i) => i < (metricas?.detalle_por_dimension.length ?? 0) - 1)
     .slice(0, 5)
 
   const promedios = metricas?.promedios_por_pagina ?? []
+  const constructosSocios = (metricasSocios?.detalle_por_dimension ?? [])
+  .filter((_, i) => i < (metricasSocios?.detalle_por_dimension.length ?? 0) - 1)
+  .slice(0, 3)
 
+  const promediosSocios = metricasSocios?.promedios_por_pagina ?? []
   useEffect(() => {
-    if (estadoJob === 'completado' && urlInforme) {
-      cerrar()
-      setMostrarPopup(true)
-    }
-  }, [estadoJob, urlInforme])
+  if (estadoJob === 'completado' && urlInforme) {
+    cerrar() 
+    setMostrarPopup(true)
+  } else if (estadoJob === 'error') {
+    cerrar()
+    mostrar('Error al generar el informe', 'error')
+  }
+}, [estadoJob, urlInforme])
 
   const handleGenerar = async () => {
     if (!idProceso || !metricas) return
@@ -154,7 +162,12 @@ export default function GenerarInforme() {
           graficos[`CONSTRUCTO_${index + 1}`] = chartInstance.toBase64Image()
         }
       })
-
+      constructosSocios.forEach((constructo, index) => {
+        const chartInstance = barrasSociosRefs.current[constructo.numero_pagina]
+        if (chartInstance) {
+          graficos[`SOCIO_DIMENSION${index + 1}`] = chartInstance.toBase64Image()
+        }
+      })
       const datosTexto: Record<string, string> = {
         AsignaturaModulo: modulo ? `${asignatura} - ${modulo}` : asignatura,
         CarreraPrograma: programa ? `${carrera} - ${programa}` : carrera,
@@ -178,7 +191,14 @@ export default function GenerarInforme() {
         P_G: metricas.promedio_satisfaccion_constructos != null
           ? metricas.promedio_satisfaccion_constructos.toFixed(2)
           : '0.00',
+        P_V: promediosSocios[0]?.promedio_constructo != null ? promediosSocios[0].promedio_constructo.toFixed(2) : '0.00',
+        P_C: promediosSocios[1]?.promedio_constructo != null ? promediosSocios[1].promedio_constructo.toFixed(2) : '0.00',
+        P_S: promediosSocios[2]?.promedio_constructo != null ? promediosSocios[2].promedio_constructo.toFixed(2) : '0.00',
+        P_GS: metricasSocios?.promedio_satisfaccion_constructos != null
+          ? metricasSocios.promedio_satisfaccion_constructos.toFixed(2)
+          : '0.00',
       }
+        
 
       const response = await fetch(`${BASE_URL}/reportes/generar`, {
         method: 'POST',
@@ -194,7 +214,6 @@ export default function GenerarInforme() {
     } catch {
       mostrar('Error al enviar la solicitud', 'error')
     } finally {
-      cerrar()
       setGenerando(false)
     }
   }
@@ -244,12 +263,12 @@ export default function GenerarInforme() {
     </div>
   )
 
-
   const barOptions = (maxVal: number, showLabels: boolean): any => ({
     indexAxis: 'y' as const,
     maintainAspectRatio: false,
     animation: false,
     devicePixelRatio: 2,
+    layout: { padding: { right: showLabels ? 48 : 0 } },
     scales: {
       x: {
         min: 0,
@@ -269,10 +288,10 @@ export default function GenerarInforme() {
         ? {
             anchor: 'end' as const,
             align: 'end' as const,
+            clamp: true,
             color: tema.sidebar,
             font: { weight: 'bold' as const, size: 11 },
             formatter: (value: number) => (value != null ? value.toFixed(2) : ''),
-            padding: { left: 4 },
           }
         : { display: false },
     },
@@ -358,6 +377,7 @@ export default function GenerarInforme() {
           </div>
         </div>
       </div>
+
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Datos personales</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -416,7 +436,6 @@ export default function GenerarInforme() {
           </div>
         ) : metricas ? (
           <div className="space-y-5">
-            {/* KPI row */}
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-xl bg-slate-50 dark:bg-slate-900 p-3 text-center">
                 <p className="text-xs text-slate-400 mb-1">Total estudiantes</p>
@@ -466,29 +485,47 @@ export default function GenerarInforme() {
                 </div>
               </div>
             )}
-
             {datosGenero && (
               <div>
                 <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
                   Gráfico de género (se incluirá en el informe)
                 </p>
-                <div style={{ width: '180px', height: '120px', margin: '0 0 12px 0' }}>
+
+                <div style={{ width: '260px', height: '160px', marginBottom: '12px' }}>
+                  <Pie
+                    data={datosGenero}
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 10 } },
+                        datalabels: {
+                          color: 'white',
+                          font: { weight: 'bold', size: 9 },
+                          formatter: (value, ctx) => {
+                            const total = (ctx.chart.data.datasets[0].data as number[]).reduce((a, b) => a + b, 0)
+                            return `${((value / total) * 100).toFixed(0)}%`
+                          },
+                        },
+                        tooltip: { enabled: false },
+                      },
+                    }}
+                  />
+                </div>
+
+                <div style={{ position: 'absolute', left: '-9999px', width: '480px', height: '320px' }}>
                   <Pie
                     ref={pieRef}
                     data={datosGenero}
                     options={{
                       maintainAspectRatio: false,
-                      devicePixelRatio: 2,
+                      devicePixelRatio: 3,
                       plugins: {
-                        legend: { position: 'right' },
+                        legend: { position: 'right', labels: { font: { size: 16 }, boxWidth: 18 } },
                         datalabels: {
                           color: 'white',
-                          font: { weight: 'bold', size: 13 },
+                          font: { weight: 'bold', size: 18 },
                           formatter: (value, ctx) => {
-                            const total = (ctx.chart.data.datasets[0].data as number[]).reduce(
-                              (a, b) => a + b,
-                              0
-                            )
+                            const total = (ctx.chart.data.datasets[0].data as number[]).reduce((a, b) => a + b, 0)
                             const pct = ((value / total) * 100).toFixed(1)
                             const label = ctx.chart.data.labels?.[ctx.dataIndex]
                             return `${label}\n${pct}%`
@@ -499,6 +536,7 @@ export default function GenerarInforme() {
                     }}
                   />
                 </div>
+
                 <div className="flex gap-2 flex-wrap">
                   {distribucionGenero.map((item, i) => {
                     const total = distribucionGenero.reduce((a, b) => a + b.cantidad, 0)
@@ -547,11 +585,10 @@ export default function GenerarInforme() {
                         <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
                           {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
-                        <div style={{ height: `${preguntas.length * 24 + 32}px`, paddingRight: '100px', width: '720px' }}>
+                        {/* layout.padding.right reserva espacio DENTRO del canvas para las etiquetas */}
+                        <div style={{ height: `${preguntas.length * 36 + 32}px` }}>
                           <Bar
-                            ref={(el) => {
-                              barrasRefs.current[constructo.numero_pagina] = el
-                            }}
+                            ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
                             data={chartData}
                             options={barOptions(4, true)}
                           />
@@ -560,6 +597,68 @@ export default function GenerarInforme() {
                     )
                   })}
                 </div>
+              </div>
+            )}
+            {constructosSocios.length > 0 && (
+              <div>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 font-medium">
+                  Gráficos por dimensión — Socios (se incluirán en el informe)
+                </p>
+                <div className="space-y-4">
+                  {constructosSocios.map((constructo) => {
+                    const preguntas = constructo.preguntas ?? []
+                    if (preguntas.length === 0) return null
+
+                    const chartData = {
+                      labels: preguntas.map((_, i) => `Pregunta ${i + 1}`),
+                      datasets: [{
+                        label: constructo.nombre_constructo,
+                        data: preguntas.map(p => p.promedio ?? 0),
+                        backgroundColor: '#7f458f',
+                        borderRadius: 5,
+                      }],
+                    }
+
+                    return (
+                      <div
+                        key={`socio-preview-${constructo.numero_pagina}`}
+                        className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3"
+                      >
+                        <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
+                          {constructo.nombre_constructo ?? `Dimensión ${constructo.numero_pagina}`}
+                        </p>
+                        <div style={{ height: `${preguntas.length * 36 + 32}px` }}>
+                          <Bar
+                            ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}
+                            data={chartData}
+                            options={barOptions(4, true)}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {promediosSocios.length > 0 && (
+                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { label: 'Vinculación', valor: promediosSocios[0]?.promedio_constructo },
+                      { label: 'Contribución', valor: promediosSocios[1]?.promedio_constructo },
+                      { label: 'Satisfacción', valor: promediosSocios[2]?.promedio_constructo },
+                      { label: 'Promedio general', valor: metricasSocios?.promedio_satisfaccion_constructos },
+                    ].map(({ label, valor }) => (
+                      <div
+                        key={label}
+                        className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-3 py-2.5 flex items-center justify-between gap-2"
+                      >
+                        <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{label}</span>
+                        <span className="text-sm font-bold flex-shrink-0" style={{ color: '#7f458f' }}>
+                          {fmt(valor)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
