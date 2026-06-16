@@ -127,6 +127,7 @@ export default function GenerarInforme() {
 
   const promediosSocios = metricasSocios?.promedios_por_pagina ?? []
   useEffect(() => {
+    console.log('estadoJob cambió:', estadoJob, 'urlInforme:', urlInforme)
   if (estadoJob === 'completado' && urlInforme) {
     cerrar() 
     setMostrarPopup(true)

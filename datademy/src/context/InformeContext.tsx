@@ -23,7 +23,7 @@ export function InformeProvider({ children }: { children: React.ReactNode }) {
 
     intervaloRef.current = setInterval(async () => {
       try {
-        const response = await fetch(`${BASE_URL}/reportes/estado/${jobId}`, {
+        const response = await fetch(`${BASE_URL}/reportes/estado/${jobId}?t=${Date.now()}`, {
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
         })
