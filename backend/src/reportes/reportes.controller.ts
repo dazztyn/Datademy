@@ -32,7 +32,13 @@ export class ReportesController {
       datosTexto: body.datosTexto,
       graficos: body.graficos,
       nombreCarrera: body.nombreCarrera
-    });
+    },
+    {
+        removeOnComplete: true, 
+        removeOnFail: 10,  
+        attempts: 3,    
+      }
+    );
 
     return {
       estado: 'en_cola',
