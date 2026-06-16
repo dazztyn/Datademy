@@ -11,6 +11,7 @@ import { EstadisticasMathService } from './estadisticas-math.service';
 import { EstadisticasParserService } from './estadisticas-parser.service';
 import { EstadisticasFormatterService } from './estadisticas-formatter.service';
 import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service';
+import { EstadisticasRepository } from './estadisticas.repository';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service
     EstadisticasMathService,
     EstadisticasParserService,
     EstadisticasFormatterService,
-    EstadisticasAnaliticasService
+    EstadisticasAnaliticasService,
+    EstadisticasRepository
   ],
   exports: [
     EstadisticasWebhooksService,

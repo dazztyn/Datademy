@@ -1,6 +1,7 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { TipoFormulario } from '../../common/enum/tipo-formulario.enum';
 
 export type EstadisticaDocument = Estadistica & Document;
 
@@ -74,8 +75,8 @@ export class Estadistica {
   @Prop({ required: true })
   usuario_id!: string;
 
-  @Prop({ required: true, enum: ['socios', 'estudiantes'] })
-  tipo_formulario!: string;
+  @Prop({ required: true, enum: Object.values(TipoFormulario) })
+  tipo_formulario!: TipoFormulario;
 
   @Prop({ type: DatosRespondenteSchema, required: true })
   datos_respondente!: DatosRespondente;

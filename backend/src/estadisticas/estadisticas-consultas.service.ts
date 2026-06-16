@@ -7,6 +7,8 @@ import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service
 import { EstadisticasFormatterService } from './estadisticas-formatter.service';
 import { ProcesoComparativa } from './interfaces/proceso-comparativo.interface';
 import { MetricaConstructo } from './interfaces/metrica-constructo.interface';
+import { TipoFormulario } from '../common/enum/tipo-formulario.enum';
+import { EstadisticasRepository } from './estadisticas.repository';
 
 @Injectable()
 export class EstadisticasConsultasService {
@@ -22,7 +24,7 @@ export class EstadisticasConsultasService {
   constructor(
     private readonly analiticasService: EstadisticasAnaliticasService,
     private readonly formatterService: EstadisticasFormatterService,
-    @InjectModel('Estadistica') private readonly estadisticaModelo: Model<EstadisticaDocument>,
+    private readonly repositorio: EstadisticasRepository,
     private readonly formulariosService: FormulariosService
   ) {}
 
@@ -38,11 +40,7 @@ export class EstadisticasConsultasService {
         }
       });
 
-    const estadisticas = await this.estadisticaModelo
-      .find(queryMongo)
-      .sort({ fecha_respuesta: -1 })
-      .lean()
-      .exec(); 
+    const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, '', { fecha_respuesta: -1 });
 
     return {
       estado: 'exito',
@@ -53,7 +51,7 @@ export class EstadisticasConsultasService {
 
   async obtenerMetricasAnaliticas(procesoId: string, usuarioId: string, filtros: Record<string, string>, paginaFiltro?: number) {
     const queryMongo: Record<string, string | number | boolean | Record<string, unknown>> = { proceso_id: procesoId, usuario_id: usuarioId };
-    const tipoFormulario = filtros['tipo'] || 'estudiantes';
+    const tipoFormulario = filtros['tipo'] as TipoFormulario || TipoFormulario.ESTUDIANTES;
 
     Object.entries(filtros)
       .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '')
@@ -63,14 +61,10 @@ export class EstadisticasConsultasService {
           queryMongo[campoMapeadoMongo] = valor;
         }
       });
-    const estadisticas = await this.estadisticaModelo
-      .find(queryMongo)
-      .select('constructos_paginas datos_respondente -_id')
-      .lean()
-      .exec();
+    const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, 'constructos_paginas datos_respondente -_id'); 
 
     const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
-    const configFormulario = tipoFormulario === 'estudiantes' ? proceso.formulario_estudiantes : proceso.formulario_socios;
+    const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
     
     const nombresConstructos = configFormulario?.nombres_constructos || [];
     const totalEsperados = configFormulario?.total_esperados || 0;
@@ -85,19 +79,19 @@ export class EstadisticasConsultasService {
     const queryBase: Record<string, string | number | boolean | Record<string, unknown>> = { proceso_id: procesoId, usuario_id: usuarioId, tipo_formulario: tipoFormulario };
 
     const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
-    const configFormulario = tipoFormulario === 'estudiantes' ? proceso.formulario_estudiantes : proceso.formulario_socios;
+    const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
     const nombresConstructos = configFormulario?.nombres_constructos || [];
     const constructosConId = nombresConstructos.map((nombre, index) => ({
       id: index + 2,
       nombre: nombre
     }));
 
-    if (tipoFormulario === 'estudiantes') {
+    if (tipoFormulario === TipoFormulario.ESTUDIANTES) {
       const [carreras, sedes, generos, niveles] = await Promise.all([
-        this.estadisticaModelo.distinct('datos_respondente.carrera', queryBase),
-        this.estadisticaModelo.distinct('datos_respondente.sede', queryBase),
-        this.estadisticaModelo.distinct('datos_respondente.genero', queryBase),
-        this.estadisticaModelo.distinct('datos_respondente.nivel_formativo', queryBase)
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.carrera', queryBase),
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.sede', queryBase),
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.genero', queryBase),
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.nivel_formativo', queryBase)
       ]);
 
       return {
@@ -112,10 +106,10 @@ export class EstadisticasConsultasService {
       };
     }
 
-    if (tipoFormulario === 'socios') {
+    if (tipoFormulario === TipoFormulario.SOCIOS) {
       const [organizaciones, generos] = await Promise.all([
-        this.estadisticaModelo.distinct('datos_respondente.organizacion', queryBase),
-        this.estadisticaModelo.distinct('datos_respondente.genero', queryBase)
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.organizacion', queryBase),
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.genero', queryBase)
       ]);
 
       return {
@@ -129,7 +123,7 @@ export class EstadisticasConsultasService {
     }
   }
 
-  async obtenerComparativaGlobal(usuarioId: string, procesosIds: string[], tipoFormulario: string = 'estudiantes') {
+  async obtenerComparativaGlobal(usuarioId: string, procesosIds: string[], tipoFormulario: TipoFormulario = TipoFormulario.ESTUDIANTES) {
     const comparativaCruda = await Promise.all(
       procesosIds.map(procesoId => this.procesarUnProcesoParaComparativa(usuarioId, procesoId, tipoFormulario))
     );
@@ -143,22 +137,18 @@ export class EstadisticasConsultasService {
       comparativa_global: comparativaFinal
     };
   }
-
-  private async procesarUnProcesoParaComparativa(usuarioId: string, procesoId: string, tipoFormulario: string) {
+  
+  private async procesarUnProcesoParaComparativa(usuarioId: string, procesoId: string, tipoFormulario: TipoFormulario) {
     const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
-    const configFormulario = tipoFormulario === 'estudiantes' ? proceso.formulario_estudiantes : proceso.formulario_socios;
+    const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
     
     const nombresConstructos = configFormulario?.nombres_constructos || [];
     const totalEsperados = configFormulario?.total_esperados || 0;
 
-    const estadisticas = await this.estadisticaModelo.find({ 
-      proceso_id: procesoId, 
-      usuario_id: usuarioId, 
-      tipo_formulario: tipoFormulario 
-    })
-    .select('constructos_paginas datos_respondente.genero -_id')
-    .lean()
-    .exec();
+    const estadisticas = await this.repositorio.buscarPorQuery(
+      { proceso_id: procesoId, usuario_id: usuarioId, tipo_formulario: tipoFormulario },
+      'constructos_paginas datos_respondente.genero -_id'
+    );
 
     const metricas = this.analiticasService.calcularMetricasAnaliticas(estadisticas, nombresConstructos, totalEsperados);
 

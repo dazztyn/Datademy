@@ -5,6 +5,7 @@ import { EstadisticasSeederService } from './estadisticas-seeder.service';
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
 import { AuthGuard } from '@nestjs/passport';
 import { RecibirWebhookDto } from './dto/recibir-webhook.dto';
+import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 
 interface RequestConUsuario extends Request {
   user: UsuarioActivo;
@@ -64,7 +65,7 @@ export class EstadisticasController {
       throw new BadRequestException('Debes enviar al menos un ID de proceso para comparar (procesos=id1,id2)');
     }
     const procesosIds = procesosUrl.split(',');
-    const tipoSeguro = tipo || 'estudiantes';
+    const tipoSeguro = (tipo as TipoFormulario) || TipoFormulario.ESTUDIANTES;
 
     return await this.consultasService.obtenerComparativaGlobal(req.user.userId, procesosIds, tipoSeguro);
   }
@@ -109,7 +110,7 @@ export class EstadisticasController {
     @Param('idProceso') idProceso: string,
     @Query('tipo') tipo?: string 
   ) {
-    const tipoSeguro = tipo || 'estudiantes'; 
+    const tipoSeguro = (tipo as TipoFormulario) || TipoFormulario.ESTUDIANTES;
     return await this.consultasService.obtenerOpcionesFiltrosDisponibles(idProceso, req.user.userId, tipoSeguro);
   }
 }

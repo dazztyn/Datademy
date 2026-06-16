@@ -1,31 +1,30 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, mongo } from 'mongoose';
+import { mongo } from 'mongoose';
 import { GoogleService } from '../google/google.service';
-import { EstadisticaDocument } from './schemas/estadisticas.schema';
 import { FormulariosService } from 'src/formularios/formularios.service';
 import { EstadisticasParserService } from './estadisticas-parser.service';
-import { forms_v1 } from 'googleapis';
 import { GoogleFormDiseno } from './interfaces/diseno-google.interface';
 import { GoogleFormRespuesta } from './interfaces/respuesta-google.interface';
+import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
+import { EstadisticasRepository } from './estadisticas.repository';
 
 @Injectable()
 export class EstadisticasWebhooksService {
   constructor(
     private readonly googleService: GoogleService,
     private readonly parserService: EstadisticasParserService,
-    @InjectModel('Estadistica') private readonly estadisticaModelo: Model<EstadisticaDocument>,
+    private readonly repositorio: EstadisticasRepository,
     private readonly formulariosService: FormulariosService
   ) {}
 
-  private async obtenerFechaUltimaSincronizacion(procesoId: string, tipoFormulario: string): Promise<Date | null> {
-    const ultima = await this.estadisticaModelo
-      .findOne({ proceso_id: procesoId, tipo_formulario: tipoFormulario })
-      .sort({ fecha_respuesta: -1 }) 
-      .select('fecha_respuesta') 
-      .lean()
-      .exec();
+  private async obtenerFechaUltimaSincronizacion(procesoId: string, tipoFormulario: TipoFormulario): Promise<Date | null> {
+    const resultados = await this.repositorio.buscarPorQuery(
+      { proceso_id: procesoId, tipo_formulario: tipoFormulario },
+      'fecha_respuesta',
+      { fecha_respuesta: -1 }
+    );
 
+    const ultima = resultados[0];
     return ultima ? ultima.fecha_respuesta : null;
   }
 
@@ -36,7 +35,7 @@ export class EstadisticasWebhooksService {
     const usuarioIdReal = procesoAsociado.usuario_id;
     const procesoIdReal = procesoAsociado._id?.toString() || procesoAsociado.id;
     const tipoFormularioReal = procesoAsociado.formulario_estudiantes?.id_google_form === idFormulario 
-      ? 'estudiantes' : 'socios';
+      ? TipoFormulario.ESTUDIANTES : TipoFormulario.SOCIOS;
 
     const diseno = await this.googleService.obtenerDisenoFormulario(idFormulario);
     const disenoAdaptado = diseno as unknown as GoogleFormDiseno;
@@ -56,11 +55,10 @@ export class EstadisticasWebhooksService {
 
     const idsRespuestasGoogle = listaRespuestas.map(r => r.responseId!);
 
-    const encuestasExistentes = await this.estadisticaModelo
-      .find({ id_respuesta_google: { $in: idsRespuestasGoogle } })
-      .select('id_respuesta_google')
-      .lean()
-      .exec();
+    const encuestasExistentes = await this.repositorio.buscarPorQuery(
+      { id_respuesta_google: { $in: idsRespuestasGoogle } },
+      'id_respuesta_google'
+    );
       
     const setIdsExistentes = new Set(encuestasExistentes.map(e => e.id_respuesta_google));
     
@@ -90,7 +88,7 @@ export class EstadisticasWebhooksService {
 
     let nuevasGuardadas = 0;
     try {
-      const resultado = await this.estadisticaModelo.insertMany(nuevasEstadisticas, { ordered: false });
+      const resultado = await this.repositorio.insertarMultiples(nuevasEstadisticas);
       nuevasGuardadas = resultado.length;
     } catch (error: unknown) {
       if (error instanceof mongo.MongoBulkWriteError && error.code === 11000) {
