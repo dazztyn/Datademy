@@ -20,7 +20,7 @@ export class ReportesProcessor {
         graficos, 
         nombreCarrera
       );
-      
+      await job.update({ ...job.data, graficos: {} });
       console.log(`[Worker] Trabajo ${job.id} completado con éxito.`);
       return resultado; 
     } catch (error: any) {

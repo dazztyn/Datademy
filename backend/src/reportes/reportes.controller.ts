@@ -34,7 +34,7 @@ export class ReportesController {
       nombreCarrera: body.nombreCarrera
     },
     {
-        removeOnComplete: true, 
+        removeOnComplete: 10, 
         removeOnFail: 10,  
         attempts: 3,    
       }
