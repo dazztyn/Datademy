@@ -346,7 +346,7 @@ const handleGenerar = async () => {
                 <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
                   Gráfico de género (se incluirá en el informe)
                 </p>
-                <div style={{ width: '380px', height: '260px', margin: '20px' }}>
+                <div style={{ width: '360px', height: '240px', margin: '20px' }}>
                   <Pie
                     ref={pieRef}
                     data={datosGenero}
