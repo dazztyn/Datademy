@@ -167,55 +167,58 @@ export default function Visualizar() {
 
       {cargando && <p className="text-center text-white/70 text-sm py-8 animate-pulse">Cargando métricas...</p>}
       {error && <p className="text-center text-red-300 text-sm py-8">{error}</p>}
+{metricas && !cargando && (
+  <>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Total encuestados</p>
+        <p className="text-4xl font-bold text-slate-800 dark:text-slate-100">
+          {metricas.total_encuestados}
+        </p>
+      </div>
 
-      {metricas && !cargando && (
-        <>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Total encuestados</p>
-              <p className="text-4xl font-bold text-slate-800 dark:text-slate-100">
-                {metricas.total_encuestados}
-              </p>
-            </div>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Satisfacción general</p>
-              <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
-                {metricas.promedio_satisfaccion_general.toFixed(1)}
-              </p>
-              <p className="text-xs text-slate-400 mt-1">sobre 7.0</p>
-            </div>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Tasa de respuesta</p>
-              <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
-                {metricas.tasa_respuesta_porcentaje}%
-              </p>
-            </div>
-            {datosGenero && Object.keys(metricas.distribucion_genero).length > 0 && (
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-                <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">Distribución por género</p>
-                <div className="w-full h-24">
-                  <Pie
-                    key={`pie-${theme}`}
-                    data={datosGenero}
-                    options={{
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: {
-                          position: 'right',
-                          labels: { color: colorTexto, font: { size: 9 }, boxWidth: 10 },
-                        },
-                        tooltip: {
-                          backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
-                          titleColor: theme === 'dark' ? 'white' : tema.sidebar,
-                          bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              </div>
-            )}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Satisfacción general</p>
+        <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+          {metricas.promedio_satisfaccion_general.toFixed(1)}
+        </p>
+        <p className="text-xs text-slate-400 mt-1">sobre 7.0</p>
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Tasa de respuesta</p>
+        <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+          {metricas.tasa_respuesta_porcentaje}%
+        </p>
+      </div>
+
+      {datosGenero && Object.keys(metricas.distribucion_genero).length > 0 && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+          <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">Distribución por género</p>
+          <div className="w-full h-24">
+            <Pie
+              key={`pie-${theme}`}
+              data={datosGenero}
+              options={{
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'right',
+                    labels: { color: colorTexto, font: { size: 9 }, boxWidth: 10 },
+                  },
+                  tooltip: {
+                    backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
+                    titleColor: theme === 'dark' ? 'white' : tema.sidebar,
+                    bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
+                  },
+                },
+              }}
+            />
           </div>
+        </div>
+      )}
+    </div>
 {metricas.detalle_por_dimension
   .filter((_, i) => i < metricas.detalle_por_dimension.length - 1)
   .filter(c => constructoSeleccionado === undefined || c.numero_pagina === constructoSeleccionado)

@@ -18,19 +18,19 @@ const COLORES = ['#5fb7bb', '#0d438b', '#7f458f']
 const BASE_URL = import.meta.env.VITE_API_URL
 
 function getHeaders(): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
-  }
+  return { 'Content-Type': 'application/json' }
 }
 
 export default function GenerarInforme() {
   const { idProceso } = useProceso()
-  
+  const [urlInforme, setUrlInforme] = useState<string | null>(null)
+  const [estadoJob, setEstadoJob] = useState<'idle' | 'procesando' | 'completado' | 'error'>('idle')
   const { toast, mostrar, cerrar } = useToast()
   const location = useLocation()
   const tema = temasPagina[location.pathname] ?? temaDefault
   const pieRef = useRef<ChartJS<'pie'> | null>(null)
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, 'estudiantes')
+
   const [asignatura, setAsignatura] = useState('')
   const [modulo, setModulo] = useState('')
   const [carrera, setCarrera] = useState('')
@@ -38,10 +38,8 @@ export default function GenerarInforme() {
   const [mesInicio, setMesInicio] = useState('')
   const [mesFinal, setMesFinal] = useState('')
   const [anio, setAnio] = useState(String(new Date().getFullYear()))
-  
   const [nombreUsuario, setNombreUsuario] = useState('')
   const [sede, setSede] = useState('')
-
   const [tipoAsignatura, setTipoAsignatura] = useState<'Obligatoria' | 'Electiva'>('Obligatoria')
   const [ciclo, setCiclo] = useState<'Básico' | 'Profesional'>('Básico')
   const [numSemestre, setNumSemestre] = useState('')
@@ -50,76 +48,112 @@ export default function GenerarInforme() {
   const [carpetaConfigurada, setCarpetaConfigurada] = useState(false)
   const [plantillaConfigurada, setPlantillaConfigurada] = useState(false)
   const [generando, setGenerando] = useState(false)
-  const { metricas } = useMetricas(idProceso, { tipo: 'estudiantes', carrera: carrera || undefined,
-    sede: sede || undefined })
-  const totalEstudiantes = metricas?.total_esperados ?? 0
-    const totalRespuestas = metricas?.total_encuestados ?? 0
-    const porcRespuestas = metricas?.tasa_respuesta_porcentaje.toFixed(1) ?? '0'
-  const { abrirPicker: abrirPickerCarpeta } = useGooglePicker({
-  modo: 'carpeta',
-  onSeleccionada: async (id) => {
-    mostrar('Configurando carpeta destino...', 'cargando')
-    try {
-      await configurarReportes({ idCarpeta: id })
-      setCarpetaConfigurada(true)
-      mostrar('Carpeta destino configurada', 'exito')
-      
-    } catch {
-      mostrar('Error al configurar carpeta', 'error')
-    }
-  }
-})
 
-const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
-  modo: 'documento',
-  onSeleccionada: async (id) => {
-    mostrar('Configurando plantilla...', 'cargando')
-    try {
-      await configurarReportes({ idPlantilla: id })
-      setPlantillaConfigurada(true)
-      mostrar('Plantilla configurada correctamente', 'exito')
-    } catch {
-      mostrar('Error al configurar plantilla', 'error')
+  const { metricas } = useMetricas(idProceso, {
+    tipo: 'estudiantes',
+    carrera: carrera || undefined,
+    sede: sede || undefined,
+  })
+
+  const totalEstudiantes = metricas?.total_esperados ?? 0
+  const totalRespuestas = metricas?.total_encuestados ?? 0
+  const porcRespuestas = metricas?.tasa_respuesta_porcentaje.toFixed(1) ?? '0'
+
+  const { abrirPicker: abrirPickerCarpeta } = useGooglePicker({
+    modo: 'carpeta',
+    onSeleccionada: async (id) => {
+      mostrar('Configurando carpeta destino...', 'cargando')
+      try {
+        await configurarReportes({ idCarpeta: id })
+        setCarpetaConfigurada(true)
+        mostrar('Carpeta destino configurada', 'exito')
+      } catch {
+        mostrar('Error al configurar carpeta', 'error')
+      }
     }
+  })
+
+  const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
+    modo: 'documento',
+    onSeleccionada: async (id) => {
+      mostrar('Configurando plantilla...', 'cargando')
+      try {
+        await configurarReportes({ idPlantilla: id })
+        setPlantillaConfigurada(true)
+        mostrar('Plantilla configurada correctamente', 'exito')
+      } catch {
+        mostrar('Error al configurar plantilla', 'error')
+      }
+    }
+  })
+
+  const datosGenero = metricas ? {
+    labels: metricas.distribucion_genero.map(d => d.genero),
+    datasets: [{
+      data: metricas.distribucion_genero.map(d => d.cantidad),
+      backgroundColor: COLORES,
+      borderWidth: 0,
+    }]
+  } : null
+
+  const iniciarPolling = (id: string) => {
+    const intervalo = setInterval(async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/reportes/estado/${id}`, {
+          headers: getHeaders(),
+          credentials: 'include',
+        })
+        if (!response.ok) throw new Error()
+        const data = await response.json()
+
+        if (data.estado === 'completado') {
+          clearInterval(intervalo)
+          setEstadoJob('completado')
+          setUrlInforme(data.resultado.url_informe)
+          setGenerando(false)
+          mostrar('¡Informe generado correctamente!', 'exito')
+        } else if (data.estado === 'error') {
+          clearInterval(intervalo)
+          setEstadoJob('error')
+          setGenerando(false)
+          mostrar(data.mensaje ?? 'Error al generar el informe', 'error')
+        }
+      } catch {
+        clearInterval(intervalo)
+        setEstadoJob('error')
+        setGenerando(false)
+        mostrar('Error al verificar el estado del informe', 'error')
+      }
+    }, 3000)
   }
-})
-    const datosGenero = metricas ? {
-      labels: metricas.distribucion_genero.map(d => d.genero),
-      datasets: [{
-        data: metricas.distribucion_genero.map(d => d.cantidad),
-        backgroundColor: COLORES,
-        borderWidth: 0,
-      }]
-    } : null
 
   const handleGenerar = async () => {
     if (!idProceso) return
     if (!asignatura || !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente) {
       return mostrar('Por favor completa todos los campos obligatorios', 'error')
     }
+    if (!carpetaConfigurada || !plantillaConfigurada) {
+      return mostrar('Debes configurar la carpeta y plantilla del informe', 'error')
+    }
 
     setGenerando(true)
-    mostrar('Generando informe...', 'cargando')
+    setEstadoJob('procesando')
+    setUrlInforme(null)
+    mostrar('Enviando solicitud...', 'cargando')
 
     try {
       let graficos: Record<string, string> = {}
       if (pieRef.current) {
-        const base64 = pieRef.current.toBase64Image()
-        graficos['GraficoGenero'] = base64
+        graficos['GraficoGenero'] = pieRef.current.toBase64Image()
       }
 
       const datosTexto: Record<string, string> = {
-        AsignaturaModulo: `${asignatura} - ${modulo}`.trim(),
-        CarreraPrograma: `${carrera} - ${programa}`.trim(),
+        AsignaturaModulo: modulo ? `${asignatura} - ${modulo}` : asignatura,
+        CarreraPrograma: programa ? `${carrera} - ${programa}` : carrera,
         Periodo: `${mesInicio}-${mesFinal} / ${anio}`,
         Anio: anio,
         NombreUsuario: nombreUsuario,
         Ciudad: sede,
-        ToggleAsignatura: tipoAsignatura,
-        ToggleCiclo: ciclo,
-        NumSemestre: numSemestre,
-        TogglePronombre: pronombre,
-        NombreDocente: nombreDocente,
         TotalEstudiantes: String(totalEstudiantes),
         TotalRespuestas: String(totalRespuestas),
         PorcRespuestas: `${porcRespuestas}%`,
@@ -129,21 +163,17 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
         method: 'POST',
         headers: getHeaders(),
         credentials: 'include',
-        body: JSON.stringify({
-          nombreCarrera: carrera,
-          datosTexto,
-          graficos,
-        }),
+        body: JSON.stringify({ nombreCarrera: carrera, datosTexto, graficos }),
       })
 
-      if (!response.ok) throw new Error('Error al generar informe')
+      if (!response.ok) throw new Error('Error al iniciar generación')
       const data = await response.json()
-      mostrar('Informe generado correctamente', 'exito')
-      if (data.url_informe) window.open(data.url_informe, '_blank')
+      mostrar('Informe en cola, procesando...', 'cargando')
+      iniciarPolling(data.jobId)
     } catch {
-      mostrar('Error al generar el informe, intenta de nuevo', 'error')
-    } finally {
+      mostrar('Error al enviar la solicitud', 'error')
       setGenerando(false)
+      setEstadoJob('idle')
     }
   }
 
@@ -185,45 +215,47 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
 
   return (
     <div className="space-y-6 w-full">
-        <div className={seccionClass}>
-  <h3 className={tituloSeccion}>Configuración del informe</h3>
-  <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">
-    Selecciona la carpeta donde se guardará el informe y la plantilla a usar.
-  </p>
-  <div className="grid grid-cols-2 gap-3">
-    <button
-  onClick={abrirPickerCarpeta}
-  className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-colors text-left
-    ${carpetaConfigurada
-      ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
-      : 'border-dashed border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500'
-    }`}
->
-  <div>
-    <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Carpeta destino</p>
-    <p className={`text-xs ${carpetaConfigurada ? 'text-green-500' : 'text-slate-400'}`}>
-      {carpetaConfigurada ? '✓ Configurada' : 'Seleccionar en Drive'}
-    </p>
-  </div>
-</button>
+      {/* Configuración */}
+      <div className={seccionClass}>
+        <h3 className={tituloSeccion}>Configuración del informe</h3>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">
+          Selecciona la carpeta donde se guardará el informe y la plantilla a usar.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={abrirPickerCarpeta}
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-colors text-left
+              ${carpetaConfigurada
+                ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
+                : 'border-dashed border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500'
+              }`}
+          >
+            <div>
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Carpeta destino</p>
+              <p className={`text-xs ${carpetaConfigurada ? 'text-green-500' : 'text-slate-400'}`}>
+                {carpetaConfigurada ? '✓ Configurada' : 'Seleccionar en Drive'}
+              </p>
+            </div>
+          </button>
+          <button
+            onClick={abrirPickerPlantilla}
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-colors text-left
+              ${plantillaConfigurada
+                ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
+                : 'border-dashed border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500'
+              }`}
+          >
+            <div>
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Plantilla del informe</p>
+              <p className={`text-xs ${plantillaConfigurada ? 'text-green-500' : 'text-slate-400'}`}>
+                {plantillaConfigurada ? '✓ Configurada' : 'Seleccionar en Drive'}
+              </p>
+            </div>
+          </button>
+        </div>
+      </div>
 
-<button
-  onClick={abrirPickerPlantilla}
-  className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-colors text-left
-    ${plantillaConfigurada
-      ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
-      : 'border-dashed border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500'
-    }`}
->
-  <div>
-    <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Plantilla del informe</p>
-    <p className={`text-xs ${plantillaConfigurada ? 'text-green-500' : 'text-slate-400'}`}>
-      {plantillaConfigurada ? '✓ Configurada' : 'Seleccionar en Drive'}
-    </p>
-  </div>
-</button>
-  </div>
-</div>
+      {/* Datos generales */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Datos generales</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -237,16 +269,10 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
           </div>
           <div>
             <label className={labelClass}>Carrera</label>
-            <select 
-              value={carrera} 
-              onChange={e => setCarrera(e.target.value)} 
-              className={inputClass}
-            >
+            <select value={carrera} onChange={e => setCarrera(e.target.value)} className={inputClass}>
               <option value="">Selecciona una carrera...</option>
               {filtrosDisponibles?.carreras?.map((c: string) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
@@ -265,6 +291,7 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
         </div>
       </div>
 
+      {/* Datos personales */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Datos personales</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -274,22 +301,17 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
           </div>
           <div>
             <label className={labelClass}>Sede</label>
-            <select 
-              value={sede} 
-              onChange={e => setSede(e.target.value)} 
-              className={inputClass}
-            >
+            <select value={sede} onChange={e => setSede(e.target.value)} className={inputClass}>
               <option value="">Selecciona una sede...</option>
               {filtrosDisponibles?.sedes?.map((s: string) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>
         </div>
       </div>
 
+      {/* Contexto asignatura */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Contexto de asignatura</h3>
         <div className="grid grid-cols-2 gap-4">
@@ -316,6 +338,7 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
         </div>
       </div>
 
+      {/* Caracterización */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Caracterización estudiantes</h3>
         {metricas ? (
@@ -334,48 +357,48 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
                 <p className="text-2xl font-bold" style={{ color: tema.sidebar }}>{porcRespuestas}%</p>
               </div>
             </div>
-           {datosGenero && (
-  <div>
-    <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
-      Gráfico de género (se incluirá en el informe)
-    </p>
-    <div style={{ width: '380px', height: '260px', margin: '20px' }}>
-      <Pie
-        ref={pieRef}
-        data={datosGenero}
-        options={{
-          maintainAspectRatio: false,
-          devicePixelRatio: 3,
-          plugins: {
-            legend: { position: 'right' },
-            datalabels: {
-              color: 'white',
-              font: { weight: 'bold', size: 13 },
-              formatter: (value, ctx) => {
-                const total = (ctx.chart.data.datasets[0].data as number[]).reduce((a, b) => a + b, 0)
-                const pct = ((value / total) * 100).toFixed(1)
-                const label = ctx.chart.data.labels?.[ctx.dataIndex]
-                return `${label}\n${pct}%`
-              }
-            },
-            tooltip: { enabled: false }
-          }
-        }}
-      />
-    </div>
-    <div className="flex gap-2 flex-wrap">
-      {metricas.distribucion_genero.map((item, i) => {
-        const total = metricas.distribucion_genero.reduce((a, b) => a + b.cantidad, 0)
-        const pct = ((item.cantidad / total) * 100).toFixed(1)
-        return (
-          <span key={item.genero} className="text-xs px-2 py-1 rounded-full text-white" style={{ backgroundColor: COLORES[i % COLORES.length] }}>
-            {item.genero}: {item.cantidad} ({pct}%)
-          </span>
-        )
-      })}
-    </div>
-  </div>
-)}
+            {datosGenero && (
+              <div>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
+                  Gráfico de género (se incluirá en el informe)
+                </p>
+                <div style={{ width: '380px', height: '260px', margin: '20px' }}>
+                  <Pie
+                    ref={pieRef}
+                    data={datosGenero}
+                    options={{
+                      maintainAspectRatio: false,
+                      devicePixelRatio: 3,
+                      plugins: {
+                        legend: { position: 'right' },
+                        datalabels: {
+                          color: 'white',
+                          font: { weight: 'bold', size: 13 },
+                          formatter: (value, ctx) => {
+                            const total = (ctx.chart.data.datasets[0].data as number[]).reduce((a, b) => a + b, 0)
+                            const pct = ((value / total) * 100).toFixed(1)
+                            const label = ctx.chart.data.labels?.[ctx.dataIndex]
+                            return `${label}\n${pct}%`
+                          }
+                        },
+                        tooltip: { enabled: false }
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {metricas.distribucion_genero.map((item, i) => {
+                    const total = metricas.distribucion_genero.reduce((a, b) => a + b.cantidad, 0)
+                    const pct = ((item.cantidad / total) * 100).toFixed(1)
+                    return (
+                      <span key={item.genero} className="text-xs px-2 py-1 rounded-full text-white" style={{ backgroundColor: COLORES[i % COLORES.length] }}>
+                        {item.genero}: {item.cantidad} ({pct}%)
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-xs text-slate-400 animate-pulse">Cargando datos...</p>
@@ -391,8 +414,39 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
           : { background: `linear-gradient(to right, ${tema.fondoDesde}, ${tema.fondoHasta})`, color: 'white' }
         }
       >
-        {generando ? 'Generando...' : 'Generar informe'}
+        {generando ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+            Generando informe...
+          </span>
+        ) : 'Generar informe'}
       </button>
+
+      {/* Resultado */}
+      {estadoJob === 'completado' && urlInforme && (
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-green-700 dark:text-green-300">Informe listo</p>
+            <p className="text-xs text-green-500 dark:text-green-400">Se generó correctamente en Google Drive</p>
+          </div>
+          <a
+            href={urlInforme}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs px-4 py-2 rounded-xl text-white font-medium"
+            style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+          >
+            Abrir →
+          </a>
+        </div>
+      )}
+
+      {estadoJob === 'error' && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-2xl p-4">
+          <p className="text-sm font-medium text-red-600 dark:text-red-400">Error al generar el informe</p>
+          <p className="text-xs text-red-400 dark:text-red-500 mt-1">Revisa la configuración e intenta de nuevo</p>
+        </div>
+      )}
 
       {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={cerrar} />}
     </div>
