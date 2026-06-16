@@ -4,6 +4,7 @@ import { useMetricas } from '../../../hooks/useMetricas'
 import { configurarMetadatos } from '../../../services/formularios_service'
 import { useToast } from '../../../hooks/useToast'
 import Toast from '../../../components/Toast'
+import { usePersistedState } from '../../../hooks/usePersistentState'
 
 export default function CompletarDatos() {
   const { idProceso } = useProceso()
@@ -11,8 +12,9 @@ export default function CompletarDatos() {
   const { metricas } = useMetricas(idProceso, { tipo: tipoActivo })
   const { toast, mostrar, cerrar } = useToast()
 
-  const [totalEsperados, setTotalEsperados] = useState('')
-  const [nombresConstructos, setNombresConstructos] = useState<string[]>([])
+  
+const [totalEsperados, setTotalEsperados] = usePersistedState('completar_totalEsperados', '')
+const [nombresConstructos, setNombresConstructos] = usePersistedState<string[]>('completar_constructos', [])
   const [guardando, setGuardando] = useState(false)
 
   useEffect(() => {
