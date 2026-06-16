@@ -6,10 +6,14 @@ import { ConfiguracionReportes, ConfiguracionReportesSchema } from './schemas/co
 import { ReportesDocsService } from './reportes-docs.service';
 import { ReportesDriveService } from './reportes-drive.service';
 import { ReportesConfigService } from './reportes-config.service';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: ConfiguracionReportes.name, schema: ConfiguracionReportesSchema }])
+    MongooseModule.forFeature([{ name: ConfiguracionReportes.name, schema: ConfiguracionReportesSchema }]),
+    BullModule.registerQueue({
+      name: 'reportes', 
+    }),
   ],
   providers: [
     ReportesService,

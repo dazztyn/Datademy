@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { EstadisticasModule } from './estadisticas/estadisticas.module';
 import { ReportesModule } from './reportes/reportes.module';
 import * as express from 'express';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: 
@@ -27,7 +28,13 @@ import * as express from 'express';
     GoogleModule, 
     AuthModule, 
     EstadisticasModule, 
-    ReportesModule
+    ReportesModule,
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [
