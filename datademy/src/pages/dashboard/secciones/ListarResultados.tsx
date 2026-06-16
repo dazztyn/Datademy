@@ -6,7 +6,7 @@ import ModalRespuestas from '../../../components/ModalRespuestas'
 import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
 
 
-const CAMPOS_FIJOS = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'Nombre', 'Nombre de organización']
+const CAMPOS_FIJOS = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'nombre', 'organizacion']
 
 export default function ListarResultados() {
   const { idProceso } = useProceso()
@@ -164,8 +164,8 @@ export default function ListarResultados() {
                         </>
                       ) : (
                         <>
-                          <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{r['Nombre'] ?? '—'}</td>
-                          <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{r['Nombre de organización'] ?? '—'}</td>
+                          <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{r['nombre'] ?? '—'}</td>
+                          <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{r['organizacion'] ?? '—'}</td>
                           <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{r.edad}</td>
                           <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{r.genero}</td>
                         </>

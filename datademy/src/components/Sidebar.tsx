@@ -11,6 +11,7 @@ import iconoCronbach from '../assets/ALPHA.png'
 import iconoRefresh from '../assets/REFRESH.png'
 import iconoVolver from '../assets/HOME.png'
 import iconoCompletar from '../assets/CHECK.png'
+import iconoLock from '../assets/LOCK.png' 
 
 interface SidebarItem {
   icono: string
@@ -19,7 +20,7 @@ interface SidebarItem {
 }
 
 const items: SidebarItem[] = [
-{ icono: iconoListar, titulo: 'Listar resultados', ruta: '/detalles/listado' },
+  { icono: iconoListar, titulo: 'Listar resultados', ruta: '/detalles/listado' },
   { icono: iconoGraficos, titulo: 'Gráficos generales', ruta: '/detalles/graficos' },
   { icono: iconoCronbach, titulo: 'Alfa de Cronbach', ruta: '/detalles/cronbach' },
 ]
@@ -29,9 +30,13 @@ export default function Sidebar() {
   const [sync, setSync] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const { idProceso } = useProceso()
-  const { estadoJob, urlInforme } = useInforme()
+  
+  const { idProceso, metadatosCompletos } = useProceso()
+  const { estadoJob } = useInforme()
   const temaBarra = temasPagina[location.pathname] ?? temaDefault
+
+  const requiereMetadatos = (ruta: string) =>
+    ['/detalles/alumnos', '/detalles/socios', '/detalles/graficos', '/detalles/cronbach', '/detalles/informe'].includes(ruta)
 
   const handleRefresh = async () => {
     if (!idProceso || sync) return
@@ -45,6 +50,8 @@ export default function Sidebar() {
       window.location.reload()
     }
   }
+
+  const informeBloqueado = requiereMetadatos('/detalles/informe') && !metadatosCompletos
 
   return (
     <div
@@ -73,6 +80,7 @@ export default function Sidebar() {
           </span>
         </button>
       </div>
+
       <div className="px-3 mb-4">
         <button
           onClick={() => navigate('/detalles/completar')}
@@ -88,19 +96,28 @@ export default function Sidebar() {
           </span>
         </button>
       </div>
+
       <div className="mx-3 mb-3 border-t border-white/20" />
       <div className="flex flex-col gap-1 px-2 flex-1">
         {items.map(item => {
           const activo = location.pathname === item.ruta
+          const bloqueado = requiereMetadatos(item.ruta) && !metadatosCompletos
+
           return (
             <button
               key={item.ruta}
-              onClick={() => navigate(item.ruta)}
+              disabled={bloqueado} 
+              onClick={() => {
+                if (bloqueado) return
+                navigate(item.ruta)
+              }}
+              title={bloqueado ? 'Completa los metadatos primero' : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left w-full
-                ${activo ? 'bg-white/20 font-semibold' : 'hover:bg-white/10'}`}
+                ${activo ? 'bg-white/20 font-semibold' : ''}
+                ${bloqueado ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10'}`}
             >
               <img
-                src={item.icono}
+                src={bloqueado ? iconoLock : item.icono}
                 alt={item.titulo}
                 className="w-5 h-5 flex-shrink-0 object-contain brightness-0 invert"
               />
@@ -113,36 +130,52 @@ export default function Sidebar() {
       </div>
 
       <div className="px-3 flex flex-col gap-2 mt-4">
-<button
-  onClick={() => navigate('/detalles/informe')}
-  className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white hover:opacity-90 transition-opacity overflow-hidden"
->
-  <span className="relative flex-shrink-0">
-    <span
-      className={`text-base font-bold transition-all duration-300 ${
-        estadoJob === 'procesando' ? 'animate-pulse' : ''
-      }`}
-      style={{
-        color: estadoJob === 'completado' ? '#22c55e' : temaBarra.sidebar
-      }}
-    >
-      π
-    </span>
-    {estadoJob === 'procesando' && (
-      <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
-    )}
-    {estadoJob === 'completado' && (
-      <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full" />
-    )}
-  </span>
-  <span
-    className={`text-xs font-semibold whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}
-    style={{ color: temaBarra.sidebar }}
-  >
-    Generar informe
-  </span>
-</button>
-
+        <button
+          disabled={informeBloqueado}
+          onClick={() => {
+            if (informeBloqueado) return
+            navigate('/detalles/informe')
+          }}
+          title={informeBloqueado ? 'Completa los metadatos primero' : undefined}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white transition-all overflow-hidden w-full
+            ${informeBloqueado ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
+        >
+          <span className="relative flex-shrink-0 flex items-center justify-center w-5 h-5">
+            {informeBloqueado ? (
+              <img
+                src={iconoLock}
+                alt="Bloqueado"
+                className="w-4 h-4 object-contain"
+                style={{ filter: `drop-shadow(0px 0px 0px ${temaBarra.sidebar})` }} 
+              />
+            ) : (
+              <>
+                <span
+                  className={`text-base font-bold transition-all duration-300 ${
+                    estadoJob === 'procesando' ? 'animate-pulse' : ''
+                  }`}
+                  style={{
+                    color: estadoJob === 'completado' ? '#22c55e' : temaBarra.sidebar
+                  }}
+                >
+                  π
+                </span>
+                {estadoJob === 'procesando' && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+                )}
+                {estadoJob === 'completado' && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full" />
+                )}
+              </>
+            )}
+          </span>
+          <span
+            className={`text-xs font-semibold whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}
+            style={{ color: temaBarra.sidebar }}
+          >
+            Generar informe
+          </span>
+        </button>
         <button
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
