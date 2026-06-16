@@ -513,18 +513,18 @@ export default function GenerarInforme() {
                   />
                 </div>
 
-                <div style={{ position: 'absolute', left: '-9999px', width: '480px', height: '320px' }}>
+                <div style={{ position: 'absolute', left: '-9999px', width: '360px', height: '280px' }}>
                   <Pie
                     ref={pieRef}
                     data={datosGenero}
                     options={{
                       maintainAspectRatio: false,
-                      devicePixelRatio: 3,
+                      devicePixelRatio: 1,
                       plugins: {
                         legend: { position: 'right', labels: { font: { size: 16 }, boxWidth: 18 } },
                         datalabels: {
                           color: 'white',
-                          font: { weight: 'bold', size: 18 },
+                          font: { weight: 'bold', size: 9 },
                           formatter: (value, ctx) => {
                             const total = (ctx.chart.data.datasets[0].data as number[]).reduce((a, b) => a + b, 0)
                             const pct = ((value / total) * 100).toFixed(1)
@@ -587,7 +587,7 @@ export default function GenerarInforme() {
                           {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
                         {/* layout.padding.right reserva espacio DENTRO del canvas para las etiquetas */}
-                        <div style={{ height: `${preguntas.length * 36 + 32}px` }}>
+                        <div style={{ height: `${preguntas.length * 18 + 32}px`, width:'640px' }}>
                           <Bar
                             ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
                             data={chartData}
@@ -628,7 +628,7 @@ export default function GenerarInforme() {
                         <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
                           {constructo.nombre_constructo ?? `Dimensión ${constructo.numero_pagina}`}
                         </p>
-                        <div style={{ height: `${preguntas.length * 36 + 32}px` }}>
+                        <div style={{ height: `${preguntas.length * 18 + 32}px`, width:'640px' }}>
                           <Bar
                             ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}
                             data={chartData}
