@@ -3,7 +3,7 @@ interface ModalRespuestasProps {
   onCerrar: () => void
 }
 
-const campos = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'Nombre', 'Nombre de organización']
+const campos = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'nombre', 'organizacion']
 
 const escala: Record<number, string> = {
   1: 'Totalmente en desacuerdo',
