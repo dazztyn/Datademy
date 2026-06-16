@@ -7,6 +7,7 @@ import { ReportesDocsService } from './reportes-docs.service';
 import { ReportesDriveService } from './reportes-drive.service';
 import { ReportesConfigService } from './reportes-config.service';
 import { BullModule } from '@nestjs/bull';
+import { ReportesProcessor } from './reportes.processor';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { BullModule } from '@nestjs/bull';
     ReportesService,
     ReportesConfigService,
     ReportesDriveService,
-    ReportesDocsService
+    ReportesDocsService,
+    ReportesProcessor
   ],
   controllers: [ReportesController]
 })
