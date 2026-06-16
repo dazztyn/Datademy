@@ -47,7 +47,7 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
               onClick={() => setModalAbierto(true)}
               className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 transition-colors text-left"
             >
-              + Asignar desde plantilla
+              + Crear nuevo desde plantilla
             </button>
             <button
               onClick={() => setModalExistenteAbierto(true)}

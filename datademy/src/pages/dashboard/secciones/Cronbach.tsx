@@ -15,6 +15,7 @@ import { useTheme } from '../../../context/ThemeContext'
 import { temasPagina, temaDefault } from '../../../utils/temasPagina'
 import { useLocation } from 'react-router-dom'
 import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
+import ModalInfoCronbach from '../../../components/ModalInfoCronbach'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
@@ -37,7 +38,7 @@ export default function Cronbach() {
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, tipoActivo)
   const colorTexto = theme === 'dark' ? 'white' : tema.sidebar
   const colorGrid = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-
+  const [mostrarInfo, setMostrarInfo] = useState(false)
   useEffect(() => {
     setFiltros({ tipo: tipoActivo })
   }, [tipoActivo])
@@ -54,7 +55,21 @@ export default function Cronbach() {
     <div className="space-y-6">
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
-  <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-3">Filtros</h3>
+  <div className="flex items-center justify-between mb-3">
+    <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">Filtros</h3>
+
+<div className="flex items-center gap-2">
+<h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">Info</h3>
+    <button
+    
+      onClick={() => setMostrarInfo(true)}
+      className="flex items-center justify-center w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500 hover:text-blue-500 hover:border-blue-500 dark:hover:text-blue-400 dark:hover:border-blue-400 transition-colors text-xs font-serif font-bold shadow-sm"
+      title="Ver interpretación de rangos"
+    >
+      i
+    </button>
+    </div>
+  </div>
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
     
     <div>
@@ -190,6 +205,9 @@ export default function Cronbach() {
           </div>
         )
       })}
+      {mostrarInfo && (
+        <ModalInfoCronbach onCerrar={() => setMostrarInfo(false)} />
+      )}
     </div>
   )
 }

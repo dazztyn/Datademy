@@ -12,6 +12,7 @@ import Toast from '../../components/Toast'
 import { useToast } from '../../hooks/useToast'
 import { useProceso } from '../../context/ProcesoContext'
 import iconoCarpeta from '../../assets/FOLDER.png'
+import ModalBienvenida from '../../components/ModalBienvenidainfo'
 export default function Landing() {
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -19,6 +20,14 @@ export default function Landing() {
   const { setIdProceso } = useProceso()
   const { toast, mostrar, cerrar } = useToast()
   const { formularios, cargando, error, recargar } = useFormularios()
+  const [mostrarBienvenida, setMostrarBienvenida] = useState(() => {
+    const yaVisto = localStorage.getItem('datademy_bienvenida_vista')
+    return yaVisto !== 'true' 
+  })
+  const manejarCerrarModal = () => {
+    localStorage.setItem('datademy_bienvenida_vista', 'true') 
+    setMostrarBienvenida(false)
+  }
   const { abrirPicker: abrirPickerPlantillas, isReady: isReadyPlantillas } = useGooglePicker({
   onSeleccionada: async (idCarpeta) => {
     mostrar('Sincronizando plantillas...', 'cargando')
@@ -55,9 +64,17 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
 
       <div className="max-w-xl mx-auto px-6 pb-24">
                 <div className="flex items-center justify-between mb-3">
+                  <button
+      onClick={() => setMostrarBienvenida(true)}
+      className="flex items-center justify-center w-10 h-10 rounded-full border border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500 hover:text-blue-500 hover:border-blue-500 dark:hover:text-blue-400 dark:hover:border-blue-400 transition-colors text-lg font-serif font-bold shadow-sm mr-2"
+      title="Ver info de bienvenida"
+    >
+      i
+    </button>
           <h2 className="text-sm font-medium text-slate-500 dark:text-slate-400">
             Procesos disponibles
           </h2>
+          
           <div className="flex items-center gap-2">
             <button
         onClick={abrirPickerPlantillas}
@@ -156,6 +173,10 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
       />
     )}
       <ThemeToggle />
+    {mostrarBienvenida && (
+        <ModalBienvenida onCerrar={manejarCerrarModal} />
+      )}
     </div>
+
   )
 }
