@@ -169,7 +169,7 @@ export default function Visualizar() {
       {error && <p className="text-center text-red-300 text-sm py-8">{error}</p>}
 {metricas && !cargando && (
   <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Total encuestados</p>
@@ -182,6 +182,14 @@ export default function Visualizar() {
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Satisfacción general</p>
         <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
           {metricas.promedio_satisfaccion_general.toFixed(1)}
+        </p>
+        <p className="text-xs text-slate-400 mt-1">sobre 7.0</p>
+      </div>
+
+       <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Promedio preguntas</p>
+        <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+          {metricas.promedio_satisfaccion_constructos.toFixed(1)}
         </p>
         <p className="text-xs text-slate-400 mt-1">sobre 7.0</p>
       </div>

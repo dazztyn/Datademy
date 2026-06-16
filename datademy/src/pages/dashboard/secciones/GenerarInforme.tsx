@@ -103,6 +103,7 @@ export default function GenerarInforme() {
   } : null
   useEffect(() => {
   if (estadoJob === 'completado' && urlInforme) {
+    cerrar()
     setMostrarPopup(true)
   }
 }, [estadoJob, urlInforme])
@@ -277,7 +278,6 @@ const handleGenerar = async () => {
         </div>
       </div>
 
-      {/* Datos personales */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Datos personales</h3>
         <div className="grid grid-cols-2 gap-3">

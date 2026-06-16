@@ -17,6 +17,7 @@ export interface Metricas {
     promedio_constructo: number
   }[]
   promedio_satisfaccion_general: number
+  promedio_satisfaccion_constructos: number
   detalle_por_dimension: {
     numero_pagina: number
     nombre_constructo: string
@@ -53,6 +54,7 @@ export interface Metricas {
   }[]
   satisfaccion_por_carrera: any[]
   satisfaccion_por_sede: any[]
+  
   satisfaccion_por_organizacion: any[]
   tabla_socios_comunitarios: any[]
 }
