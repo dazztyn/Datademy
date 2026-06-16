@@ -41,20 +41,24 @@ export default function GenerarInforme() {
   const [anio, setAnio] = usePersistedState('anio', String(new Date().getFullYear()))
   const [nombreUsuario, setNombreUsuario] = usePersistedState('nombreUsuario', '')
   const [sede, setSede] = usePersistedState('sede', '')
-  const [tipoAsignatura, setTipoAsignatura] = usePersistedState<'Obligatoria' | 'Electiva'>('informe_tipoAsignatura', 'Obligatoria')
-  const [ciclo, setCiclo] = usePersistedState<'Básico' | 'Profesional'>('informe_ciclo', 'Básico')
-  const [numSemestre, setNumSemestre] = usePersistedState('numSemestre', '')
-  const [pronombre, setPronombre] = usePersistedState<'el' | 'la'>('informe_pronombre', 'el')
   const [nombreDocente, setNombreDocente] = usePersistedState('nombreDocente', '')
+
   const [carpetaConfigurada, setCarpetaConfigurada] = usePersistedState('carpetaConfigurada', false)
   const [plantillaConfigurada, setPlantillaConfigurada] = usePersistedState('plantillaConfigurada', false)
   const [generando, setGenerando] = usePersistedState('generando', false)
   const [mostrarPopup, setMostrarPopup] = useState(false)
 
+
+  const [tipoAsignatura, setTipoAsignatura] = useState<'Obligatoria' | 'Electiva'>('Obligatoria')
+  const [ciclo, setCiclo] = useState<'Básico' | 'Profesional'>('Básico')
+  const [numSemestre, setNumSemestre] = useState('')
+  const [pronombre, setPronombre] = useState<'el' | 'la'>('el')
+
   const { metricas } = useMetricas(idProceso, {
     tipo: 'estudiantes',
     carrera: carrera || undefined,
     sede: sede || undefined,
+    nivel_formativo: programa || undefined,
   })
 
   const totalEstudiantes = metricas?.total_esperados ?? 0
@@ -104,7 +108,7 @@ export default function GenerarInforme() {
 }, [estadoJob, urlInforme])
 const handleGenerar = async () => {
   if (!idProceso) return
-  if (!asignatura || !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente) {
+  if (!asignatura || !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente || !programa) {
     return mostrar('Por favor completa todos los campos obligatorios', 'error')
   }
   if (!carpetaConfigurada || !plantillaConfigurada) {
@@ -131,6 +135,11 @@ const handleGenerar = async () => {
       TotalEstudiantes: String(totalEstudiantes),
       TotalRespuestas: String(totalRespuestas),
       PorcRespuestas: `${porcRespuestas}%`,
+      NombreDocente: nombreDocente,
+      ToggleCiclo: ciclo,
+        NumSemestre: numSemestre,
+        TogglePronombre: pronombre,
+      ToggleAsignatura: tipoAsignatura,
     }
 
     const response = await fetch(`${BASE_URL}/reportes/generar`, {
@@ -189,7 +198,6 @@ const handleGenerar = async () => {
 
   return (
     <div className="space-y-6 w-full">
-      {/* Configuración */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Configuración del informe</h3>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">
@@ -229,7 +237,6 @@ const handleGenerar = async () => {
         </div>
       </div>
 
-      {/* Datos generales */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Datos generales</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -252,7 +259,12 @@ const handleGenerar = async () => {
           </div>
           <div>
             <label className={labelClass}>Programa</label>
-            <input type="text" value={programa} onChange={e => setPrograma(e.target.value)} placeholder="Ej: Pregrado" className={inputClass} />
+            <select value={programa} onChange={e => setPrograma(e.target.value)} className={inputClass}>
+              <option value="">Selecciona un programa...</option>
+              {filtrosDisponibles?.niveles_formativos?.map((p: string) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
           </div>
         </div>
         <div>
@@ -311,7 +323,6 @@ const handleGenerar = async () => {
         </div>
       </div>
 
-      {/* Caracterización */}
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Caracterización estudiantes</h3>
         {metricas ? (
