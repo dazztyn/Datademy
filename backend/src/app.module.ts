@@ -11,7 +11,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { EstadisticasModule } from './estadisticas/estadisticas.module';
 import { ReportesModule } from './reportes/reportes.module';
-import * as express from 'express';
 import { BullModule } from '@nestjs/bull';
 
 @Module({
@@ -45,17 +44,4 @@ import { BullModule } from '@nestjs/bull';
     },
   ],
 })
-export class AppModule implements NestModule 
-{
-  configure(consumer: MiddlewareConsumer) 
-  {
-    consumer
-      .apply(express.json({ limit: '10mb' }), express.urlencoded({ limit: '10mb', extended: true }))
-      .forRoutes('reportes/generar');
-
-    consumer
-      .apply(express.json({ limit: '2mb' }), express.urlencoded({ limit: '2mb', extended: true }))
-      .exclude('reportes/generar') 
-      .forRoutes('*'); 
-  }
-}
+export class AppModule{}

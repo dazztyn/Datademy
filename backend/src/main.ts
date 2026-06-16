@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
+import * as express from 'express';
 
 
 async function bootstrap() {
@@ -10,6 +11,9 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const frontendUrl = configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({
