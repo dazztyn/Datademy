@@ -65,7 +65,7 @@ export class EstadisticasConsultasService {
       });
     const estadisticas = await this.estadisticaModelo
       .find(queryMongo)
-      .select('constructos_paginas datos_respondente.genero -_id')
+      .select('constructos_paginas datos_respondente -_id')
       .lean()
       .exec();
 
