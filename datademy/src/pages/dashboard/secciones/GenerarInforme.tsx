@@ -10,6 +10,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { temasPagina, temaDefault } from '../../../utils/temasPagina'
 import { useLocation } from 'react-router-dom'
 import { useGooglePicker } from '../../../hooks/useGooglePicker'
+import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels)
 const COLORES = ['#5fb7bb', '#0d438b', '#7f458f']
@@ -24,12 +25,12 @@ function getHeaders(): HeadersInit {
 
 export default function GenerarInforme() {
   const { idProceso } = useProceso()
-  const { metricas } = useMetricas(idProceso, { tipo: 'estudiantes' })
+  
   const { toast, mostrar, cerrar } = useToast()
   const location = useLocation()
   const tema = temasPagina[location.pathname] ?? temaDefault
   const pieRef = useRef<ChartJS<'pie'> | null>(null)
-
+  const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, 'estudiantes')
   const [asignatura, setAsignatura] = useState('')
   const [modulo, setModulo] = useState('')
   const [carrera, setCarrera] = useState('')
@@ -39,7 +40,7 @@ export default function GenerarInforme() {
   const [anio, setAnio] = useState(String(new Date().getFullYear()))
   
   const [nombreUsuario, setNombreUsuario] = useState('')
-  const [ciudad, setCiudad] = useState('')
+  const [sede, setSede] = useState('')
 
   const [tipoAsignatura, setTipoAsignatura] = useState<'Obligatoria' | 'Electiva'>('Obligatoria')
   const [ciclo, setCiclo] = useState<'Básico' | 'Profesional'>('Básico')
@@ -49,7 +50,8 @@ export default function GenerarInforme() {
   const [carpetaConfigurada, setCarpetaConfigurada] = useState(false)
   const [plantillaConfigurada, setPlantillaConfigurada] = useState(false)
   const [generando, setGenerando] = useState(false)
-
+  const { metricas } = useMetricas(idProceso, { tipo: 'estudiantes', carrera: carrera || undefined,
+    sede: sede || undefined })
   const totalEstudiantes = metricas?.total_esperados ?? 0
     const totalRespuestas = metricas?.total_encuestados ?? 0
     const porcRespuestas = metricas?.tasa_respuesta_porcentaje.toFixed(1) ?? '0'
@@ -92,7 +94,7 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
 
   const handleGenerar = async () => {
     if (!idProceso) return
-    if (!asignatura || !carrera || !nombreUsuario || !ciudad || !numSemestre || !nombreDocente) {
+    if (!asignatura || !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente) {
       return mostrar('Por favor completa todos los campos obligatorios', 'error')
     }
 
@@ -112,7 +114,7 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
         Periodo: `${mesInicio}-${mesFinal} / ${anio}`,
         Anio: anio,
         NombreUsuario: nombreUsuario,
-        Ciudad: ciudad,
+        Ciudad: sede,
         ToggleAsignatura: tipoAsignatura,
         ToggleCiclo: ciclo,
         NumSemestre: numSemestre,
@@ -235,7 +237,18 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
           </div>
           <div>
             <label className={labelClass}>Carrera</label>
-            <input type="text" value={carrera} onChange={e => setCarrera(e.target.value)} placeholder="Ej: Ingeniería Civil" className={inputClass} />
+            <select 
+              value={carrera} 
+              onChange={e => setCarrera(e.target.value)} 
+              className={inputClass}
+            >
+              <option value="">Selecciona una carrera...</option>
+              {filtrosDisponibles?.carreras?.map((c: string) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className={labelClass}>Programa</label>
@@ -260,8 +273,19 @@ const { abrirPicker: abrirPickerPlantilla } = useGooglePicker({
             <input type="text" value={nombreUsuario} onChange={e => setNombreUsuario(e.target.value)} placeholder="Ej: María González" className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Ciudad</label>
-            <input type="text" value={ciudad} onChange={e => setCiudad(e.target.value)} placeholder="Ej: Coquimbo" className={inputClass} />
+            <label className={labelClass}>Sede</label>
+            <select 
+              value={sede} 
+              onChange={e => setSede(e.target.value)} 
+              className={inputClass}
+            >
+              <option value="">Selecciona una sede...</option>
+              {filtrosDisponibles?.sedes?.map((s: string) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
