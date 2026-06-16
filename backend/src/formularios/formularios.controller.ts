@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param, Get, Delete, Query, UseGuards, Req, BadRequestException} from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Delete, Query, UseGuards, Req, BadRequestException} from '@nestjs/common';
 import { FormulariosService } from './formularios.service';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
