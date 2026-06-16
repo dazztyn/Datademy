@@ -157,6 +157,7 @@ const handleGenerar = async () => {
   } catch {
     mostrar('Error al enviar la solicitud', 'error')
   } finally {
+    cerrar()
     setGenerando(false)
   }
 }
