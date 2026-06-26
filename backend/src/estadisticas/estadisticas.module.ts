@@ -16,6 +16,7 @@ import { DemograficosCalculator } from './calculadoras/demograficos.calculator';
 import { RankingCalculator } from './calculadoras/ranking.calculator';
 import { NpsCalculator } from './calculadoras/nps.calculator';
 import { SatisfaccionCalculator } from './calculadoras/satisfaccion.calculator';
+import { EstadisticasWebhooksController } from './estadisticas-webhooks.controller';
 
 @Module({
   imports: [
@@ -23,7 +24,10 @@ import { SatisfaccionCalculator } from './calculadoras/satisfaccion.calculator';
     GoogleModule,
     FormulariosModule
   ],
-  controllers: [EstadisticasController],
+  controllers: [
+    EstadisticasController,
+    EstadisticasWebhooksController
+  ],
   providers: [
     EstadisticasWebhooksService,
     EstadisticasConsultasService,
