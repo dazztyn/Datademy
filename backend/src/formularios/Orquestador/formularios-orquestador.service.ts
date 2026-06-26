@@ -1,14 +1,18 @@
 
 import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
-import { FormulariosService } from '../formularios.service';
 import { GoogleService } from 'src/google/google.service';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
+import { ProcesosService } from '../services/procesos.service';
+import { PlantillasService } from '../services/plantillas.service';
+import { ConfiguracionesService } from '../services/configuraciones.service';
 
 
 @Injectable()
 export class FormulariosOrquestadorService {
   constructor(
-    private readonly formulariosService: FormulariosService,
+    private readonly procesosService: ProcesosService,
+    private readonly plantillasService: PlantillasService,
+    private readonly configuracionesService: ConfiguracionesService,
     private readonly googleService: GoogleService
   ) {}
 
@@ -21,7 +25,7 @@ export class FormulariosOrquestadorService {
   ) 
   {
 
-    const idCarpetaDestino = await this.formulariosService.obtenerCarpetaDestino(usuario_id);
+    const idCarpetaDestino = await this.configuracionesService.obtenerCarpetaDestino(usuario_id);
     const resultadoCopia = await this.googleService.copiarPlantillaYGuardar(
       idPlantilla,
       nombreNuevoFormulario,
@@ -49,7 +53,7 @@ export class FormulariosOrquestadorService {
       [`${campoBase}.url_respuesta`]: urlRespuestaGenerada
     };
 
-    const resultadoActualizacion = await this.formulariosService.actualizar(usuario_id, idProceso, datosAActualizar);
+    const resultadoActualizacion = await this.procesosService.actualizar(usuario_id, idProceso, datosAActualizar);
 
     return {
       estado: 'exito',
@@ -68,7 +72,7 @@ export class FormulariosOrquestadorService {
     {
       const archivosEnDrive = await this.googleService.listarPlantillas(idCarpeta);
 
-      const plantillasGuardadas = await this.formulariosService.guardarPlantillasEnCache(usuario_id, archivosEnDrive);
+      const plantillasGuardadas = await this.plantillasService.guardarPlantillasEnCache(usuario_id, archivosEnDrive);
 
       return {
         estado: 'exito',
@@ -83,7 +87,7 @@ export class FormulariosOrquestadorService {
 
   async eliminarProcesoCompleto(usuario_id: string, idProceso: string) 
   {
-    await this.formulariosService.actualizar(
+    await this.procesosService.actualizar(
       usuario_id, 
       idProceso, 
       { 
@@ -119,7 +123,7 @@ export class FormulariosOrquestadorService {
         [`${campoBase}.url_respuesta`]: urlRespuesta
       };
 
-      const resultadoActualizacion = await this.formulariosService.actualizar(usuario_id, idProceso, datosAActualizar);
+      const resultadoActualizacion = await this.procesosService.actualizar(usuario_id, idProceso, datosAActualizar);
 
       return {
         estado: 'exito',
@@ -138,7 +142,7 @@ export class FormulariosOrquestadorService {
 
   async obtenerCantidadConstructos(usuario_id: string, idProceso: string, tipoFormulario: TipoFormulario) 
   {
-    const proceso = await this.formulariosService.obtenerProcesoInterno(usuario_id, idProceso);
+    const proceso = await this.procesosService.obtenerProcesoInterno(usuario_id, idProceso);
     const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
 
     if (!configFormulario || !configFormulario.id_google_form) {

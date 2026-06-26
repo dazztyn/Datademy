@@ -1,9 +1,11 @@
 
 import { Module } from '@nestjs/common';
-import { FormulariosService } from './formularios.service';
 import { FormulariosController } from './formularios.controller';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
 import { GoogleModule } from 'src/google/google.module';
+import { ProcesosService } from './services/procesos.service';
+import { PlantillasService } from './services/plantillas.service';
+import { ConfiguracionesService } from './services/configuraciones.service';
 
 @Module({
   imports: [
@@ -11,9 +13,11 @@ import { GoogleModule } from 'src/google/google.module';
   ],
   controllers: [FormulariosController],
   providers: [
-    FormulariosService,
+    ProcesosService,
+    PlantillasService,
+    ConfiguracionesService,
     FormulariosOrquestadorService
   ],
-  exports: [FormulariosService],
+  exports: [ProcesosService, PlantillasService, ConfiguracionesService],
 })
 export class FormulariosModule {}

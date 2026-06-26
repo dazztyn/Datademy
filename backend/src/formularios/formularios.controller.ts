@@ -1,10 +1,12 @@
 import { Controller, Post, Body, Param, Get, Delete, Query, UseGuards, Req, BadRequestException} from '@nestjs/common';
-import { FormulariosService } from './formularios.service';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { FormulariosOrquestadorService } from './Orquestador/formularios-orquestador.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
+import { ProcesosService } from './services/procesos.service';
+import { PlantillasService } from './services/plantillas.service';
+import { ConfiguracionesService } from './services/configuraciones.service';
 
 interface RequestConUsuario extends Request 
 {
@@ -16,14 +18,16 @@ interface RequestConUsuario extends Request
 export class FormulariosController {
   constructor
   (
-    private readonly formulariosService: FormulariosService,
+    private readonly procesosService: ProcesosService,
+    private readonly plantillasService: PlantillasService,
+    private readonly configuracionesService: ConfiguracionesService,
     private readonly orquestadorService: FormulariosOrquestadorService
   ) {}
 
   @Post('crear')
   async crearNuevoProceso(@Req() req: RequestConUsuario, @Body() datos: CrearProcesoDto) 
   {
-    return await this.formulariosService.crearProceso(req.user.userId, datos);
+    return await this.procesosService.crearProceso(req.user.userId, datos);
   }
   
   @Post(':idProceso/vincular-formulario')
@@ -46,7 +50,7 @@ export class FormulariosController {
   @Post('configurar-carpeta-destino')
   async configurarCarpetaDestino(@Req() req: RequestConUsuario, @Body('idCarpeta') idCarpeta: string) 
   {
-    return await this.formulariosService.guardarCarpetaDestino(req.user.userId, idCarpeta);
+    return await this.configuracionesService.guardarCarpetaDestino(req.user.userId, idCarpeta);
   }
 
   @Post('sincronizar-plantillas')
@@ -78,7 +82,7 @@ export class FormulariosController {
     @Body('nombresConstructos') nombresConstructos: string[],
     @Body('totalEsperados') totalEsperados: number
   ) {
-    return await this.formulariosService.guardarMetadatosFormulario(
+    return await this.procesosService.guardarMetadatosFormulario(
       req.user.userId,
       idProceso,
       tipoFormulario,
@@ -89,13 +93,13 @@ export class FormulariosController {
 
   @Get('listar')
   async listarProcesos(@Req() req: RequestConUsuario) {
-    return await this.formulariosService.obtenerTodosLosProcesos(req.user.userId);
+    return await this.procesosService.obtenerTodosLosProcesos(req.user.userId);
   }
 
   @Get('plantillas')
   async obtenerPlantillas(@Req() req: RequestConUsuario, @Query('tipo') tipo?: string) 
   {
-    return await this.formulariosService.obtenerPlantillasCacheadas(req.user.userId, tipo);
+    return await this.plantillasService.obtenerPlantillasCacheadas(req.user.userId, tipo);
   }
 
   @Get(':idProceso/cantidad-constructos')
@@ -120,7 +124,7 @@ export class FormulariosController {
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string
   ) {
-    return await this.formulariosService.obtenerMetadatosGuardados(req.user.userId, idProceso);
+    return await this.procesosService.obtenerMetadatosGuardados(req.user.userId, idProceso);
   }
 
   @Delete(':id')
