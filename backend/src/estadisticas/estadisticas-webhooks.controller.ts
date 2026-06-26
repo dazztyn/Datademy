@@ -1,5 +1,5 @@
 import { Controller, Post, Body, HttpCode } from '@nestjs/common';
-import { EstadisticasWebhooksService } from './estadisticas-webhooks.service';
+import { EstadisticasWebhooksService } from './services/estadisticas-webhooks.service';
 import { RecibirWebhookDto } from './dto/recibir-webhook.dto';
 
 @Controller('estadisticas/webhook')

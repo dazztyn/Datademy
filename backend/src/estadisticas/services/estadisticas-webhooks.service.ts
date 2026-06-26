@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { mongo } from 'mongoose';
-import { GoogleService } from '../google/google.service';
+import { GoogleService } from '../../google/google.service';
 import { FormulariosService } from 'src/formularios/formularios.service';
 import { EstadisticasParserService } from './estadisticas-parser.service';
-import { GoogleFormDiseno } from './interfaces/diseno-google.interface';
-import { GoogleFormRespuesta } from './interfaces/respuesta-google.interface';
+import { GoogleFormDiseno } from '../interfaces/diseno-google.interface';
+import { GoogleFormRespuesta } from '../interfaces/respuesta-google.interface';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
-import { EstadisticasRepository } from './estadisticas.repository';
+import { EstadisticasRepository } from '../estadisticas.repository';
 
 @Injectable()
 export class EstadisticasWebhooksService {

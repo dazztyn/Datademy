@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CAMPOS_BASE, ALIAS_ORDENADOS } from './config/demograficos.config';
-import { GoogleFormDiseno } from './interfaces/diseno-google.interface';
-import { GoogleFormRespuesta, AnswerItem } from './interfaces/respuesta-google.interface';
-import { MapaPregunta } from './interfaces/mapa-pregunta.interface';
-import { PaginaTemp } from './interfaces/pagina-temp.interface';
+import { CAMPOS_BASE, ALIAS_ORDENADOS } from '../config/demograficos.config';
+import { GoogleFormDiseno } from '../interfaces/diseno-google.interface';
+import { GoogleFormRespuesta, AnswerItem } from '../interfaces/respuesta-google.interface';
+import { MapaPregunta } from '../interfaces/mapa-pregunta.interface';
+import { PaginaTemp } from '../interfaces/pagina-temp.interface';
 
 @Injectable()
 export class EstadisticasParserService {

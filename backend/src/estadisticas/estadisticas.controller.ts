@@ -1,7 +1,7 @@
 import { Controller, Post, Body, HttpCode, BadRequestException, Get, UseGuards, Req, Param, Query } from '@nestjs/common';
-import { EstadisticasWebhooksService } from './estadisticas-webhooks.service';
-import { EstadisticasConsultasService } from './estadisticas-consultas.service';
-import { EstadisticasSeederService } from './estadisticas-seeder.service';
+import { EstadisticasWebhooksService } from './services/estadisticas-webhooks.service';
+import { EstadisticasConsultasService } from './services/estadisticas-consultas.service';
+import { EstadisticasSeederService } from './services/estadisticas-seeder.service';
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
 import { AuthGuard } from '@nestjs/passport';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';

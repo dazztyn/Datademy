@@ -1,5 +1,5 @@
 import { Injectable} from '@nestjs/common';
-import { EstadisticasRepository } from './estadisticas.repository';
+import { EstadisticasRepository } from '../estadisticas.repository';
 
 @Injectable()
 export class EstadisticasSeederService {

@@ -2,8 +2,8 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google, drive_v3 } from 'googleapis';
 import { Readable } from 'stream';
-import { ImagenSubida } from './interface/imagen-subida.interface';
-import { ImagenProcesada } from './interface/imagen-procesada.interface';
+import { ImagenSubida } from '../interface/imagen-subida.interface';
+import { ImagenProcesada } from '../interface/imagen-procesada.interface';
 
 @Injectable()
 export class ReportesDriveService {

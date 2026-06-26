@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PuntajesRespondente } from './interfaces/puntajes-respondente.type';
-import { ResultadoCronbach } from './interfaces/resultado-cronbach.interface';
-import { Estadistica, PaginaConstructo, RespuestaPregunta } from './schemas/estadisticas.schema';
+import { PuntajesRespondente } from '../interfaces/puntajes-respondente.type';
+import { ResultadoCronbach } from '../interfaces/resultado-cronbach.interface';
+import { Estadistica, PaginaConstructo, RespuestaPregunta } from '../schemas/estadisticas.schema';
 
 @Injectable()
 export class EstadisticasMathService {

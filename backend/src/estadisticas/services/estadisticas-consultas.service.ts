@@ -3,10 +3,10 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { FormulariosService } from 'src/formularios/formularios.service';
 import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service';
 import { EstadisticasFormatterService } from './estadisticas-formatter.service';
-import { ProcesoComparativa } from './interfaces/proceso-comparativo.interface';
-import { MetricaConstructo } from './interfaces/metrica-constructo.interface';
-import { TipoFormulario } from '../common/enum/tipo-formulario.enum';
-import { EstadisticasRepository } from './estadisticas.repository';
+import { ProcesoComparativa } from '../interfaces/proceso-comparativo.interface';
+import { MetricaConstructo } from '../interfaces/metrica-constructo.interface';
+import { TipoFormulario } from '../../common/enum/tipo-formulario.enum';
+import { EstadisticasRepository } from '../estadisticas.repository';
 
 @Injectable()
 export class EstadisticasConsultasService {

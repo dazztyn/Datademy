@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { ReportesRepository } from './reportes.repository';
+import { ReportesRepository } from '../reportes.repository';
 
 @Injectable()
 export class ReportesConfigService {

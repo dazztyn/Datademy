@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google, docs_v1 } from 'googleapis';
-import { ImagenProcesada } from './interface/imagen-procesada.interface';
-import { ImagenSubida } from './interface/imagen-subida.interface';
+import { ImagenProcesada } from '../interface/imagen-procesada.interface';
+import { ImagenSubida } from '../interface/imagen-subida.interface';
 
 @Injectable()
 export class ReportesDocsService {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Estadistica } from './schemas/estadisticas.schema';
-import { CAMPOS_BASE } from './config/demograficos.config';
-import { PaginaConstructo, RespuestaPregunta } from './interfaces/pagina-constructo.interface';
+import { Estadistica } from '../schemas/estadisticas.schema';
+import { CAMPOS_BASE } from '../config/demograficos.config';
+import { PaginaConstructo, RespuestaPregunta } from '../interfaces/pagina-constructo.interface';
 
 @Injectable()
 export class EstadisticasFormatterService {

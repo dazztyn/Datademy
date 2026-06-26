@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { ReportesConfigService } from './reportes-config.service';
-import { ReportesDriveService } from './reportes-drive.service';
-import { ReportesDocsService } from './reportes-docs.service';
+import { ReportesConfigService } from './services/reportes-config.service';
+import { ReportesDriveService } from './services/reportes-drive.service';
+import { ReportesDocsService } from './services/reportes-docs.service';
 
 @Injectable()
 export class ReportesService {

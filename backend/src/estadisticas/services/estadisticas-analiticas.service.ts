@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Estadistica } from './schemas/estadisticas.schema';
+import { Estadistica } from '../schemas/estadisticas.schema';
 import { EstadisticasMathService } from './estadisticas-math.service';
-import { PreguntaAplanada } from './interfaces/pregunta-aplanada.interface';
-import { NpsCalculator } from './calculadoras/nps.calculator';
-import { RankingCalculator } from './calculadoras/ranking.calculator';
-import { DemograficosCalculator } from './calculadoras/demograficos.calculator';
-import { SatisfaccionCalculator } from './calculadoras/satisfaccion.calculator';
+import { PreguntaAplanada } from '../interfaces/pregunta-aplanada.interface';
+import { NpsCalculator } from '../calculadoras/nps.calculator';
+import { RankingCalculator } from '../calculadoras/ranking.calculator';
+import { DemograficosCalculator } from '../calculadoras/demograficos.calculator';
+import { SatisfaccionCalculator } from '../calculadoras/satisfaccion.calculator';
 
 @Injectable()
 export class EstadisticasAnaliticasService 
