@@ -9,6 +9,8 @@ import * as express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
   const configService = app.get(ConfigService);
   const frontendUrl = configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
 
