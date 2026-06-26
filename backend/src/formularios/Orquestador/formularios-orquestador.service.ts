@@ -2,8 +2,6 @@
 import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { FormulariosService } from '../formularios.service';
 import { GoogleService } from 'src/google/google.service';
-import { InjectConnection } from '@nestjs/mongoose'; 
-import { Connection } from 'mongoose';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 
 

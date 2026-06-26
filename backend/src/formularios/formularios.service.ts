@@ -5,16 +5,23 @@ import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
 import { ArchivoGoogleDrive } from 'src/google/interfaces/archivo-google.interface';
 import { FiltroPlantillas } from './interfaces/FiltroPlantillas';
-import { FormulariosRepository } from './formularios.repository';
+import { ProcesosRepository } from './repository/procesos.repository';
+import { PlantillasRepository } from './repository/plantillas.repository';
+import { ConfiguracionesRepository } from './repository/configuraciones.repository';
+
 
 @Injectable()
 export class FormulariosService {
-  constructor(private readonly repositorio: FormulariosRepository) {}
+  constructor(
+    private readonly procesosRepo: ProcesosRepository,
+    private readonly plantillasRepo: PlantillasRepository,
+    private readonly configRepo: ConfiguracionesRepository
+  ) {}
 
 
   async obtenerTodosLosProcesos(usuario_id: string) {
     try {
-      const procesos = await this.repositorio.encontrarProcesosActivos(usuario_id);
+      const procesos = await this.procesosRepo.encontrarProcesosActivos(usuario_id);
       
       const procesosFormateados = procesos.map((proceso) => {
         const doc = proceso.toObject();
@@ -42,7 +49,7 @@ export class FormulariosService {
   async actualizar(usuario_id: string, id: string, datos: ActualizarProcesoDto | UpdateQuery<ProcesoDocument>) {
     try 
     {
-      const actualizado = await this.repositorio.actualizarProceso(usuario_id, id, datos);
+      const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, id, datos);
         
       if (!actualizado) {
         throw new Error('No se encontró el proceso con ese ID');
@@ -64,7 +71,7 @@ export class FormulariosService {
 
   async crearProceso(usuario_id: string, datos: CrearProcesoDto) {
     try {
-      const procesoGuardado = await this.repositorio.crearProceso({ ...datos, usuario_id });
+      const procesoGuardado = await this.procesosRepo.crearProceso({ ...datos, usuario_id });
       return {
         datos: 
         {
@@ -81,7 +88,7 @@ export class FormulariosService {
 
   async guardarPlantillasEnCache(usuario_id: string, plantillasDeGoogle: ArchivoGoogleDrive[]) 
   {
-    await this.repositorio.borrarPlantillas(usuario_id);
+    await this.plantillasRepo.borrarPlantillas(usuario_id);
 
     const plantillasNuevas = plantillasDeGoogle.map(archivo => ({
       idPlantilla: archivo.id,
@@ -89,7 +96,7 @@ export class FormulariosService {
       usuario_id
     }));
 
-    await this.repositorio.insertarPlantillas(plantillasNuevas);
+    await this.plantillasRepo.insertarPlantillas(plantillasNuevas);
     return plantillasNuevas;
   }
 
@@ -101,7 +108,7 @@ export class FormulariosService {
     {
       filtro.nombrePlantilla = { $regex: new RegExp(tipo, 'i') };
     }
-    const plantillas = await this.repositorio.encontrarPlantillas(filtro);
+    const plantillas = await this.plantillasRepo.encontrarPlantillas(filtro);
     const plantillasFiltradas = plantillas.map((plantilla) => {
         const doc = plantilla.toObject();
         return {
@@ -117,14 +124,14 @@ export class FormulariosService {
 
   async guardarCarpetaDestino(usuario_id: string, idCarpeta: string) 
   {
-    await this.repositorio.guardarCarpetaDestino(usuario_id, idCarpeta);
+    await this.configRepo.guardarCarpetaDestino(usuario_id, idCarpeta);
 
     return { estado: 'exito'};
   }
 
   async obtenerCarpetaDestino(usuario_id: string): Promise<string> 
   {
-    const config = await this.repositorio.encontrarConfiguracion(usuario_id);
+    const config = await this.configRepo.encontrarConfiguracion(usuario_id);
     
     if (!config || !config.id_carpeta_destino_formularios) 
     {
@@ -136,7 +143,7 @@ export class FormulariosService {
 
   async obtenerProcesoInterno(usuario_id: string, id: string) 
   {
-    const proceso = await this.repositorio.encontrarProcesoPorId(usuario_id, id);
+    const proceso = await this.procesosRepo.encontrarProcesoPorId(usuario_id, id);
     if (!proceso) 
     {
       throw new Error('El proceso que intentas buscar no existe.');
@@ -146,7 +153,7 @@ export class FormulariosService {
 
   async buscarPorIdFormularioGoogle(idFormulario: string) 
   {
-    return await this.repositorio.buscarPorIdFormularioGoogle(idFormulario);
+    return await this.procesosRepo.buscarPorIdFormularioGoogle(idFormulario);
   }
 
   async guardarMetadatosFormulario(

@@ -3,10 +3,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { EstadisticaSchema } from '../estadisticas/schemas/estadisticas.schema';
 import { EstadisticasRepository } from '../estadisticas/estadisticas.repository';
 import { ProcesoSchema } from '../formularios/schemas/proceso.schema';
-import { FormulariosRepository } from '../formularios/formularios.repository';
+
 import { PlantillaSchema } from '../formularios/schemas/plantilla.schema';
 import { ConfiguracionSchema } from '../formularios/schemas/configuracion.schema';
-
+import { ProcesosRepository } from '../formularios/repository/procesos.repository';
+import { PlantillasRepository } from '../formularios/repository/plantillas.repository';
+import { ConfiguracionesRepository } from '../formularios/repository/configuraciones.repository';
 
 @Global()
 @Module({
@@ -21,11 +23,15 @@ import { ConfiguracionSchema } from '../formularios/schemas/configuracion.schema
   ],
   providers: [
     EstadisticasRepository,
-    FormulariosRepository
+    ProcesosRepository, 
+    PlantillasRepository, 
+    ConfiguracionesRepository
   ],
   exports: [
     EstadisticasRepository,
-    FormulariosRepository
+    ProcesosRepository, 
+    PlantillasRepository, 
+    ConfiguracionesRepository
   ]
 })
 export class DatabaseModule {}
