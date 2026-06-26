@@ -20,7 +20,6 @@ import { EstadisticasWebhooksController } from './estadisticas-webhooks.controll
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Estadistica.name, schema: EstadisticaSchema }]),
     GoogleModule,
     FormulariosModule
   ],
@@ -36,7 +35,6 @@ import { EstadisticasWebhooksController } from './estadisticas-webhooks.controll
     EstadisticasParserService,
     EstadisticasFormatterService,
     EstadisticasAnaliticasService,
-    EstadisticasRepository,
     NpsCalculator,
     RankingCalculator,
     DemograficosCalculator,

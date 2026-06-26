@@ -18,4 +18,8 @@ export class EstadisticasRepository {
   async insertarMultiples(documentos: any[]) {
     return await this.modelo.insertMany(documentos, { ordered: false });
   }
+
+  async eliminarRespuestasPorProceso(procesoId: string): Promise<void> {
+    await this.modelo.deleteMany({ proceso_id: procesoId }).exec();
+  }
 }

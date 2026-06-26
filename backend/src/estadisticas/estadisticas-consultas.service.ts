@@ -204,4 +204,9 @@ export class EstadisticasConsultasService {
       };
     });
   }
+
+  async limpiarDatosHuerfanos(procesoId: string): Promise<void> 
+  {
+    await this.repositorio.eliminarRespuestasPorProceso(procesoId);
+  }
 }

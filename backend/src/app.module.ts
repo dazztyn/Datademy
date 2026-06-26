@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { EstadisticasModule } from './estadisticas/estadisticas.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { BullModule } from '@nestjs/bull';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: 
@@ -23,6 +24,7 @@ import { BullModule } from '@nestjs/bull';
       limit: 100, 
     }]),
     UsuariosModule, 
+    DatabaseModule,
     FormulariosModule, 
     GoogleModule, 
     AuthModule, 

@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Proceso, ProcesoDocument } from './schemas/proceso.schema';
 import { GoogleService } from '../google/google.service';
+import { EstadisticasConsultasService } from '../estadisticas/estadisticas-consultas.service';
 
 @Injectable()
 export class FormulariosWorkerService {
@@ -11,7 +12,8 @@ export class FormulariosWorkerService {
 
   constructor(
     @InjectModel(Proceso.name) private procesoModelo: Model<ProcesoDocument>,
-    private readonly googleService: GoogleService
+    private readonly googleService: GoogleService,
+    private readonly estadisticasService: EstadisticasConsultasService
   ) {}
 
   @Cron(CronExpression.EVERY_5_MINUTES)
@@ -33,6 +35,8 @@ export class FormulariosWorkerService {
         if (proceso.formulario_estudiantes && proceso.formulario_estudiantes.id_google_form) {
           await this.googleService.enviarArchivoAPapelera(proceso.formulario_estudiantes.id_google_form);
         }
+
+        await this.estadisticasService.limpiarDatosHuerfanos(proceso._id.toString());
 
         await this.procesoModelo.findByIdAndDelete(proceso._id).exec();
         
