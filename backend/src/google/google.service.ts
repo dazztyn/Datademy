@@ -118,7 +118,7 @@ export class GoogleService
   async activarVigilanciaRespuestas(idFormulario: string): Promise<any> {
     try {
       const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
-      const nombreTema = 'projects/sistema-procesos-as/topics/respuestas-datademy';
+      const nombreTema = `projects/${process.env.GOOGLE_PROJECT_ID}/topics/respuestas-datademy`;
 
       const respuesta = await formsApi.forms.watches.create({
         formId: idFormulario,
