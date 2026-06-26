@@ -1,25 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { ConfiguracionReportes, ConfiguracionReportesDocument } from './schemas/configuracion-reportes.schema';
+import { ReportesRepository } from './reportes.repository';
 
 @Injectable()
 export class ReportesConfigService {
   constructor(
-    @InjectModel(ConfiguracionReportes.name) private configModelo: Model<ConfiguracionReportesDocument>
+    private readonly repositorio: ReportesRepository
   ) {}
 
   async actualizarConfiguracion(usuarioId: string, idCarpeta?: string, idPlantilla?: string) {
-    let config = await this.configModelo.findOne({ usuario_id: usuarioId }).exec();
     
-    if (!config) {
-      config = new this.configModelo({ usuario_id: usuarioId });
-    }
-
-    if (idCarpeta) config.id_carpeta_destino_informes = idCarpeta;
-    if (idPlantilla) config.id_plantilla_informe = idPlantilla;
-
-    await config.save();
+    const config = await this.repositorio.guardarConfiguracion(usuarioId, idCarpeta, idPlantilla);
     
     return { 
       estado: 'exito', 
@@ -32,7 +22,9 @@ export class ReportesConfigService {
   }
 
   async obtenerConfiguracion(usuarioId: string) {
-    const config = await this.configModelo.findOne({ usuario_id: usuarioId }).exec();
+    
+    const config = await this.repositorio.encontrarConfiguracion(usuarioId);
+
     if (!config || !config.id_carpeta_destino_informes || !config.id_plantilla_informe) {
       throw new BadRequestException('Falta configurar la carpeta de destino o la plantilla en los ajustes de reportes.');
     }

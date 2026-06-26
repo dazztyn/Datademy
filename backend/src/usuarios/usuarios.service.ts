@@ -1,39 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Usuario, UsuarioDocument } from './schemas/usuarios.schema';
+import { UsuariosRepository } from './usuarios.repository';
 
 @Injectable()
 export class UsuariosService {
   constructor(
-    @InjectModel(Usuario.name) private usuarioModelo: Model<UsuarioDocument>
+    private readonly repositorio: UsuariosRepository
   ) {}
 
   async buscarPorCorreo(correo: string) {
-    return await this.usuarioModelo.findOne({ correo, activo: true }).exec();
+    return await this.repositorio.buscarPorCorreo(correo);
   }
 
   async vincularCuentaGoogle(id: any, datos: { googleId: string, avatarUrl: string, nombre: string }) {
-    return await this.usuarioModelo.findByIdAndUpdate(
-      id, 
-      {  
-        googleId: datos.googleId, 
-        avatarUrl: datos.avatarUrl,
-        nombre: datos.nombre 
-      }, 
-      { returnDocument: 'after'} 
-    ).exec();
+    return await this.repositorio.actualizarCuentaGoogle(id, datos);
   }
 
   async crearUsuarioManual(datos: { nombre: string, correo: string, rol: string }) {
     try {
-      const nuevoUsuario = new this.usuarioModelo({
+
+      const usuarioGuardado = await this.repositorio.crearUsuario({
         nombre: datos.nombre,
         correo: datos.correo,
         rol: datos.rol
       });
-      
-      const usuarioGuardado = await nuevoUsuario.save();
+
       return {
         mensaje: 'Usuario registrado exitosamente en la lista de invitados',
         datos: usuarioGuardado
@@ -47,18 +37,15 @@ export class UsuariosService {
   async crearUsuarioAutomatico(perfilGoogle: any) 
   {
     const esAlumno = perfilGoogle.correo.endsWith('@alumnos.ucn.cl');
-    const rolAsignado = esAlumno ? 'estudiante' : 'funcionario';
 
-    const nuevoUsuario = new this.usuarioModelo({
+    return await this.repositorio.crearUsuario({
       nombre: perfilGoogle.nombre,
       correo: perfilGoogle.correo,
       googleId: perfilGoogle.googleId,
       avatarUrl: perfilGoogle.avatarUrl,
-      rol: rolAsignado,
+      rol: esAlumno ? 'estudiante' : 'funcionario',
       activo: true
     });
-
-    return await nuevoUsuario.save();
   }
 
 }
