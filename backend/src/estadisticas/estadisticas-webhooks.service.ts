@@ -33,7 +33,7 @@ export class EstadisticasWebhooksService {
     if (!procesoAsociado) throw new NotFoundException('Formulario no encontrado en el sistema');
 
     const usuarioIdReal = procesoAsociado.usuario_id;
-    const procesoIdReal = procesoAsociado._id?.toString() || procesoAsociado.id;
+    const procesoIdReal = String(procesoAsociado._id);
     const tipoFormularioReal = procesoAsociado.formulario_estudiantes?.id_google_form === idFormulario 
       ? TipoFormulario.ESTUDIANTES : TipoFormulario.SOCIOS;
 
