@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import SlotFormulario from './SlotFormulario'
+import ModalConfirmar from './ModalConfirmar'
+import { eliminarProceso } from '../services/formularios_service'
 
 interface Periodo {
   id: string
@@ -15,48 +18,79 @@ interface ListaFormulariosProps {
   seleccionado: string | null
   onSeleccionar: (id: string) => void
   onReload: () => void
+  onEliminar?: () => void
 }
+export default function ListaFormularios({ periodos, seleccionado, onSeleccionar, onReload, onEliminar }: ListaFormulariosProps) {
+  const [procesoAEliminar, setProcesoAEliminar] = useState<string | null>(null)
+  const [eliminando, setEliminando] = useState(false)
 
-export default function ListaFormularios({ periodos, seleccionado, onSeleccionar, onReload }: ListaFormulariosProps) {
+  const handleEliminar = async () => {
+    if (!procesoAEliminar) return
+    setEliminando(true)
+    try {
+      await eliminarProceso(procesoAEliminar)
+      onReload()
+      onEliminar?.()
+      setProcesoAEliminar(null)
+    } catch {
+      // el error lo maneja el padre con toast si quiere
+    } finally {
+      setEliminando(false)
+    }
+  }
+
   return (
-    <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800">
-      <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
-        {periodos.map(periodo => {
-          const activo = seleccionado === periodo.id
-          const completo = periodo.formularioAlumnos !== null && periodo.formularioClientes !== null
+    <>
+      <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800">
+        <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
+          {periodos.map(periodo => {
+            const activo = seleccionado === periodo.id
+            const completo = periodo.formularioAlumnos !== null && periodo.formularioClientes !== null
 
-          return (
-            <div
-              key={periodo.id}
-              onClick={() => onSeleccionar(periodo.id)}
-              className={`px-5 py-4 cursor-pointer transition-colors
-                ${activo
-                  ? 'bg-amber-50 dark:bg-amber-900/20'
-                  : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                }`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className={`font-medium text-sm ${activo ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-200'}`}>
-                    {periodo.nombreProceso}
-                  </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                    {periodo.year}
-                  </p>
+            return (
+              <div
+                key={periodo.id}
+                onClick={() => onSeleccionar(periodo.id)}
+                className={`px-5 py-4 cursor-pointer transition-colors relative
+                  ${activo
+                    ? 'bg-amber-50 dark:bg-amber-900/20'
+                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                  }`}
+              >
+                {/* Botón eliminar */}
+                <button
+                  onClick={e => {
+                    e.stopPropagation()
+                    setProcesoAEliminar(periodo.id)
+                  }}
+                  className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full text-slate-300 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-xs"
+                  title="Eliminar proceso"
+                >
+                  ✕
+                </button>
+
+                <div className="flex items-center justify-between mb-3 pr-6">
+                  <div>
+                    <p className={`font-medium text-sm ${activo ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                      {periodo.nombreProceso}
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                      {periodo.year}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      completo
+                        ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-slate-200 text-slate-400 dark:bg-slate-700 dark:text-slate-500'
+                    }`}>
+                      {completo ? 'Completo' : 'Incompleto'}
+                    </span>
+                    {activo && (
+                      <span className="text-amber-500 dark:text-amber-400 text-lg">›</span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    completo
-                      ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                      : 'text-slate-400 bg-slate-200 dark:text-slate-500 dark:bg-slate-700 '
-                  }`}>
-                    {completo ? 'Completo' : 'Incompleto'}
-                  </span>
-                  {activo && (
-                    <span className="text-amber-500 dark:text-amber-400 text-lg">›</span>
-                  )}
-                </div>
-              </div>
 
                 <div className="grid grid-cols-2 gap-3 w-full" onClick={e => e.stopPropagation()}>
                   <SlotFormulario
@@ -77,9 +111,19 @@ export default function ListaFormularios({ periodos, seleccionado, onSeleccionar
                   />
                 </div>
               </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
-    </div>
+
+      {procesoAEliminar && (
+        <ModalConfirmar
+          mensaje="Esta acción eliminará el proceso y todos sus formularios asociados. No se puede deshacer."
+          onConfirmar={handleEliminar}
+          onCerrar={() => setProcesoAEliminar(null)}
+          cargando={eliminando}
+        />
+      )}
+    </>
   )
 }

@@ -73,6 +73,7 @@ export interface FiltrosMetricas {
   pagina?: number
   nivel_formativo?: string
   organizacion?: string
+  asignatura?: string
   nombres_constructos?: { id: number; nombre: string }[]
 }
 
@@ -88,6 +89,7 @@ export async function obtenerMetricas(
   if (filtros.pagina !== undefined) params.append('pagina', String(filtros.pagina))
   if (filtros.nivel_formativo) params.append('nivel_formativo', filtros.nivel_formativo)
   if (filtros.organizacion) params.append('organizacion', filtros.organizacion)
+  if (filtros.asignatura) params.append('asignatura', filtros.asignatura)
 
   const url = `${BASE_URL}/estadisticas/${idProceso}/metricas?${params.toString()}`
   const response = await fetch(url, { 
@@ -115,6 +117,7 @@ export interface Respuesta {
   sede?: string
   carrera?: string
   organizacion?: string
+  asignatura?: string
   [key: string]: any
 }
 
@@ -131,6 +134,7 @@ export interface FiltrosResultados {
   genero?: string
   nivel_formativo?: string
   organizacion?: string
+  asignatura?:string
   nombres_constructos?: { id: number; nombre: string }[]
 }
 
@@ -146,6 +150,7 @@ export async function obtenerResultados(
   if (filtros.genero) params.append('genero', filtros.genero)
   if (filtros.nivel_formativo) params.append('nivel_formativo', filtros.nivel_formativo)
   if (filtros.organizacion) params.append('organizacion', filtros.organizacion)
+  if (filtros.asignatura) params.append('asignatura', filtros.asignatura)
 
   const url = `${BASE_URL}/estadisticas/${idProceso}/resultados?${params.toString()}`
   const response = await fetch(url, { headers: getHeaders(), credentials: 'include', })
@@ -158,6 +163,7 @@ export interface FiltrosDisponibles {
   generos?: string[]
   niveles_formativos?: string[]
   organizaciones?: string[]
+  asignaturas?: string[]
   nombres_constructos?: { id: number; nombre: string }[]
 }
 
@@ -188,5 +194,48 @@ export async function obtenerCantidadPaginas(
     { headers: getHeaders(), credentials: 'include' }
   )
   if (!response.ok) throw new Error('Error al obtener cantidad de páginas')
+  return response.json()
+}
+
+export interface ComparativaGlobal {
+  id_proceso: string
+  nombre_proceso: string
+  anio: number
+  metricas: {
+    total_encuestados: number
+    promedio_satisfaccion_general: number
+    promedios_por_pagina: {
+      numero_pagina: number
+      nombre_constructo: string
+      promedio_constructo: number
+    }[]
+  }
+  variacion_satisfaccion_respecto_anterior: number | null
+  variaciones_constructos: {
+    nombre_constructo: string
+    promedio_actual: number
+    variacion_respecto_anterior: number
+  }[]
+}
+
+export interface ComparativaResponse {
+  estado: string
+  cantidad_procesos_comparados: number
+  comparativa_global: ComparativaGlobal[]
+}
+
+export async function obtenerComparativaGlobal(
+  tipo: 'estudiantes' | 'socios',
+  procesosIds: string[]
+): Promise<ComparativaResponse> {
+  const params = new URLSearchParams({
+    tipo,
+    procesos: procesosIds.join(','),
+  })
+  const response = await fetch(`${BASE_URL}/estadisticas/comparativa-global?${params}`, {
+    headers: getHeaders(),
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al obtener comparativa global')
   return response.json()
 }

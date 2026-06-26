@@ -100,3 +100,24 @@ export async function vincularExistente(
   })
   if (!response.ok) throw new Error('Error al vincular formulario existente')
 }
+export async function eliminarProceso(idProceso: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al eliminar proceso')
+}
+
+export async function desasignarFormulario(
+  idProceso: string,
+  tipoFormulario: 'estudiantes' | 'socios'
+): Promise<void> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/desasignar`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    credentials: 'include',
+    body: JSON.stringify({ tipoFormulario }),
+  })
+  if (!response.ok) throw new Error('Error al desasignar formulario')
+}

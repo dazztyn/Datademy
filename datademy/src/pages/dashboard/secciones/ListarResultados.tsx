@@ -6,7 +6,7 @@ import ModalRespuestas from '../../../components/ModalRespuestas'
 import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
 
 
-const CAMPOS_FIJOS = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'nombre', 'organizacion']
+const CAMPOS_FIJOS = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'nombre', 'organizacion', 'asignatura']
 
 export default function ListarResultados() {
   const { idProceso } = useProceso()
@@ -100,6 +100,18 @@ export default function ListarResultados() {
             </select>
           </div>
         )}
+        {tipoActivo === 'estudiantes' && filtrosDisponibles.asignaturas && filtrosDisponibles.asignaturas.length > 0 && (
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">Asignatura</label>
+            <select
+              onChange={e => setFiltros(f => ({ ...f, nivel_formativo: e.target.value || undefined }))}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">Todos</option>
+              {filtrosDisponibles.asignaturas.map(n => <option key={n}>{n}</option>)}
+            </select>
+          </div>
+        )}
         {tipoActivo === 'socios' && filtrosDisponibles.organizaciones && filtrosDisponibles.organizaciones.length > 0 && (
   <div>
     <label className="text-xs text-slate-400 mb-1 block">Organización</label>
@@ -112,6 +124,30 @@ export default function ListarResultados() {
     </select>
   </div>
 )}
+        {tipoActivo === 'socios' && filtrosDisponibles.carreras && filtrosDisponibles.carreras.length > 0 && (
+  <div>
+    <label className="text-xs text-slate-400 mb-1 block">Asignatura</label>
+    <select
+      onChange={e => setFiltros(f => ({ ...f, organizacion: e.target.value || undefined }))}
+      className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+    >
+      <option value="">Todas</option>
+      {filtrosDisponibles.carreras.map(o => <option key={o}>{o}</option>)}
+    </select>
+  </div>
+)}
+{tipoActivo === 'socios' && filtrosDisponibles.asignaturas && filtrosDisponibles.asignaturas.length > 0 && (
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">Nivel formativo</label>
+            <select
+              onChange={e => setFiltros(f => ({ ...f, nivel_formativo: e.target.value || undefined }))}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">Todos</option>
+              {filtrosDisponibles.asignaturas.map(n => <option key={n}>{n}</option>)}
+            </select>
+          </div>
+        )}
       </div>
       {tipoActivo === 'socios' && filtrosDisponibles.generos && filtrosDisponibles.generos.length > 0 && (
   <div>
@@ -125,6 +161,7 @@ export default function ListarResultados() {
     </select>
   </div>
 )}
+  
     </div>
 
       {cargando && <p className="text-center text-white/70 text-sm py-8 animate-pulse">Cargando resultados...</p>}

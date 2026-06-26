@@ -13,6 +13,8 @@ import { useToast } from '../../hooks/useToast'
 import { useProceso } from '../../context/ProcesoContext'
 import iconoCarpeta from '../../assets/FOLDER.png'
 import ModalBienvenida from '../../components/ModalBienvenidainfo'
+import CerrarSesionBtn from '../../components/CerrarSesionBtn'
+
 export default function Landing() {
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -147,6 +149,7 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
                   recargar()
                   mostrar('Formulario asignado correctamente', 'exito')
                 }}
+              onEliminar={() => mostrar('Proceso eliminado correctamente', 'exito')}
             />
            <BotonVerDetalles
               activo={puedeVer}
@@ -155,6 +158,12 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
                 navigate('/detalles/completar')
               }}
             />
+            <button
+              onClick={() => navigate('/datos-globales')}
+              className="w-full mt-4 py-3.5 rounded-2xl font-medium text-sm transition-all duration-300 flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/20 opacity-100 cursor-pointer hover:scale-[1.02] hover:shadow-xl hover:shadow-green-500/30"
+            >
+              Ver datos globales
+            </button>
           </>
         )}
       </div>
@@ -170,13 +179,15 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
         mensaje={toast.mensaje}
         tipo={toast.tipo}
         onCerrar={cerrar}
+        
       />
     )}
       <ThemeToggle />
     {mostrarBienvenida && (
         <ModalBienvenida onCerrar={manejarCerrarModal} />
       )}
+      <CerrarSesionBtn/>
     </div>
-
+    
   )
 }
