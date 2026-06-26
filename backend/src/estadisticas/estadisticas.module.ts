@@ -16,14 +16,17 @@ import { DemograficosCalculator } from './calculadoras/demograficos.calculator';
 import { RankingCalculator } from './calculadoras/ranking.calculator';
 import { NpsCalculator } from './calculadoras/nps.calculator';
 import { SatisfaccionCalculator } from './calculadoras/satisfaccion.calculator';
+import { EstadisticasWebhooksController } from './estadisticas-webhooks.controller';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Estadistica.name, schema: EstadisticaSchema }]),
     GoogleModule,
     FormulariosModule
   ],
-  controllers: [EstadisticasController],
+  controllers: [
+    EstadisticasController,
+    EstadisticasWebhooksController
+  ],
   providers: [
     EstadisticasWebhooksService,
     EstadisticasConsultasService,
@@ -32,7 +35,6 @@ import { SatisfaccionCalculator } from './calculadoras/satisfaccion.calculator';
     EstadisticasParserService,
     EstadisticasFormatterService,
     EstadisticasAnaliticasService,
-    EstadisticasRepository,
     NpsCalculator,
     RankingCalculator,
     DemograficosCalculator,
