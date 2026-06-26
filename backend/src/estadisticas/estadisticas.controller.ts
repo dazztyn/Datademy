@@ -4,7 +4,6 @@ import { EstadisticasConsultasService } from './estadisticas-consultas.service';
 import { EstadisticasSeederService } from './estadisticas-seeder.service';
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
 import { AuthGuard } from '@nestjs/passport';
-import { RecibirWebhookDto } from './dto/recibir-webhook.dto';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 
 interface RequestConUsuario extends Request {
@@ -19,31 +18,6 @@ export class EstadisticasController {
     private readonly consultasService: EstadisticasConsultasService,
     private readonly seederService: EstadisticasSeederService
   ) {}
-
-  @Post('webhook/respuestas')
-  @HttpCode(200)
-  async recibirNotificacionGoogle(@Body() cuerpoWebhook: RecibirWebhookDto) {
-    try {
-      console.log('=== WEBHOOK RECIBIDO DE GOOGLE ===');
-      const atributos = cuerpoWebhook?.message?.attributes;
-
-      if (!atributos || !atributos.formId) {
-        console.log('Webhook sin "formId". Ignorando...');
-        return { estado: 'ignorado_sin_formId' };
-      }
-
-      if (atributos.eventType !== 'RESPONSES') {
-        console.log(`Evento ignorado. Google envió: ${atributos.eventType}`);
-        return { estado: 'ignorado_tipo_evento' };
-      }
-
-      await this.webhooksService.manejarNuevoWebhookGoogle(atributos.formId);
-      return { estado: 'recibido' };
-    } catch (error) {
-      console.error('Error al procesar el Webhook de Google:', error);
-      return { estado: 'error_ignorado' };
-    }
-  }
 
   @Post(':idProceso/generar-dummy')
   async generarDatosPrueba(
