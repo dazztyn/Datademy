@@ -1,29 +1,20 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Proceso, ProcesoDocument } from './schemas/proceso.schema';
-import { Model, ClientSession, UpdateQuery } from 'mongoose';
+import { Injectable } from '@nestjs/common';
+import { ProcesoDocument } from './schemas/proceso.schema';
+import { UpdateQuery } from 'mongoose';
 import { CrearProcesoDto } from './dto/crear-proceso.dto';
 import { ActualizarProcesoDto } from './dto/actualizar-proceso.dto';
-import { Plantilla, PlantillaDocument } from './schemas/plantilla.schema';
 import { ArchivoGoogleDrive } from 'src/google/interfaces/archivo-google.interface';
-import { Configuracion, ConfiguracionDocument } from './schemas/configuracion.schema';
 import { FiltroPlantillas } from './interfaces/FiltroPlantillas';
+import { FormulariosRepository } from './formularios.repository';
 
 @Injectable()
 export class FormulariosService {
-  constructor(
-    @InjectModel(Proceso.name) private procesoModelo: Model<ProcesoDocument>,
-    @InjectModel(Plantilla.name) private plantillaModelo: Model<PlantillaDocument>,
-    @InjectModel(Configuracion.name) private configuracionModelo: Model<ConfiguracionDocument>,
-  ) {}
+  constructor(private readonly repositorio: FormulariosRepository) {}
 
 
   async obtenerTodosLosProcesos(usuario_id: string) {
     try {
-      const procesos = await this.procesoModelo
-      .find({ usuario_id, estado: 'activo' })
-      .sort({ createdAt: -1 })
-      .exec();
+      const procesos = await this.repositorio.encontrarProcesosActivos(usuario_id);
       
       const procesosFormateados = procesos.map((proceso) => {
         const doc = proceso.toObject();
@@ -51,9 +42,7 @@ export class FormulariosService {
   async actualizar(usuario_id: string, id: string, datos: ActualizarProcesoDto | UpdateQuery<ProcesoDocument>) {
     try 
     {
-      const actualizado = await this.procesoModelo
-        .findOneAndUpdate({ _id: id, usuario_id }, datos, { returnDocument: 'after' })
-        .exec();
+      const actualizado = await this.repositorio.actualizarProceso(usuario_id, id, datos);
         
       if (!actualizado) {
         throw new Error('No se encontró el proceso con ese ID');
@@ -75,8 +64,7 @@ export class FormulariosService {
 
   async crearProceso(usuario_id: string, datos: CrearProcesoDto) {
     try {
-      const nuevoProceso = new this.procesoModelo({ ...datos, usuario_id });
-      const procesoGuardado = await nuevoProceso.save();
+      const procesoGuardado = await this.repositorio.crearProceso({ ...datos, usuario_id });
       return {
         datos: 
         {
@@ -93,7 +81,7 @@ export class FormulariosService {
 
   async guardarPlantillasEnCache(usuario_id: string, plantillasDeGoogle: ArchivoGoogleDrive[]) 
   {
-    await this.plantillaModelo.deleteMany({ usuario_id }).exec();
+    await this.repositorio.borrarPlantillas(usuario_id);
 
     const plantillasNuevas = plantillasDeGoogle.map(archivo => ({
       idPlantilla: archivo.id,
@@ -101,7 +89,7 @@ export class FormulariosService {
       usuario_id
     }));
 
-    await this.plantillaModelo.insertMany(plantillasNuevas);
+    await this.repositorio.insertarPlantillas(plantillasNuevas);
     return plantillasNuevas;
   }
 
@@ -113,7 +101,7 @@ export class FormulariosService {
     {
       filtro.nombrePlantilla = { $regex: new RegExp(tipo, 'i') };
     }
-    const plantillas = await this.plantillaModelo.find(filtro).exec();
+    const plantillas = await this.repositorio.encontrarPlantillas(filtro);
     const plantillasFiltradas = plantillas.map((plantilla) => {
         const doc = plantilla.toObject();
         return {
@@ -129,25 +117,14 @@ export class FormulariosService {
 
   async guardarCarpetaDestino(usuario_id: string, idCarpeta: string) 
   {
-    let config = await this.configuracionModelo.findOne({ usuario_id }).exec();
-
-    if (config) 
-    {
-      config.id_carpeta_destino_formularios = idCarpeta;
-      await config.save();
-    } 
-    else 
-    {
-      config = new this.configuracionModelo({ usuario_id, id_carpeta_destino_formularios: idCarpeta });
-      await config.save();
-    }
+    await this.repositorio.guardarCarpetaDestino(usuario_id, idCarpeta);
 
     return { estado: 'exito'};
   }
 
   async obtenerCarpetaDestino(usuario_id: string): Promise<string> 
   {
-    const config = await this.configuracionModelo.findOne({ usuario_id }).exec();
+    const config = await this.repositorio.encontrarConfiguracion(usuario_id);
     
     if (!config || !config.id_carpeta_destino_formularios) 
     {
@@ -159,7 +136,7 @@ export class FormulariosService {
 
   async obtenerProcesoInterno(usuario_id: string, id: string) 
   {
-    const proceso = await this.procesoModelo.findOne({ _id: id, usuario_id }).exec();
+    const proceso = await this.repositorio.encontrarProcesoPorId(usuario_id, id);
     if (!proceso) 
     {
       throw new Error('El proceso que intentas buscar no existe.');
@@ -167,20 +144,9 @@ export class FormulariosService {
     return proceso;
   }
 
-  async eliminarProcesoDeBD(usuario_id: string, id: string, session?: ClientSession) 
-  {
-    await this.procesoModelo.findOneAndDelete({ _id: id, usuario_id }, { session }).exec();
-    return { estado: 'exito', mensaje: 'Registro eliminado de la base de datos.' };
-  }
-
   async buscarPorIdFormularioGoogle(idFormulario: string) 
   {
-    return await this.procesoModelo.findOne({
-      $or: [
-        { 'formulario_estudiantes.id_google_form': idFormulario },
-        { 'formulario_socios.id_google_form': idFormulario }
-      ]
-    }).exec();
+    return await this.repositorio.buscarPorIdFormularioGoogle(idFormulario);
   }
 
   async guardarMetadatosFormulario(

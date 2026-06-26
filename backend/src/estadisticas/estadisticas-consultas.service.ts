@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model} from 'mongoose';
-import { EstadisticaDocument } from './schemas/estadisticas.schema';
+import { OnEvent } from '@nestjs/event-emitter';
 import { FormulariosService } from 'src/formularios/formularios.service';
 import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service';
 import { EstadisticasFormatterService } from './estadisticas-formatter.service';
@@ -205,8 +203,9 @@ export class EstadisticasConsultasService {
     });
   }
 
-  async limpiarDatosHuerfanos(procesoId: string): Promise<void> 
-  {
+  @OnEvent('proceso.eliminado')
+  async limpiarDatosHuerfanos(procesoId: string): Promise<void> {
+    console.log(`[Eventos] Escuché que se borró el proceso ${procesoId}. Limpiando estadísticas...`);
     await this.repositorio.eliminarRespuestasPorProceso(procesoId);
   }
 }

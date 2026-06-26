@@ -13,6 +13,7 @@ import { EstadisticasModule } from './estadisticas/estadisticas.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { BullModule } from '@nestjs/bull';
 import { DatabaseModule } from './database/database.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: 
@@ -23,6 +24,7 @@ import { DatabaseModule } from './database/database.module';
       ttl: 60000,
       limit: 100, 
     }]),
+    EventEmitterModule.forRoot(),
     UsuariosModule, 
     DatabaseModule,
     FormulariosModule, 
