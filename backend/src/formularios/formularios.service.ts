@@ -172,4 +172,36 @@ export class FormulariosService {
     return await this.actualizar(usuario_id, idProceso, datosAActualizar);
   }
 
+  async obtenerMetadatosGuardados(usuario_id: string, idProceso: string) {
+    const proceso = await this.procesosRepo.encontrarProcesoPorId(usuario_id, idProceso);
+    
+    if (!proceso) {
+      throw new Error('El proceso que intentas buscar no existe.');
+    }
+
+    const est = proceso.formulario_estudiantes;
+    const soc = proceso.formulario_socios;
+    
+    const completos = 
+      (est?.nombres_constructos?.length ?? 0) > 0 &&
+      (soc?.nombres_constructos?.length ?? 0) > 0 &&
+      (est?.total_esperados ?? 0) > 0 &&
+      (soc?.total_esperados ?? 0) > 0;
+
+    return {
+      estado: 'exito',
+      estan_completos: completos,
+      metadatos: {
+        estudiantes: {
+          nombres_constructos: est?.nombres_constructos || [],
+          total_esperados: est?.total_esperados || ''
+        },
+        socios: {
+          nombres_constructos: soc?.nombres_constructos || [],
+          total_esperados: soc?.total_esperados || ''
+        }
+      }
+    };
+  }
+
 }

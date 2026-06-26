@@ -16,7 +16,7 @@ export class UsuariosService {
   async vincularCuentaGoogle(id: any, datos: { googleId: string, avatarUrl: string, nombre: string }) {
     return await this.usuarioModelo.findByIdAndUpdate(
       id, 
-      { 
+      {  
         googleId: datos.googleId, 
         avatarUrl: datos.avatarUrl,
         nombre: datos.nombre 

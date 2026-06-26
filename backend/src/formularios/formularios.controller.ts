@@ -115,6 +115,14 @@ export class FormulariosController {
     );
   }
   
+  @Get(':idProceso/metadatos')
+  async obtenerMetadatos(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string
+  ) {
+    return await this.formulariosService.obtenerMetadatosGuardados(req.user.userId, idProceso);
+  }
+
   @Delete(':id')
   async eliminarProceso(@Req() req: RequestConUsuario, @Param('id') id: string) 
   {
