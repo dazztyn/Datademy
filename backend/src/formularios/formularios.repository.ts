@@ -55,8 +55,9 @@ export class FormulariosRepository {
     await this.plantillaModelo.deleteMany({ usuario_id }).exec();
   }
 
-  async insertarPlantillas(plantillas: Partial<Plantilla>[]): Promise<PlantillaDocument[]> {
-    return await this.plantillaModelo.insertMany(plantillas);
+  async insertarPlantillas(plantillas: { idPlantilla: string; nombrePlantilla: string; usuario_id: string }[]): Promise<PlantillaDocument[]> {
+    const insertados = await this.plantillaModelo.insertMany(plantillas);
+    return insertados as unknown as PlantillaDocument[]; 
   }
 
   async encontrarPlantillas(filtro: FiltroPlantillas): Promise<PlantillaDocument[]> {

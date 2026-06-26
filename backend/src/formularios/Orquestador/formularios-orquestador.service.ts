@@ -11,8 +11,7 @@ import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 export class FormulariosOrquestadorService {
   constructor(
     private readonly formulariosService: FormulariosService,
-    private readonly googleService: GoogleService,
-    @InjectConnection() private readonly connection: Connection
+    private readonly googleService: GoogleService
   ) {}
 
   async crearYVincularFormulario(
