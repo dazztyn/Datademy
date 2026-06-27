@@ -252,7 +252,6 @@ export class EstadisticasConsultasService {
       if (!ultimaPagina.preguntas_pagina || ultimaPagina.preguntas_pagina.length < 2) return;
 
       const totalPreguntas = ultimaPagina.preguntas_pagina.length;
-      
       const resFortaleza = ultimaPagina.preguntas_pagina[totalPreguntas - 2]?.respuesta_texto?.trim();
       const resMejora = ultimaPagina.preguntas_pagina[totalPreguntas - 1]?.respuesta_texto?.trim();
 
