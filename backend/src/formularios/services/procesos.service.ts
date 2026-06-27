@@ -107,18 +107,36 @@ export class ProcesosService {
     };
   }
 
-  async eliminarInformeDeProceso(usuario_id: string, idProceso: string, idInformeDrive: string) 
-  {
+  async guardarInformeEnProceso(
+    usuario_id: string, 
+    idProceso: string, 
+    informe: { id_informe_drive: string; nombre_informe: string; url_descarga: string; tipo: 'estudiantes' | 'socios' | 'completo' }
+  ) {
+    const actualizacion: UpdateQuery<ProcesoDocument> = {
+      $push: { informes_generados: informe } as any
+    };
+    const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, actualizacion);
+    if (!actualizado) throw new Error('No se pudo guardar el informe en el proceso.');
+    return actualizado;
+  }
+
+  async obtenerInformesDeProceso(usuario_id: string, idProceso: string) {
+    const proceso = await this.obtenerProcesoInterno(usuario_id, idProceso);
+    return {
+      estado: 'exito',
+      informes: proceso.informes_generados || [] 
+    };
+  }
+
+  async eliminarInformeDeProceso(usuario_id: string, idProceso: string, idInformeDrive: string) {
     const actualizacion: UpdateQuery<ProcesoDocument> = {
       $pull: { informes_generados: { id_informe_drive: idInformeDrive } } as any 
     };
-
     const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, actualizacion);
-    
-    if (!actualizado) {
-      throw new Error('No se encontró el proceso o no tienes permisos.');
-    }
 
+    if (!actualizado) throw new Error('No se encontró el proceso o no tienes permisos.');
+    
     return actualizado;
+
   }
 }
