@@ -1,13 +1,13 @@
 import { Processor, Process } from '@nestjs/bull';
 import type { Job } from 'bull';
 import { ReportesService } from './reportes.service';
-import { ProcesosService } from 'src/formularios/services/procesos.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Processor('reportes')
 export class ReportesProcessor {
   constructor(
     private readonly reportesService: ReportesService,
-    private readonly procesosService: ProcesosService
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   @Process('generar-informe')
@@ -26,10 +26,15 @@ export class ReportesProcessor {
       );
 
       const urlDescargaPdf = `https://docs.google.com/document/d/${resultado.idDocumento}/export?format=pdf`;
-      await this.procesosService.guardarInformeEnProceso(usuarioId, idProceso, {
-        id_informe_drive: resultado.idDocumento,
-        nombre_informe: resultado.nombreInforme,
-        url_descarga: urlDescargaPdf
+      this.eventEmitter.emit('informe.generado', {
+        usuarioId,
+        idProceso,
+        informe: {
+          id_informe_drive: resultado.idDocumento,
+          nombre_informe: resultado.nombreInforme,
+          url_descarga: urlDescargaPdf,
+          fecha_generacion: new Date()
+        }
       });
 
       await job.update({ ...job.data, graficos: {} });

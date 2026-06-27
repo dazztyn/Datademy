@@ -5,10 +5,15 @@ import { ActualizarProcesoDto } from '../dto/actualizar-proceso.dto';
 import { ProcesosRepository } from '../repository/procesos.repository';
 import { ProcesoDocument } from '../schemas/proceso.schema';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
+import { InformeGenerado } from '../interfaces/informe-generado.interface';
+import { OnEvent, EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ProcesosService {
-  constructor(private readonly procesosRepo: ProcesosRepository) {}
+  constructor(
+    private readonly procesosRepo: ProcesosRepository,
+    private readonly eventEmitter: EventEmitter2
+  ) {}
 
   async obtenerTodosLosProcesos(usuario_id: string) {
     try {
@@ -97,6 +102,11 @@ export class ProcesosService {
       throw new Error('No se pudo desasignar: El proceso no existe o no tienes permisos.');
     }
 
+    this.eventEmitter.emit('formulario.desasignado', { 
+      procesoId: idProceso, 
+      tipoFormulario: tipoFormulario 
+    });
+
     return {
       estado: 'exito',
       mensaje: `Formulario de ${tipoFormulario} desasignado correctamente del proceso.`,
@@ -110,12 +120,18 @@ export class ProcesosService {
   async guardarInformeEnProceso(
     usuario_id: string, 
     idProceso: string, 
-    informe: { id_informe_drive: string; nombre_informe: string; url_descarga: string;}
+    informe: InformeGenerado 
   ) {
-    const actualizacion: UpdateQuery<ProcesoDocument> = {
-      $push: { informes_generados: informe } as any
-    };
-    const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, actualizacion);
+    const proceso = await this.obtenerProcesoInterno(usuario_id, idProceso);
+    
+    const informesActuales = proceso.informes_generados || [];
+
+    informesActuales.push(informe);
+
+    const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, {
+      informes_generados: informesActuales
+    });
+
     if (!actualizado) throw new Error('No se pudo guardar el informe en el proceso.');
     return actualizado;
   }
@@ -129,14 +145,29 @@ export class ProcesosService {
   }
 
   async eliminarInformeDeProceso(usuario_id: string, idProceso: string, idInformeDrive: string) {
-    const actualizacion: UpdateQuery<ProcesoDocument> = {
-      $pull: { informes_generados: { id_informe_drive: idInformeDrive } } as any 
-    };
-    const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, actualizacion);
+    const proceso = await this.obtenerProcesoInterno(usuario_id, idProceso);
+
+    const informesRestantes = (proceso.informes_generados || []).filter(
+      (inf) => inf.id_informe_drive !== idInformeDrive
+    );
+
+    const actualizado = await this.actualizar(usuario_id, idProceso, {
+      informes_generados: informesRestantes
+    });
 
     if (!actualizado) throw new Error('No se encontró el proceso o no tienes permisos.');
     
     return actualizado;
 
+  }
+
+  @OnEvent('informe.generado')
+  async manejarInformeGeneradoTerminado(payload: { usuarioId: string, idProceso: string, informe: InformeGenerado }) {
+    try {
+      await this.guardarInformeEnProceso(payload.usuarioId, payload.idProceso, payload.informe);
+      console.log(`[Event Bus] Informe guardado correctamente en el proceso ${payload.idProceso}`);
+    } catch (error) {
+      console.error('[Event Bus] Error al guardar el informe generado:', error);
+    }
   }
 }
