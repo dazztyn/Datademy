@@ -8,6 +8,8 @@ import Cronbach from '../pages/dashboard/secciones/Cronbach'
 import CompletarDatos from '../pages/dashboard/secciones/CompletarDatos'
 import GenerarInforme from '../pages/dashboard/secciones/GenerarInforme'
 import DatosGlobales from '../pages/dashboard/DatosGlobales'
+import ListarInformes from '../pages/dashboard/secciones/ListarInformes'
+
 
 
 import { useAuth } from '../context/AuthContext'
@@ -40,6 +42,7 @@ export default function Router() {
           <Route path="cronbach" element={<Cronbach />} />
           <Route path="completar" element={<CompletarDatos />} />
           <Route path="informe" element={<GenerarInforme />} />
+          <Route path="listar-informes" element={<ListarInformes />} />
         </Route>
       </Routes>
     </BrowserRouter>

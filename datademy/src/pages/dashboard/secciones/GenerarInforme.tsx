@@ -152,7 +152,7 @@ export default function GenerarInforme() {
 
   const handleGenerar = async () => {
     if (!idProceso || !metricas) return
-    if (!asignaturaNombre || !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente || !programa) {
+    if ( !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente || !programa) {
       return mostrar('Por favor completa todos los campos obligatorios', 'error')
     }
     if (!carpetaConfigurada || !plantillaConfigurada) {
@@ -214,7 +214,7 @@ export default function GenerarInforme() {
       }
         
 
-      const response = await fetch(`${BASE_URL}/reportes/generar`, {
+      const response = await fetch(`${BASE_URL}/reportes/${idProceso}/generar`, {
         method: 'POST',
         headers: getHeaders(),
         credentials: 'include',

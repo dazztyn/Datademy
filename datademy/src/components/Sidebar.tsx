@@ -14,6 +14,8 @@ import iconoRefresh from '../assets/REFRESH.png'
 import iconoVolver from '../assets/HOME.png'
 import iconoCompletar from '../assets/CHECK.png'
 import iconoLock from '../assets/LOCK.png' 
+import iconoLogout from '../assets/LOGOUT.png'
+import iconoInformes from '../assets/INFORME.png'
 
 interface SidebarItem {
   icono: string
@@ -201,6 +203,25 @@ const handleCerrarSesion = async () => {
           </span>
         </button>
         <button
+  disabled={informeBloqueado}
+  onClick={() => {
+    if (informeBloqueado) return
+    navigate('/detalles/listar-informes')
+  }}
+  title={informeBloqueado ? 'Completa los metadatos primero' : undefined}
+  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all overflow-hidden w-full
+    ${informeBloqueado ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10'}`}
+>
+  <img
+    src={informeBloqueado ? iconoLock : iconoInformes}
+    alt="Listar informes"
+    className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
+  />
+  <span className={`text-xs text-white font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+    Listar informes
+  </span>
+</button>
+        <button
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
         >
@@ -214,17 +235,19 @@ const handleCerrarSesion = async () => {
           </span>
         </button>
         <button
-        onClick={() => setMostrarLogout(true)}
-        className={`
-          text-xs underline underline-offset-2
-          text-white/70 hover:text-red-400
-          transition-colors duration-200
-          overflow-hidden whitespace-nowrap
-          ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}
-        `}
-      >
-        Cerrar sesión
-      </button>
+  onClick={() => setMostrarLogout(true)}
+  title="Cerrar sesión"
+  className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/20 transition-colors w-full"
+>
+  <img
+            src={iconoLogout}
+            alt="Cerrar sesión"
+            className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
+          />
+  <span className={`transition-all duration-300 overflow-hidden text-xs text-white whitespace-nowrap  ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+    Cerrar sesión
+  </span>
+</button>
       </div>
             {mostrarLogout && (
         <ModalConfirmar

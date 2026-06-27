@@ -121,3 +121,27 @@ export async function desasignarFormulario(
   })
   if (!response.ok) throw new Error('Error al desasignar formulario')
 }
+export interface Informe {
+  id_informe_drive: string
+  nombre_informe: string
+  url_descarga: string
+  fecha_generacion: string
+}
+
+export async function listarInformes(idProceso: string): Promise<Informe[]> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/informes`, {
+    headers: getHeaders(),
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al listar informes')
+  return response.json()
+}
+
+export async function eliminarInforme(idProceso: string, idInformeDrive: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/informes/${idInformeDrive}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al eliminar informe')
+}
