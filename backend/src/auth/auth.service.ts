@@ -29,7 +29,7 @@ export class AuthService {
     }
 
     if (!usuario.googleId) {
-      usuario = await this.usuariosService.vincularCuentaGoogle(usuario._id, {
+      usuario = await this.usuariosService.vincularCuentaGoogle(String(usuario._id), {
         googleId,
         avatarUrl,
         nombre: usuario.nombre === 'Socia Comunitaria' ? nombre : usuario.nombre 
