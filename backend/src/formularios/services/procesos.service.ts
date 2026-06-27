@@ -88,7 +88,7 @@ export class ProcesosService {
       : 'formulario_socios';
     
     const datosAActualizar: UpdateQuery<ProcesoDocument> = {
-      $set: { [campoBase]: null }
+      $set: { [campoBase]: "Libre" }
     };
 
     const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, datosAActualizar);
