@@ -11,7 +11,7 @@ export class UsuariosService {
     return await this.repositorio.buscarPorCorreo(correo);
   }
 
-  async vincularCuentaGoogle(id: any, datos: { googleId: string, avatarUrl: string, nombre: string }) {
+  async vincularCuentaGoogle(id: string, datos: { googleId: string, avatarUrl: string, nombre: string }) {
     return await this.repositorio.actualizarCuentaGoogle(id, datos);
   }
 
