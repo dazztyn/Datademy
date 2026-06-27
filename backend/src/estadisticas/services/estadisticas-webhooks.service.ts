@@ -1,20 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { mongo } from 'mongoose';
 import { GoogleService } from '../../google/google.service';
-import { FormulariosService } from 'src/formularios/formularios.service';
 import { EstadisticasParserService } from './estadisticas-parser.service';
 import { GoogleFormDiseno } from '../interfaces/diseno-google.interface';
 import { GoogleFormRespuesta } from '../interfaces/respuesta-google.interface';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 import { EstadisticasRepository } from '../estadisticas.repository';
+import { ProcesosService } from 'src/formularios/services/procesos.service';
 
 @Injectable()
 export class EstadisticasWebhooksService {
   constructor(
+    private readonly procesosService: ProcesosService,
     private readonly googleService: GoogleService,
     private readonly parserService: EstadisticasParserService,
-    private readonly repositorio: EstadisticasRepository,
-    private readonly formulariosService: FormulariosService
+    private readonly repositorio: EstadisticasRepository
   ) {}
 
   private async obtenerFechaUltimaSincronizacion(procesoId: string, tipoFormulario: TipoFormulario): Promise<Date | null> {
@@ -29,7 +29,7 @@ export class EstadisticasWebhooksService {
   }
 
   async manejarNuevoWebhookGoogle(idFormulario: string, esSincronizacionManual: boolean = false) {
-    const procesoAsociado = await this.formulariosService.buscarPorIdFormularioGoogle(idFormulario);
+    const procesoAsociado = await this.procesosService.buscarPorIdFormularioGoogle(idFormulario);
     if (!procesoAsociado) throw new NotFoundException('Formulario no encontrado en el sistema');
 
     const usuarioIdReal = procesoAsociado.usuario_id;
@@ -104,7 +104,7 @@ export class EstadisticasWebhooksService {
   }
 
   async sincronizarProcesoManual(procesoId: string, usuarioId: string) {
-    const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
+    const proceso = await this.procesosService.obtenerProcesoInterno(usuarioId, procesoId);
     let totalGuardadas = 0;
     let mensajes: string[] = [];
 

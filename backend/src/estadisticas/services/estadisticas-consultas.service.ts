@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { FormulariosService } from 'src/formularios/formularios.service';
 import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service';
 import { EstadisticasFormatterService } from './estadisticas-formatter.service';
 import { ProcesoComparativa } from '../interfaces/proceso-comparativo.interface';
 import { MetricaConstructo } from '../interfaces/metrica-constructo.interface';
 import { TipoFormulario } from '../../common/enum/tipo-formulario.enum';
 import { EstadisticasRepository } from '../estadisticas.repository';
+import { ProcesosService } from 'src/formularios/services/procesos.service';
 
 @Injectable()
 export class EstadisticasConsultasService {
@@ -23,7 +23,7 @@ export class EstadisticasConsultasService {
     private readonly analiticasService: EstadisticasAnaliticasService,
     private readonly formatterService: EstadisticasFormatterService,
     private readonly repositorio: EstadisticasRepository,
-    private readonly formulariosService: FormulariosService
+    private readonly procesosService: ProcesosService
   ) {}
 
   async obtenerResultadosTabulares(procesoId: string, usuarioId: string, filtros: Record<string, string>) {
@@ -61,7 +61,7 @@ export class EstadisticasConsultasService {
       });
     const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, 'constructos_paginas datos_respondente -_id'); 
 
-    const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
+    const proceso = await this.procesosService.obtenerProcesoInterno(usuarioId, procesoId);
     const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
     
     const nombresConstructos = configFormulario?.nombres_constructos || [];
@@ -76,7 +76,7 @@ export class EstadisticasConsultasService {
   async obtenerOpcionesFiltrosDisponibles(procesoId: string, usuarioId: string, tipoFormulario: string = 'estudiantes') {
     const queryBase: Record<string, string | number | boolean | Record<string, unknown>> = { proceso_id: procesoId, usuario_id: usuarioId, tipo_formulario: tipoFormulario };
 
-    const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
+    const proceso = await this.procesosService.obtenerProcesoInterno(usuarioId, procesoId);
     const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
     const nombresConstructos = configFormulario?.nombres_constructos || [];
     const constructosConId = nombresConstructos.map((nombre, index) => ({
@@ -137,7 +137,7 @@ export class EstadisticasConsultasService {
   }
   
   private async procesarUnProcesoParaComparativa(usuarioId: string, procesoId: string, tipoFormulario: TipoFormulario) {
-    const proceso = await this.formulariosService.obtenerProcesoInterno(usuarioId, procesoId);
+    const proceso = await this.procesosService.obtenerProcesoInterno(usuarioId, procesoId);
     const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
     
     const nombresConstructos = configFormulario?.nombres_constructos || [];
