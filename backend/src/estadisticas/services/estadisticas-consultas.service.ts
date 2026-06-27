@@ -220,4 +220,5 @@ export class EstadisticasConsultasService {
       tipo_formulario: payload.tipoFormulario
     });
   }
+
 }

@@ -22,16 +22,17 @@ export class ReportesController {
     return await this.reportesService.actualizarConfiguracion(req.user.userId, idCarpeta, idPlantilla);
   }
 
-  @Post('generar')
+  @Post(':idProceso/generar')
     async solicitarGeneracionInforme(
-      @Req() req: RequestConUsuario, 
-      @Body() body: { datosTexto: Record<string, string>, graficos: Record<string, string>, nombreCarrera: string, idProceso: string }
+      @Req() req: RequestConUsuario,
+      @Param( 'idProceso' )idProceso: string,
+      @Body() body: { datosTexto: Record<string, string>, graficos: Record<string, string>, nombreCarrera: string}
     ) {
     const job = await this.colaReportes.add('generar-informe', {
       usuarioId: req.user.userId,
       datosTexto: body.datosTexto,
       graficos: body.graficos,
-      idProceso: body.idProceso,
+      idProceso: idProceso,
       nombreCarrera: body.nombreCarrera
     },
     {
