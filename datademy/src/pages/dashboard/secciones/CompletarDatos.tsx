@@ -15,12 +15,37 @@ export default function CompletarDatos() {
   const { metricas: metricasEstudiantes } = useMetricas(idProceso, { tipo: 'estudiantes' })
   const { metricas: metricasSocios } = useMetricas(idProceso, { tipo: 'socios' })
 
-  const [totalEstudiantes, setTotalEstudiantes] = usePersistedState('completar_totalEstudiantes', '')
-  const [constructosEstudiantes, setConstructosEstudiantes] = usePersistedState<string[]>('completar_constructos_estudiantes', [])
-
-  const [totalSocios, setTotalSocios] = usePersistedState('completar_totalSocios', '')
-  const [constructosSocios, setConstructosSocios] = usePersistedState<string[]>('completar_constructos_socios', [])
-
+  const [totalEstudiantes, setTotalEstudiantes] = usePersistedState(`completar_totalEstudiantes_${idProceso}`, '')
+  const [constructosEstudiantes, setConstructosEstudiantes] = usePersistedState<string[]>(`completar_constructos_estudiantes_${idProceso}`, [])
+  const [totalSocios, setTotalSocios] = usePersistedState(`completar_totalSocios_${idProceso}`, '')
+  const [constructosSocios, setConstructosSocios] = usePersistedState<string[]>(`completar_constructos_socios_${idProceso}`, [])
+  useEffect(() => {
+    document.title = 'Datademy - Completar Datos'
+    return () => { document.title = 'Datademy' }
+  }, []) 
+  useEffect(() => {
+  if (!idProceso) return
+  fetch(`${import.meta.env.VITE_API_URL}/formularios/${idProceso}/metadatos`, {
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.estan_completos) {
+        const est = data.metadatos?.estudiantes
+        const soc = data.metadatos?.socios
+        if (est) {
+          setTotalEstudiantes(String(est.total_esperados))
+          setConstructosEstudiantes(est.nombres_constructos)
+        }
+        if (soc) {
+          setTotalSocios(String(soc.total_esperados))
+          setConstructosSocios(soc.nombres_constructos)
+        }
+      }
+    })
+    .catch(() => {})
+}, [idProceso])
   useEffect(() => {
     if (!metricasEstudiantes) return
     const num = metricasEstudiantes.promedios_por_pagina.length
@@ -58,7 +83,7 @@ export default function CompletarDatos() {
 
     setGuardando(true)
     mostrar('Guardando metadatos...', 'cargando')
-
+    
     try {
       await Promise.all([
         configurarMetadatos(idProceso, 'estudiantes', constructosEstudiantes, Number(totalEstudiantes)),
@@ -72,7 +97,7 @@ export default function CompletarDatos() {
       setGuardando(false)
     }
   }
-
+  
   if (!idProceso) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -84,7 +109,7 @@ export default function CompletarDatos() {
   const inputClass = "w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
   const labelClass = "text-xs text-slate-500 dark:text-slate-400 mb-1 block font-medium"
   const cardClass = "bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 space-y-4 flex flex-col h-full"
-
+  
   return (
     <div className="space-y-6 w-full max-w-5xl mx-auto">
       

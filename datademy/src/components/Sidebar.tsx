@@ -4,7 +4,9 @@ import { temasPagina, temaDefault } from '../utils/temasPagina'
 import { useProceso } from '../context/ProcesoContext'
 import { sincronizarManual } from '../services/estadisticos_service'
 import { useInforme } from '../context/InformeContext'
+import { useAuth } from '../context/AuthContext'
 
+import ModalConfirmar from './ModalConfirmar'
 import iconoListar from '../assets/LIST.png'
 import iconoGraficos from '../assets/DATA.png'
 import iconoCronbach from '../assets/ALPHA.png'
@@ -31,12 +33,30 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   
-  const { idProceso, metadatosCompletos } = useProceso()
+  const { idProceso, metadatosCompletos, verificandoMetadatos } = useProceso()
   const { estadoJob } = useInforme()
   const temaBarra = temasPagina[location.pathname] ?? temaDefault
+  
+  const { cerrarSesion } = useAuth()
 
+const [mostrarLogout, setMostrarLogout] = useState(false)
+const [cerrandoSesion, setCerrandoSesion] = useState(false)
+
+const handleCerrarSesion = async () => {
+  setCerrandoSesion(true)
+
+  try {
+    await cerrarSesion()
+    navigate('/login')
+  } finally {
+    setCerrandoSesion(false)
+    setMostrarLogout(false)
+  }
+}
   const requiereMetadatos = (ruta: string) =>
     ['/detalles/alumnos', '/detalles/socios', '/detalles/graficos', '/detalles/cronbach', '/detalles/informe'].includes(ruta)
+  const bloqueado = (ruta: string) =>
+  requiereMetadatos(ruta) && !metadatosCompletos && !verificandoMetadatos
 
   const handleRefresh = async () => {
     if (!idProceso || sync) return
@@ -102,15 +122,19 @@ export default function Sidebar() {
         {items.map(item => {
           const activo = location.pathname === item.ruta
           const bloqueado = requiereMetadatos(item.ruta) && !metadatosCompletos
-
+          {verificandoMetadatos && requiereMetadatos(item.ruta) && (
+  <span className="w-2 h-2 rounded-full bg-white/40 animate-pulse flex-shrink-0" />
+)}
           return (
             <button
+            
               key={item.ruta}
               disabled={bloqueado} 
               onClick={() => {
                 if (bloqueado) return
                 navigate(item.ruta)
               }}
+              
               title={bloqueado ? 'Completa los metadatos primero' : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left w-full
                 ${activo ? 'bg-white/20 font-semibold' : ''}
@@ -189,7 +213,27 @@ export default function Sidebar() {
             Volver
           </span>
         </button>
+        <button
+        onClick={() => setMostrarLogout(true)}
+        className={`
+          text-xs underline underline-offset-2
+          text-white/70 hover:text-red-400
+          transition-colors duration-200
+          overflow-hidden whitespace-nowrap
+          ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}
+        `}
+      >
+        Cerrar sesión
+      </button>
       </div>
+            {mostrarLogout && (
+        <ModalConfirmar
+          mensaje="Se cerrará tu sesión actual."
+          onConfirmar={handleCerrarSesion}
+          onCerrar={() => setMostrarLogout(false)}
+          cargando={cerrandoSesion}
+        />
+      )}
     </div>
   )
 }
