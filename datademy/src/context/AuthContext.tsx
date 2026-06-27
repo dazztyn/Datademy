@@ -57,13 +57,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setGToken(gToken)
   }
 
-  const cerrarSesion = () => {
+  const cerrarSesion = async () => {
+  try {
+    await fetch(`${BASE_URL}/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${gToken}`,
+      },
+      credentials: 'include', 
+    })
+  } catch (error) {
+    console.error('Error cerrando sesión:', error)
+  } finally {
     sessionStorage.removeItem('isLoggedIn')
     sessionStorage.removeItem('gToken')
+
     setIsAuthenticated(false)
     setGToken(null)
   }
-
+}
   return (
     <AuthContext.Provider value={{ isAuthenticated, isLoading, gToken, guardarTokens, cerrarSesion }}>
       {children}

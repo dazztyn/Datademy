@@ -40,7 +40,10 @@ export default function Visualizar() {
 
   const colorTexto = theme === 'dark' ? 'white' : tema.sidebar
   const colorGrid = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-
+  useEffect(() => {
+  document.title = 'Datademy - Gráficos Generales'
+  return () => { document.title = 'Datademy' }
+}, []) 
   useEffect(() => {
     setFiltros({ tipo: tipoActivo })
   }, [tipoActivo])
@@ -95,107 +98,147 @@ export default function Visualizar() {
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
         <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-3">Filtros</h3>
-        <div className="grid grid-cols-2 gap-3">
-          {tipoActivo === 'estudiantes' &&
-            (filtrosDisponibles.carreras ?? []).length > 0 && (
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">Carrera</label>
-                <select
-                  onChange={e => actualizarFiltro('carrera', e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  <option value="">Todas</option>
-                  {filtrosDisponibles.carreras!.map(c => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+         {(() => {
+  const selectClass = "w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+  
+  const fd = {
+    carreras: filtrosDisponibles.carreras ?? [],
+    sedes: filtrosDisponibles.sedes ?? [],
+    generos: filtrosDisponibles.generos ?? [],
+    niveles_formativos: filtrosDisponibles.niveles_formativos ?? [],
+    asignaturas: filtrosDisponibles.asignaturas ?? [],
+    organizaciones: filtrosDisponibles.organizaciones ?? [],
+    nombres_constructos: filtrosDisponibles.nombres_constructos ?? [],
+  }
 
-          {tipoActivo === 'estudiantes' &&
-            (filtrosDisponibles.sedes ?? []).length > 0 && (
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">Sede</label>
-                <select
-                  onChange={e => actualizarFiltro('sede', e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  <option value="">Todas</option>
-                  {filtrosDisponibles.sedes!.map(s => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+  const filtrosActivos = [
+    tipoActivo === 'estudiantes' && fd.carreras.length > 0 && (
+      <div key="carrera">
+        <label className="text-xs text-slate-400 mb-1 block">Carrera</label>
+        <select onChange={e => setFiltros(f => ({ ...f, carrera: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todas</option>
+          {fd.carreras.map(c => <option key={c}>{c}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'estudiantes' && fd.sedes.length > 0 && (
+      <div key="sede">
+        <label className="text-xs text-slate-400 mb-1 block">Sede</label>
+        <select onChange={e => setFiltros(f => ({ ...f, sede: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todas</option>
+          {fd.sedes.map(s => <option key={s}>{s}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'estudiantes' && fd.generos.length > 0 && (
+      <div key="genero_est">
+        <label className="text-xs text-slate-400 mb-1 block">Género</label>
+        <select onChange={e => setFiltros(f => ({ ...f, genero: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todos</option>
+          {fd.generos.map(g => <option key={g}>{g}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'estudiantes' && fd.niveles_formativos.length > 0 && (
+      <div key="nivel">
+        <label className="text-xs text-slate-400 mb-1 block">Nivel formativo</label>
+        <select onChange={e => setFiltros(f => ({ ...f, nivel_formativo: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todos</option>
+          {fd.niveles_formativos.map(n => <option key={n}>{n}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'estudiantes' && fd.asignaturas.length > 0 && (
+      <div key="asignatura_est">
+        <label className="text-xs text-slate-400 mb-1 block">Asignatura</label>
+        <select onChange={e => setFiltros(f => ({ ...f, asignatura: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todas</option>
+          {fd.asignaturas.map(n => <option key={n}>{n}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'socios' && fd.organizaciones.length > 0 && (
+      <div key="organizacion">
+        <label className="text-xs text-slate-400 mb-1 block">Organización</label>
+        <select onChange={e => setFiltros(f => ({ ...f, organizacion: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todas</option>
+          {fd.organizaciones.map(o => <option key={o}>{o}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'socios' && fd.generos.length > 0 && (
+      <div key="genero_socios">
+        <label className="text-xs text-slate-400 mb-1 block">Género</label>
+        <select onChange={e => setFiltros(f => ({ ...f, genero: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todos</option>
+          {fd.generos.map(g => <option key={g}>{g}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'socios' && fd.carreras.length > 0 && (
+      <div key="asignatura_socios">
+        <label className="text-xs text-slate-400 mb-1 block">Asignatura</label>
+        <select onChange={e => setFiltros(f => ({ ...f, asignatura: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todas</option>
+          {fd.carreras.map(o => <option key={o}>{o}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'socios' && fd.asignaturas.length > 0 && (
+      <div key="nivel_socios">
+        <label className="text-xs text-slate-400 mb-1 block">Nivel formativo</label>
+        <select onChange={e => setFiltros(f => ({ ...f, nivel_formativo: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todos</option>
+          {fd.asignaturas.map(n => <option key={n}>{n}</option>)}
+        </select>
+      </div>
+    ),
+        fd.nombres_constructos.length > 0 && (
+      <div key="constructo">
+        <label className="text-xs text-slate-400 mb-1 block">
+          Constructo
+        </label>
 
-          {tipoActivo === 'socios' &&
-            (filtrosDisponibles.organizaciones ?? []).length > 0 && (
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">Organización / Empresa</label>
-                <select
-                  onChange={e => actualizarFiltro('organizacion', e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  <option value="">Todas</option>
-                  {filtrosDisponibles.organizaciones!.map(o => (
-                    <option key={o}>{o}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+        <select
+          onChange={e => {
+            const val = e.target.value
+              ? Number(e.target.value)
+              : undefined
 
-          {(filtrosDisponibles.generos ?? []).length > 0 && (
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Género</label>
-              <select
-                onChange={e => actualizarFiltro('genero', e.target.value)}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="">Todos</option>
-                {filtrosDisponibles.generos!.map(g => (
-                  <option key={g}>{g}</option>
-                ))}
-              </select>
-            </div>
-          )}
+            setConstructoSeleccionado(val)
 
-          {tipoActivo === 'estudiantes' &&
-            (filtrosDisponibles.niveles_formativos ?? []).length > 0 && (
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">Nivel formativo</label>
-                <select
-                  onChange={e => actualizarFiltro('nivel_formativo', e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  <option value="">Todos</option>
-                  {filtrosDisponibles.niveles_formativos!.map(n => (
-                    <option key={n}>{n}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+            setFiltros(f => ({
+              ...f,
+              pagina: val,
+            }))
+          }}
+          className={selectClass}
+        >
+          <option value="">Todos</option>
 
-          {(filtrosDisponibles.nombres_constructos ?? []).length > 0 && (
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Constructo</label>
-              <select
-                onChange={e => {
-                  const val = e.target.value ? Number(e.target.value) : undefined
-                  setConstructoSeleccionado(val)
-                  actualizarFiltro('pagina', val)
-                }}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="">Todos</option>
-                {filtrosDisponibles.nombres_constructos!.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          {fd.nombres_constructos.map(c => (
+            <option key={c.id} value={c.id}>
+              {c.nombre}
+            </option>
+          ))}
+        </select>
+      </div>
+    ),
+  ].filter(Boolean)
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {filtrosActivos.map((filtro, i) => (
+        <div
+          key={i}
+          className={filtrosActivos.length % 2 !== 0 && i === filtrosActivos.length - 1 ? 'col-span-2' : ''}
+        >
+          {filtro}
         </div>
+      ))}
+    </div>
+  )
+})()}
       </div>
 
       {cargando && (

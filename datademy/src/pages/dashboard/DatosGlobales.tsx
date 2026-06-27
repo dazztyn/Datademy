@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bar } from 'react-chartjs-2'
 import {
@@ -79,7 +79,10 @@ export default function DatosGlobales() {
       })),
     }
   }, [comparativa])
-
+  useEffect(() => {
+    document.title = 'Datademy - Datos Globales'
+    return () => { document.title = 'Datademy' }
+  }, []) 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
       {/* Top bar */}

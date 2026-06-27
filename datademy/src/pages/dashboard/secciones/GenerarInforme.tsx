@@ -40,8 +40,7 @@ export default function GenerarInforme() {
 
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, 'estudiantes')
 
-  const [asignatura, setAsignatura] = usePersistedState('asignatura', '')
-  const [modulo, setModulo] = usePersistedState('modulo', '')
+  const [asignaturaNombre, setAsignaturaNombre] = usePersistedState('asignatura', '')
   const [carrera, setCarrera] = usePersistedState('carrera', '')
   const [programa, setPrograma] = usePersistedState('programa', '')
   const [mesInicio, setMesInicio] = usePersistedState('mesInicio', '')
@@ -60,6 +59,7 @@ export default function GenerarInforme() {
   const [ciclo, setCiclo] = useState<'Básico' | 'Profesional'>('Básico')
   const [numSemestre, setNumSemestre] = useState('')
   const [pronombre, setPronombre] = useState<'el' | 'la'>('el')
+  const [tipoClase, setTipoClase] = useState<'Asignatura' | 'Modulo'>('Asignatura')
 
   
   const { metricas } = useMetricas(idProceso, {
@@ -124,7 +124,20 @@ export default function GenerarInforme() {
   const constructosSocios = (metricasSocios?.detalle_por_dimension ?? [])
   .filter((_, i) => i < (metricasSocios?.detalle_por_dimension.length ?? 0) - 1)
   .slice(0, 3)
-
+  const meses = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
+]
   const promediosSocios = metricasSocios?.promedios_por_pagina ?? []
   useEffect(() => {
     console.log('estadoJob cambió:', estadoJob, 'urlInforme:', urlInforme)
@@ -139,7 +152,7 @@ export default function GenerarInforme() {
 
   const handleGenerar = async () => {
     if (!idProceso || !metricas) return
-    if (!asignatura || !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente || !programa) {
+    if (!asignaturaNombre || !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente || !programa) {
       return mostrar('Por favor completa todos los campos obligatorios', 'error')
     }
     if (!carpetaConfigurada || !plantillaConfigurada) {
@@ -170,7 +183,7 @@ export default function GenerarInforme() {
         }
       })
       const datosTexto: Record<string, string> = {
-        AsignaturaModulo: modulo ? `${asignatura} - ${modulo}` : asignatura,
+        AsignaturaModulo: `${tipoClase}: ${asignaturaNombre}`,
         CarreraPrograma: programa ? `${carrera} - ${programa}` : carrera,
         Periodo: `${mesInicio}-${mesFinal} / ${anio}`,
         Anio: anio,
@@ -297,7 +310,10 @@ export default function GenerarInforme() {
         : { display: false },
     },
   })
-
+  useEffect(() => {
+  document.title = 'Datademy - Generar Informe'
+  return () => { document.title = 'Datademy' }
+}, []) 
   return (
     <div className="space-y-6 w-full">
       <div className={seccionClass}>
@@ -343,12 +359,12 @@ export default function GenerarInforme() {
         <h3 className={tituloSeccion}>Datos generales</h3>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClass}>Asignatura</label>
-            <input type="text" value={asignatura} onChange={e => setAsignatura(e.target.value)} placeholder="Ej: Ingeniería de Software" className={inputClass} />
+            <label className={labelClass}>Asignatura/Modulo</label>
+            <Toggle valor={tipoClase} opcion1="Asignatura" opcion2="Modulo" onChange={setTipoClase} />
           </div>
           <div>
-            <label className={labelClass}>Módulo</label>
-            <input type="text" value={modulo} onChange={e => setModulo(e.target.value)} placeholder="Ej: Módulo 1" className={inputClass} />
+            <label className={labelClass}>Nombre Clase</label>
+            <input type="text" value={asignaturaNombre} onChange={e => setAsignaturaNombre(e.target.value)} placeholder="Ej: Ingeniería de Software" className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Carrera</label>
@@ -372,8 +388,31 @@ export default function GenerarInforme() {
         <div>
           <label className={labelClass}>Período</label>
           <div className="grid grid-cols-3 gap-2">
-            <input type="text" value={mesInicio} onChange={e => setMesInicio(e.target.value)} placeholder="Mes inicio" className={inputClass} />
-            <input type="text" value={mesFinal} onChange={e => setMesFinal(e.target.value)} placeholder="Mes final" className={inputClass} />
+            <select
+              value={mesInicio}
+              onChange={e => setMesInicio(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Mes inicio</option>
+              {meses.map(mes => (
+                <option key={mes} value={mes}>
+                  {mes}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={mesFinal}
+              onChange={e => setMesFinal(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Mes final</option>
+              {meses.map(mes => (
+                <option key={mes} value={mes}>
+                  {mes}
+                </option>
+              ))}
+            </select>
             <input type="text" value={anio} onChange={e => setAnio(e.target.value)} placeholder="Año" maxLength={4} className={inputClass} />
           </div>
         </div>
