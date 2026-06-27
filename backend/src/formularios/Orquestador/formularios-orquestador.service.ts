@@ -46,11 +46,15 @@ export class FormulariosOrquestadorService {
 
     const campoBase = `formulario_${tipoFormulario}`; 
     const datosAActualizar = {
-      [`${campoBase}.id_google_form`]: nuevoFormId,
-      [`${campoBase}.nombre_formulario`]: nombreNuevoFormulario,
-      [`${campoBase}.id_carpeta_drive`]: idCarpetaDestino,
-      [`${campoBase}.url_edicion`]: urlEdicionGenerada,
-      [`${campoBase}.url_respuesta`]: urlRespuestaGenerada
+      [campoBase]: {
+        id_google_form: nuevoFormId,
+        nombre_formulario: nombreNuevoFormulario, 
+        id_carpeta_drive: idCarpetaDestino, 
+        url_edicion: `https://docs.google.com/forms/d/${nuevoFormId}/edit`,
+        url_respuesta: `https://docs.google.com/forms/d/${nuevoFormId}/viewform`,
+        nombres_constructos: [],
+        total_esperados: 0
+      }
     };
 
     const resultadoActualizacion = await this.procesosService.actualizar(usuario_id, idProceso, datosAActualizar);
@@ -116,12 +120,16 @@ export class FormulariosOrquestadorService {
       const urlRespuesta = `https://docs.google.com/forms/d/${idFormularioExistente}/viewform`;
       const campoBase = `formulario_${tipoFormulario}`;
       const datosAActualizar = {
-        [`${campoBase}.id_google_form`]: idFormularioExistente,
-        [`${campoBase}.nombre_formulario`]: nombreFormulario,
-        [`${campoBase}.id_carpeta_drive`]: 'importado_externamente', 
-        [`${campoBase}.url_edicion`]: urlEdicion,
-        [`${campoBase}.url_respuesta`]: urlRespuesta
-      };
+      [campoBase]: {
+        id_google_form: idFormularioExistente,
+        nombre_formulario: nombreFormulario, 
+        id_carpeta_drive: 'exportado_externamente',
+        url_edicion: `https://docs.google.com/forms/d/${idFormularioExistente}/edit`,
+        url_respuesta: `https://docs.google.com/forms/d/${idFormularioExistente}/viewform`,
+        nombres_constructos: [],
+        total_esperados: 0
+      }
+    };
 
       const resultadoActualizacion = await this.procesosService.actualizar(usuario_id, idProceso, datosAActualizar);
 
