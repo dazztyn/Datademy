@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Query, Get, UseGuards } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -15,9 +15,8 @@ export class UsuariosController {
   }
 
   @Get('buscar')
-  async buscarUsuario(@Body() body: { correo: string }) {
-    return await this.usuariosService.buscarPorCorreo(body.correo);
+  async buscarUsuario(@Query('correo') correo: string) {
+    return await this.usuariosService.buscarPorCorreo(correo);
   }
-
 
 }

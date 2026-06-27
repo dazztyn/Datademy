@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { FormulariosModule } from './formularios/formularios.module';
 import { GoogleModule } from './google/google.module';
@@ -39,9 +37,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       },
     }),
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
