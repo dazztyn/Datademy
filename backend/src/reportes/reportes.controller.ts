@@ -25,12 +25,13 @@ export class ReportesController {
   @Post('generar')
     async solicitarGeneracionInforme(
       @Req() req: RequestConUsuario, 
-      @Body() body: { datosTexto: Record<string, string>, graficos: Record<string, string>, nombreCarrera: string }
+      @Body() body: { datosTexto: Record<string, string>, graficos: Record<string, string>, nombreCarrera: string, idProceso: string }
     ) {
     const job = await this.colaReportes.add('generar-informe', {
       usuarioId: req.user.userId,
       datosTexto: body.datosTexto,
       graficos: body.graficos,
+      idProceso: body.idProceso,
       nombreCarrera: body.nombreCarrera
     },
     {

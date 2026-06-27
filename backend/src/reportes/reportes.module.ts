@@ -8,6 +8,7 @@ import { ReportesDriveService } from './services/reportes-drive.service';
 import { ReportesConfigService } from './services/reportes-config.service';
 import { BullModule } from '@nestjs/bull';
 import { ReportesProcessor } from './reportes.processor';
+import { FormulariosModule } from 'src/formularios/formularios.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ReportesProcessor } from './reportes.processor';
     BullModule.registerQueue({
       name: 'reportes', 
     }),
+    FormulariosModule
   ],
   providers: [
     ReportesService,

@@ -29,9 +29,13 @@ export class ReportesService {
       imagenesTemporalesIds = imagenesSubidas.map(img => img.imagenDrive.id);
 
       await this.docsService.aplicarCambios(nuevoDocId, imagenesSubidas, datosTexto);
+
+      const nombreInforme = `Informe de Resultados - ${nombreCarrera} - ${new Date().toLocaleDateString()}`;
       
       return {
         estado: 'exito',
+        idDocumento: nuevoDocId,
+        nombreInforme: nombreInforme,
         url_informe: `https://docs.google.com/document/d/${nuevoDocId}/edit`
       };
 

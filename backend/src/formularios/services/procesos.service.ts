@@ -110,7 +110,7 @@ export class ProcesosService {
   async guardarInformeEnProceso(
     usuario_id: string, 
     idProceso: string, 
-    informe: { id_informe_drive: string; nombre_informe: string; url_descarga: string; tipo: 'estudiantes' | 'socios' | 'completo' }
+    informe: { id_informe_drive: string; nombre_informe: string; url_descarga: string;}
   ) {
     const actualizacion: UpdateQuery<ProcesoDocument> = {
       $push: { informes_generados: informe } as any
