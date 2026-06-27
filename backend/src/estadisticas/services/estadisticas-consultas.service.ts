@@ -16,7 +16,8 @@ export class EstadisticasConsultasService {
     genero: 'datos_respondente.genero',
     sede: 'datos_respondente.sede',
     nivel_formativo: 'datos_respondente.nivel_formativo',
-    organizacion: 'datos_respondente.organizacion'
+    organizacion: 'datos_respondente.organizacion',
+    asignatura: 'datos_respondente.asignatura'
   };
 
   constructor(
@@ -85,11 +86,12 @@ export class EstadisticasConsultasService {
     }));
 
     if (tipoFormulario === TipoFormulario.ESTUDIANTES) {
-      const [carreras, sedes, generos, niveles] = await Promise.all([
+      const [carreras, sedes, generos, niveles, asignaturas] = await Promise.all([
         this.repositorio.obtenerOpcionesDistintas('datos_respondente.carrera', queryBase),
         this.repositorio.obtenerOpcionesDistintas('datos_respondente.sede', queryBase),
         this.repositorio.obtenerOpcionesDistintas('datos_respondente.genero', queryBase),
-        this.repositorio.obtenerOpcionesDistintas('datos_respondente.nivel_formativo', queryBase)
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.nivel_formativo', queryBase),
+        this.repositorio.obtenerOpcionesDistintas('datos_respondente.asignatura', queryBase)
       ]);
 
       return {
@@ -99,6 +101,7 @@ export class EstadisticasConsultasService {
           sedes: sedes.filter(s => s !== 'No especificada'),
           generos: generos.filter(g => g !== 'No especificado'),
           niveles_formativos: niveles.filter(n => n !== 'No especificado'),
+          asignaturas: asignaturas.filter(a => a !== 'No especificada'),
           nombres_constructos: constructosConId
         }
       };

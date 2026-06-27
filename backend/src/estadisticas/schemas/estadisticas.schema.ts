@@ -28,6 +28,9 @@ export class DatosRespondente {
   @Prop({ required: true, default: 'No especificada' })
   organizacion!: string;
 
+  @Prop({ required: true, default: 'No especificada' })
+  asignatura!: string;
+
   @Prop({ type: Map, of: String })
   metadatos_adicionales?: Map<string, string>;
 }
