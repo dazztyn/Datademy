@@ -113,8 +113,8 @@ export async function desasignarFormulario(
   idProceso: string,
   tipoFormulario: 'estudiantes' | 'socios'
 ): Promise<void> {
-  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/desasignar`, {
-    method: 'PATCH',
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/desasignar/${tipoFormulario}`, {
+    method: 'DELETE',
     headers: getHeaders(),
     credentials: 'include',
     body: JSON.stringify({ tipoFormulario }),

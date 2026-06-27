@@ -1,7 +1,12 @@
-import { useState } from 'react'
+
 import SlotFormulario from './SlotFormulario'
 import ModalConfirmar from './ModalConfirmar'
-import { eliminarProceso } from '../services/formularios_service'
+import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import {
+  eliminarProceso,
+  desasignarFormulario
+} from '../services/formularios_service'
 
 interface Periodo {
   id: string
@@ -38,6 +43,70 @@ export default function ListaFormularios({ periodos, seleccionado, onSeleccionar
       setEliminando(false)
     }
   }
+  const menuRef = useRef<HTMLButtonElement>(null)
+
+  const [menuAbierto, setMenuAbierto] = useState<string | null>(null)
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
+
+  const [procesoADesasignar, setProcesoADesasignar] = useState<string | null>(null)
+  const [desasignando, setDesasignando] = useState(false)
+  const abrirMenu = (
+  idProceso: string,
+  elemento: HTMLButtonElement
+) => {
+  const rect = elemento.getBoundingClientRect()
+
+  setMenuPos({
+    top: rect.bottom + window.scrollY + 4,
+    left: rect.left + window.scrollX
+  })
+
+  setMenuAbierto(idProceso)
+}
+
+const handleDesasignarTodo = async () => {
+  if (!procesoADesasignar) return
+
+  const proceso = periodos.find(
+    p => p.id === procesoADesasignar
+  )
+
+  if (!proceso) return
+
+  setDesasignando(true)
+
+  try {
+    const promesas = []
+
+    if (proceso.formularioAlumnos) {
+      promesas.push(
+        desasignarFormulario(
+          proceso.id,
+          'estudiantes'
+        )
+      )
+    }
+
+    if (proceso.formularioClientes) {
+      promesas.push(
+        desasignarFormulario(
+          proceso.id,
+          'socios'
+        )
+      )
+    }
+
+    await Promise.all(promesas)
+
+    onReload()
+    setProcesoADesasignar(null)
+
+  } catch (err) {
+    console.error(err)
+  } finally {
+    setDesasignando(false)
+  }
+}
 
   return (
     <>
@@ -57,18 +126,57 @@ export default function ListaFormularios({ periodos, seleccionado, onSeleccionar
                     : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
                   }`}
               >
-                {/* Botón eliminar */}
                 <button
-                  onClick={e => {
-                    e.stopPropagation()
-                    setProcesoAEliminar(periodo.id)
-                  }}
-                  className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full text-slate-300 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-xs"
-                  title="Eliminar proceso"
-                >
-                  ✕
-                </button>
+                    ref={menuRef}
+                    title='Opciones de proceso'
+                    onClick={e => {
+                      e.stopPropagation()
+                      abrirMenu(periodo.id, e.currentTarget)
+                    }}
+                    className="rounded-full border border-green-500 dark:border-green-600 bg-green-100 dark:bg-green-900 absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full text-green-500 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-xs"
+                  >
+                    ⋮
+                  </button>
+                  {menuAbierto === periodo.id &&
+                  createPortal(
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setMenuAbierto(null)}
+                      />
 
+                      <div
+                        className="absolute z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg py-1 min-w-52"
+                        style={{
+                          top: menuPos.top,
+                          left: menuPos.left
+                        }}
+                      >
+                        <button
+                          onClick={() => {
+                            setMenuAbierto(null)
+                            setProcesoADesasignar(periodo.id)
+                          }}
+                          className="w-full text-left px-3 py-2 text-xs text-amber-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        >
+                          ↺ Desasignar formularios
+                        </button>
+
+                        <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
+
+                        <button
+                          onClick={() => {
+                            setMenuAbierto(null)
+                            setProcesoAEliminar(periodo.id)
+                          }}
+                          className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        >
+                          ✕ Eliminar proceso
+                        </button>
+                      </div>
+                    </>,
+                    document.body
+                )}
                 <div className="flex items-center justify-between mb-3 pr-6">
                   <div>
                     <p className={`font-medium text-sm ${activo ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-200'}`}>
@@ -122,6 +230,14 @@ export default function ListaFormularios({ periodos, seleccionado, onSeleccionar
           onConfirmar={handleEliminar}
           onCerrar={() => setProcesoAEliminar(null)}
           cargando={eliminando}
+        />
+      )}
+      {procesoADesasignar && (
+        <ModalConfirmar
+          mensaje="Se desasignarán todos los formularios asociados al proceso."
+          onConfirmar={handleDesasignarTodo}
+          onCerrar={() => setProcesoADesasignar(null)}
+          cargando={desasignando}
         />
       )}
     </>

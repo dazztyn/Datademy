@@ -31,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           sessionStorage.setItem('isLoggedIn', 'true')
           sessionStorage.setItem('gToken', data.googleAccessToken)
           
+          
           setIsAuthenticated(true)
           setGToken(data.googleAccessToken) 
         } else {

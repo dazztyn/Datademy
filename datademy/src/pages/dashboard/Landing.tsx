@@ -62,7 +62,7 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
-      <HeroBanner nombre="Nombre" />
+      <HeroBanner nombre="a Datademy" />
 
       <div className="max-w-xl mx-auto px-6 pb-24">
                 <div className="flex items-center justify-between mb-3">

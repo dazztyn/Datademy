@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import ModalAsignarFormulario from './ModalAsignarFormulario'
 import ModalVincularExistente from './ModalVincularExistente'
 import { createPortal } from 'react-dom'
+import ModalConfirmar from './ModalConfirmar'
+import { desasignarFormulario } from '../services/formularios_service'
 
 interface SlotFormularioProps {
   label: string
@@ -18,6 +20,8 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
   const [menuAbierto, setMenuAbierto] = useState(false)
   const menuRef = useRef<HTMLButtonElement>(null)
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
+  const [mostrarDesasignar, setMostrarDesasignar] = useState(false)
+  const [desasignando, setDesasignando] = useState(false)
   const abrirMenu = () => {
   if (menuRef.current) {
     const rect = menuRef.current.getBoundingClientRect()
@@ -28,6 +32,20 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
   }
   setMenuAbierto(true)
 }
+  const handleDesasignar = async () => {
+    setDesasignando(true)
+
+    try {
+      await desasignarFormulario(idProceso, tipo)
+
+      onAsignado() 
+      setMostrarDesasignar(false)
+    } catch (err) {
+      console.error('Error al desasignar', err)
+    } finally {
+      setDesasignando(false)
+    }
+  }
   return (
     <>
       <div className="rounded-xl p-3 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
@@ -80,7 +98,7 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
                       </button>
                       <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                       <button
-                        onClick={() => { setMenuAbierto(false) }}
+                        onClick={() => { setMenuAbierto(false); setMostrarDesasignar(true)}}
                         className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       >
                         ✕ Desasignar
@@ -124,6 +142,14 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
           tipoFormulario={tipo}
           onCerrar={() => setModalExistenteAbierto(false)}
           onVinculado={onAsignado}
+        />
+      )}
+      {mostrarDesasignar && (
+        <ModalConfirmar
+          mensaje={`Se desasignará el formulario de ${tipo}.`}
+          onConfirmar={handleDesasignar}
+          onCerrar={() => setMostrarDesasignar(false)}
+          cargando={desasignando}
         />
       )}
     </>
