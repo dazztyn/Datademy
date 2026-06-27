@@ -6,11 +6,14 @@ import { ProcesosRepository } from '../repository/procesos.repository';
 import { ProcesoDocument } from '../schemas/proceso.schema';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 import { InformeGenerado } from '../interfaces/informe-generado.interface';
-import { OnEvent } from '@nestjs/event-emitter';
+import { OnEvent, EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ProcesosService {
-  constructor(private readonly procesosRepo: ProcesosRepository) {}
+  constructor(
+    private readonly procesosRepo: ProcesosRepository,
+    private readonly eventEmitter: EventEmitter2
+  ) {}
 
   async obtenerTodosLosProcesos(usuario_id: string) {
     try {
@@ -98,6 +101,11 @@ export class ProcesosService {
     if (!actualizado) {
       throw new Error('No se pudo desasignar: El proceso no existe o no tienes permisos.');
     }
+
+    this.eventEmitter.emit('formulario.desasignado', { 
+      procesoId: idProceso, 
+      tipoFormulario: tipoFormulario 
+    });
 
     return {
       estado: 'exito',

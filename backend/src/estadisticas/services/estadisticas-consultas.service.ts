@@ -211,4 +211,13 @@ export class EstadisticasConsultasService {
     console.log(`[Eventos] Escuché que se borró el proceso ${procesoId}. Limpiando estadísticas...`);
     await this.repositorio.eliminarRespuestasPorProceso(procesoId);
   }
+  
+  @OnEvent('formulario.desasignado')
+  async limpiarEstadisticasHuerfanas(payload: { procesoId: string, tipoFormulario: string }) {
+    console.log(`[Event Bus] Limpiando estadísticas del formulario ${payload.tipoFormulario} desasignado...`);
+    await this.repositorio.eliminarEstadisticasPorFiltro({
+      proceso_id: payload.procesoId,
+      tipo_formulario: payload.tipoFormulario
+    });
+  }
 }

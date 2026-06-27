@@ -22,4 +22,9 @@ export class EstadisticasRepository {
   async eliminarRespuestasPorProceso(procesoId: string): Promise<void> {
     await this.modelo.deleteMany({ proceso_id: procesoId }).exec();
   }
+
+  async eliminarEstadisticasPorFiltro(filtro: Record<string, string>) {
+    return await this.modelo.deleteMany(filtro);
+  }
+
 }
