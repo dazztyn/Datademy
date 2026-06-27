@@ -106,4 +106,19 @@ export class ProcesosService {
       }
     };
   }
+
+  async eliminarInformeDeProceso(usuario_id: string, idProceso: string, idInformeDrive: string) 
+  {
+    const actualizacion: UpdateQuery<ProcesoDocument> = {
+      $pull: { informes_generados: { id_informe_drive: idInformeDrive } } as any 
+    };
+
+    const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, actualizacion);
+    
+    if (!actualizado) {
+      throw new Error('No se encontró el proceso o no tienes permisos.');
+    }
+
+    return actualizado;
+  }
 }

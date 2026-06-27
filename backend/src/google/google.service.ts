@@ -153,4 +153,15 @@ export class GoogleService
     }
   }
 
+  async eliminarArchivoDrive(idArchivo: string): Promise<void> {
+    try {
+      const drive = google.drive({ version: 'v3', auth: this.oauth2Client });
+      
+      await drive.files.delete({ fileId: idArchivo });
+      console.log(`Archivo ${idArchivo} eliminado de Google Drive exitosamente.`);
+    } catch (error: unknown) {
+      console.warn(`Aviso: No se pudo eliminar el archivo de Drive (Quizás ya fue borrado manualmente). ID: ${idArchivo}`);
+    }
+  }
+
 }

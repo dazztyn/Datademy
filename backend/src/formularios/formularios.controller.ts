@@ -153,4 +153,16 @@ export class FormulariosController {
     );
   }
 
+  @Delete(':idProceso/informes/:idInformeDrive')
+  async eliminarInforme(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string,
+    @Param('idInformeDrive') idInformeDrive: string
+  ) {
+    if (!idProceso || !idInformeDrive) {
+      throw new BadRequestException('Faltan parámetros requeridos para eliminar el informe.');
+    }
+    return await this.orquestadorService.eliminarInformeCompleto(req.user.userId, idProceso, idInformeDrive);
+  }
+
 }

@@ -168,4 +168,16 @@ export class FormulariosOrquestadorService {
     };
   }
 
+  async eliminarInformeCompleto(usuario_id: string, idProceso: string, idInformeDrive: string) 
+  {
+    await this.googleService.eliminarArchivoDrive(idInformeDrive);    
+    await this.procesosService.eliminarInformeDeProceso(usuario_id, idProceso, idInformeDrive);
+    
+    return {
+      estado: 'exito',
+      mensaje: 'Informe eliminado correctamente de Google Drive y del sistema.',
+      idEliminado: idInformeDrive
+    };
+  }
+
 }
