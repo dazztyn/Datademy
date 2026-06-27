@@ -15,17 +15,31 @@ export class ReportesProcessor {
   {
     console.log(`[Worker] Iniciando trabajo ${job.id} para el usuario ${job.data.usuarioId}...`);
     
-    const { usuarioId, datosTexto, graficos,  nombreCarrera, idProceso } = job.data;
+    const { usuarioId, datosTexto, graficos,  nombreCarrera, idProceso, filtros } = job.data;
 
     try {
+
+      const respuestasEventos = await this.eventEmitter.emitAsync(
+        'estadisticas.solicitar_feedback', 
+        {idProceso, filtros} 
+      );
+      
+      const feedbackAgrupado = (respuestasEventos[0] || {}) as Record<string, string>;
+
+      const datosTextoCompletos = {
+        ...datosTexto,
+        ...feedbackAgrupado
+      };
+
       const resultado = await this.reportesService.crearInformeAutomatizado(
         usuarioId, 
-        datosTexto, 
+        datosTextoCompletos, 
         graficos, 
         nombreCarrera
       );
 
       const urlDescargaPdf = `https://docs.google.com/document/d/${resultado.idDocumento}/export?format=pdf`;
+
       this.eventEmitter.emit('informe.generado', {
         usuarioId,
         idProceso,

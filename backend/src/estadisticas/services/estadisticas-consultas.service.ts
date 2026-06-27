@@ -221,4 +221,56 @@ export class EstadisticasConsultasService {
     });
   }
 
+  @OnEvent('estadisticas.solicitar_feedback')
+  async extraerFeedbackAgrupadoParaInforme(payload: { idProceso: string, filtros?: Record<string, string> }): Promise<Record<string, string>> {
+    
+    const queryBusqueda: Record<string, any> = { proceso_id: payload.idProceso };
+
+    if (payload.filtros && Object.keys(payload.filtros).length > 0) {
+      queryBusqueda.$and = Object.entries(payload.filtros).map(([campo, valor]) => ({
+        $or: [
+          { [campo]: valor },
+          { [campo]: { $exists: false } }
+        ]
+      }));
+    }
+
+    const estadisticas = await this.repositorio.buscarPorQuery(
+      queryBusqueda,
+      'tipo_formulario constructos_paginas'
+    );
+
+    let estFortalezas = ''; let estMejoras = '';
+    let socFortalezas = ''; let socMejoras = '';
+
+    const esValida = (texto?: string) => texto && texto !== 'Sin respuesta' && texto.length > 2;
+
+    estadisticas.forEach(est => {
+      if (!est.constructos_paginas || est.constructos_paginas.length === 0) return;
+      
+      const ultimaPagina = est.constructos_paginas[est.constructos_paginas.length - 1];
+      if (!ultimaPagina.preguntas_pagina || ultimaPagina.preguntas_pagina.length < 2) return;
+
+      const totalPreguntas = ultimaPagina.preguntas_pagina.length;
+      
+      const resFortaleza = ultimaPagina.preguntas_pagina[totalPreguntas - 2]?.respuesta_texto?.trim();
+      const resMejora = ultimaPagina.preguntas_pagina[totalPreguntas - 1]?.respuesta_texto?.trim();
+
+      if (est.tipo_formulario === 'estudiantes') {
+        if (esValida(resFortaleza)) estFortalezas += `• ${resFortaleza}\n\n`;
+        if (esValida(resMejora)) estMejoras += `• ${resMejora}\n\n`;
+      } else if (est.tipo_formulario === 'socios') {
+        if (esValida(resFortaleza)) socFortalezas += `• ${resFortaleza}\n\n`;
+        if (esValida(resMejora)) socMejoras += `• ${resMejora}\n\n`;
+      }
+    });
+
+    return {
+      feedback_estudiantes_fortalezas: estFortalezas || 'No se registraron fortalezas.',
+      feedback_estudiantes_mejoras: estMejoras || 'No se registraron oportunidades de mejora.',
+      feedback_socios_fortalezas: socFortalezas || 'No se registraron fortalezas.',
+      feedback_socios_mejoras: socMejoras || 'No se registraron oportunidades de mejora.'
+    };
+  }
+
 }

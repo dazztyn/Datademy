@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards, Patch, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Patch, Get, Param, BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ReportesService } from './reportes.service';
 import type { RequestConUsuario } from './interface/request-con-usuario.interface';
@@ -26,14 +26,24 @@ export class ReportesController {
     async solicitarGeneracionInforme(
       @Req() req: RequestConUsuario,
       @Param( 'idProceso' )idProceso: string,
-      @Body() body: { datosTexto: Record<string, string>, graficos: Record<string, string>, nombreCarrera: string}
+      @Body() body: 
+      { 
+        datosTexto: Record<string, string>, 
+        graficos: Record<string, string>, 
+        nombreCarrera: string,
+        filtros?: Record<string, string>
+      }
     ) {
+
+    if (!idProceso) throw new BadRequestException('Falta idProceso');
+    
     const job = await this.colaReportes.add('generar-informe', {
       usuarioId: req.user.userId,
       datosTexto: body.datosTexto,
       graficos: body.graficos,
       idProceso: idProceso,
-      nombreCarrera: body.nombreCarrera
+      nombreCarrera: body.nombreCarrera,
+      filtros: body.filtros || {}
     },
     {
         removeOnComplete: 10, 
