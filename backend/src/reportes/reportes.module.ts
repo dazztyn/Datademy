@@ -15,8 +15,7 @@ import { FormulariosModule } from 'src/formularios/formularios.module';
     MongooseModule.forFeature([{ name: ConfiguracionReportes.name, schema: ConfiguracionReportesSchema }]),
     BullModule.registerQueue({
       name: 'reportes', 
-    }),
-    FormulariosModule
+    })
   ],
   providers: [
     ReportesService,
