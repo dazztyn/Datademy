@@ -4,5 +4,4 @@ export interface InformeGenerado
   nombre_informe: string;
   url_descarga: string;
   fecha_generacion: Date;
-  tipo: 'estudiantes' | 'socios' | 'completo';
 }
