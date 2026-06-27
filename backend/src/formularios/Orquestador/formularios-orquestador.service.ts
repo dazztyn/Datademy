@@ -5,6 +5,8 @@ import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 import { ProcesosService } from '../services/procesos.service';
 import { PlantillasService } from '../services/plantillas.service';
 import { ConfiguracionesService } from '../services/configuraciones.service';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import type { ProcesoDocument } from '../schemas/proceso.schema';
 
 
 @Injectable()
@@ -13,7 +15,8 @@ export class FormulariosOrquestadorService {
     private readonly procesosService: ProcesosService,
     private readonly plantillasService: PlantillasService,
     private readonly configuracionesService: ConfiguracionesService,
-    private readonly googleService: GoogleService
+    private readonly googleService: GoogleService,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async crearYVincularFormulario(
@@ -91,17 +94,12 @@ export class FormulariosOrquestadorService {
 
   async eliminarProcesoCompleto(usuario_id: string, idProceso: string) 
   {
-    await this.procesosService.actualizar(
-      usuario_id, 
-      idProceso, 
-      { 
-        estado: 'borrado_pendiente' 
-      }
-    );
-
-    return {
-      estado: 'exito',
-      mensaje: 'El proceso ha sido marcado para eliminación. Se procesará en segundo plano.',
+    await this.procesosService.actualizar(usuario_id, idProceso, { estado: 'borrado_pendiente' });
+    const proceso = await this.procesosService.obtenerProcesoInterno(usuario_id, idProceso);
+    this.eventEmitter.emit('proceso.iniciar_destruccion', proceso);
+    return { 
+      estado: 'exito', 
+      mensaje: 'El proceso se ha ocultado y se está eliminando de forma segura en segundo plano.',
       idProceso: idProceso
     };
   }
@@ -186,6 +184,31 @@ export class FormulariosOrquestadorService {
       mensaje: 'Informe eliminado correctamente de Google Drive y del sistema.',
       idEliminado: idInformeDrive
     };
+  }
+
+  @OnEvent('proceso.iniciar_destruccion')
+  async ejecutarDestruccionEnSegundoPlano(proceso: ProcesoDocument) {
+    console.log(`[Background] Iniciando destrucción total del proceso ${proceso._id}...`);
+    
+    try {
+      const idProcesoStr = String(proceso._id);
+      if (proceso.formulario_estudiantes?.id_google_form) {
+        await this.googleService.eliminarArchivoDrive(proceso.formulario_estudiantes.id_google_form);
+      }
+      if (proceso.formulario_socios?.id_google_form) {
+        await this.googleService.eliminarArchivoDrive(proceso.formulario_socios.id_google_form);
+      }
+      const informes = proceso.informes_generados || [];
+      for (const informe of informes) {
+        await this.googleService.eliminarArchivoDrive(informe.id_informe_drive);
+      }
+      this.eventEmitter.emit('proceso.eliminado', { procesoId: idProcesoStr });
+      await this.procesosService.eliminarProcesoFisico(proceso.usuario_id, idProcesoStr);
+      
+      console.log(`[Background] Destrucción completada. Proceso ${idProcesoStr} erradicado.`);
+    } catch (error) {
+      console.error(`[Background] Error durante la destrucción del proceso ${proceso._id}:`, error);
+    }
   }
 
 }

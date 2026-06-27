@@ -160,6 +160,16 @@ export class ProcesosService {
     return actualizado;
 
   }
+  
+  async eliminarProcesoFisico(usuario_id: string, idProceso: string) {
+    const eliminado = await this.procesosRepo.eliminarProcesoFisico(usuario_id, idProceso);
+    
+    if (!eliminado) {
+      throw new Error('No se pudo eliminar el proceso físicamente. Verifique permisos.');
+    }
+    
+    return eliminado;
+  }
 
   @OnEvent('informe.generado')
   async manejarInformeGeneradoTerminado(payload: { usuarioId: string, idProceso: string, informe: InformeGenerado }) {

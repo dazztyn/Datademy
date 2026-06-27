@@ -41,4 +41,9 @@ export class ProcesosRepository {
   async actualizarProceso(usuario_id: string, id: string, datos: UpdateQuery<ProcesoDocument>): Promise<ProcesoDocument | null> {
     return await this.modelo.findOneAndUpdate({ _id: id, usuario_id }, datos, { returnDocument: 'after' }).exec();
   }
+
+  async eliminarProcesoFisico(usuario_id: string, idProceso: string) {
+    return await this.modelo.findOneAndDelete({ _id: idProceso, usuario_id }).exec();
+  }
+
 }
