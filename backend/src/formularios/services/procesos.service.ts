@@ -4,6 +4,7 @@ import { CrearProcesoDto } from '../dto/crear-proceso.dto';
 import { ActualizarProcesoDto } from '../dto/actualizar-proceso.dto';
 import { ProcesosRepository } from '../repository/procesos.repository';
 import { ProcesoDocument } from '../schemas/proceso.schema';
+import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 
 @Injectable()
 export class ProcesosService {
@@ -77,6 +78,31 @@ export class ProcesosService {
       metadatos: {
         estudiantes: { nombres_constructos: est?.nombres_constructos || [], total_esperados: est?.total_esperados || '' },
         socios: { nombres_constructos: soc?.nombres_constructos || [], total_esperados: soc?.total_esperados || '' }
+      }
+    };
+  }
+
+  async desasignarFormulario(usuario_id: string, idProceso: string, tipoFormulario: TipoFormulario) {
+    const campoBase = tipoFormulario === TipoFormulario.ESTUDIANTES 
+      ? 'formulario_estudiantes' 
+      : 'formulario_socios';
+    
+    const datosAActualizar: UpdateQuery<ProcesoDocument> = {
+      $set: { [campoBase]: null }
+    };
+
+    const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, datosAActualizar);
+    
+    if (!actualizado) {
+      throw new Error('No se pudo desasignar: El proceso no existe o no tienes permisos.');
+    }
+
+    return {
+      estado: 'exito',
+      mensaje: `Formulario de ${tipoFormulario} desasignado correctamente del proceso.`,
+      datos: {
+        idProceso: String(actualizado._id),
+        nombreProceso: actualizado.nombre_proceso
       }
     };
   }
