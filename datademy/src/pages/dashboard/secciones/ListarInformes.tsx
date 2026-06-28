@@ -3,8 +3,10 @@ import { useProceso } from '../../../context/ProcesoContext'
 import { listarInformes, eliminarInforme } from '../../../services/formularios_service'
 import type { Informe } from '../../../services/formularios_service'
 import ModalConfirmar from '../../../components/ModalConfirmar'
+import { temasPagina, temaDefault } from '../../../utils/temasPagina'
 import { useToast } from '../../../hooks/useToast'
 import Toast from '../../../components/Toast'
+import iconoRefresh from '../../../assets/REFRESH.png'
 
 export default function ListarInformes() {
   const { idProceso, metadatosCompletos } = useProceso()
@@ -14,7 +16,7 @@ export default function ListarInformes() {
   const [informeAEliminar, setInformeAEliminar] = useState<Informe | null>(null)
   const [eliminando, setEliminando] = useState(false)
   const { toast, mostrar, cerrar } = useToast()
-
+  const tema = temasPagina[location.pathname] ?? temaDefault
   const cargar = () => {
     if (!idProceso) return
     setCargando(true)
@@ -63,14 +65,26 @@ export default function ListarInformes() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-white/80">Informes generados</h2>
+        <div className="px-3 mb-2">
         <button
           onClick={cargar}
-          className="text-xs text-white/50 hover:text-white transition-colors"
+          title="Sincronizar datos"
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-white/10 transition-all text-left border border-blue-50 dark:border-blue-100 text-blue-50 dark:text-blue-300 hover:text-blue-500 hover:border-blue-500 dark:hover:text-blue-400 dark:hover:border-blue-400"
         >
-          ↻ Actualizar
+          <img
+            src={iconoRefresh}
+            alt="Refresh"
+            className={`w-5 h-5 object-contain flex-shrink-0 brightness-0 invert ${
+              cargando ? 'animate-spin' : ''
+            }`}
+          />
+          <span className={` text-xs text-white whitespace-nowrap overflow-hidden transition-all duration-300 opacity-100 max-w-xs border-white-500`}>
+            Actualizar
+          </span>
         </button>
       </div>
-
+      </div>
+      
       {cargando && (
         <p className="text-center text-white/50 text-sm py-8 animate-pulse">Cargando informes...</p>
       )}
@@ -111,14 +125,21 @@ export default function ListarInformes() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  
+                  <a
+                    href={informe.url_edicion}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-opacity hover:opacity-90 bg-gradient-to-r from-[#5fb7bb] to-[#0d438b]"
+                  >
+                    Visualizar como editor
+                  </a>
+                  <a
                     href={informe.url_descarga}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-opacity hover:opacity-90"
-                    className="bg-gradient-to-r from-[#5fb7bb] to-[#0d438b]"
-                  <a>
-                    Abrir →
+                    className="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-opacity hover:opacity-90 bg-gradient-to-r from-[#5fb7bb] to-[#0d438b]"
+                  >
+                    Descargar como PDF
                   </a>
                   <button
                     onClick={() => setInformeAEliminar(informe)}

@@ -126,6 +126,7 @@ export interface Informe {
   nombre_informe: string
   url_descarga: string
   fecha_generacion: string
+  url_edicion: string
 }
 
 export async function listarInformes(idProceso: string): Promise<Informe[]> {
@@ -134,7 +135,8 @@ export async function listarInformes(idProceso: string): Promise<Informe[]> {
     credentials: 'include',
   })
   if (!response.ok) throw new Error('Error al listar informes')
-  return response.json()
+  const data = await response.json()
+  return data.informes
 }
 
 export async function eliminarInforme(idProceso: string, idInformeDrive: string): Promise<void> {

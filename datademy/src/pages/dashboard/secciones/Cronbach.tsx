@@ -67,7 +67,7 @@ export default function Cronbach() {
     <button
     
       onClick={() => setMostrarInfo(true)}
-      className="flex items-center justify-center w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500 hover:text-blue-500 hover:border-blue-500 dark:hover:text-blue-400 dark:hover:border-blue-400 transition-colors text-xs font-serif font-bold shadow-sm"
+      className="flex items-center justify-center w-5 h-5 rounded-full border border-blue-50 dark:border-blue-100 text-blue-50 dark:text-blue-300 hover:text-blue-500 hover:border-blue-500 dark:hover:text-blue-400 dark:hover:border-blue-400 transition-colors text-xs font-serif font-bold shadow-sm"
       title="Ver interpretación de rangos"
     >
       i

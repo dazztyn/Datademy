@@ -218,7 +218,7 @@ const handleCerrarSesion = async () => {
     className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
   />
   <span className={`text-xs text-white font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
-    Listar informes
+    Informes Creados
   </span>
 </button>
         <button
