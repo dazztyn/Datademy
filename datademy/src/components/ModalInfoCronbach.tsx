@@ -33,7 +33,7 @@ export default function ModalInfoCronbach({ onCerrar }: ModalInfoCronbachProps) 
         </div>
 
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-          El Alfa de Cronbach es un coeficiente utilizado para medir la **consistencia interna y fiabilidad** de un conjunto de preguntas (escala). Varía entre 0 y 1, donde un valor más alto indica que las preguntas miden el mismo constructo de forma estable.
+          El Alfa de Cronbach es un coeficiente utilizado para medir la <strong>consistencia interna y fiabilidad</strong> de un conjunto de preguntas (escala). Varía entre 0 y 1, donde un valor más alto indica que las preguntas miden el mismo constructo de forma estable.
         </p>
 
         <div className="flex flex-col gap-2.5">

@@ -27,11 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.ok) {
         const data = await response.json()
         
-        if (data.estado === 'exito' && data.googleAccessToken) {
-          sessionStorage.setItem('isLoggedIn', 'true')
-          sessionStorage.setItem('gToken', data.googleAccessToken)
-          
-          
+        if (data.estado === 'exito' && data.googleAccessToken) {          
           setIsAuthenticated(true)
           setGToken(data.googleAccessToken) 
         } else {
@@ -52,8 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }, [])
 
   const guardarTokens = (gToken: string) => {
-    sessionStorage.setItem('isLoggedIn', 'true')
-    sessionStorage.setItem('gToken', gToken)
     setIsAuthenticated(true)
     setGToken(gToken)
   }
@@ -71,9 +65,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   } catch (error) {
     console.error('Error cerrando sesión:', error)
   } finally {
-    sessionStorage.removeItem('isLoggedIn')
-    sessionStorage.removeItem('gToken')
-
     setIsAuthenticated(false)
     setGToken(null)
   }

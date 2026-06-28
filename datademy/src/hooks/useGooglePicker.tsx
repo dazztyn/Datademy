@@ -37,7 +37,6 @@ export function useGooglePicker({ onSeleccionada, modo = 'carpeta' }: PickerOpti
         .setDeveloperKey(apiKey)
         .setCallback((data: any) => {
           if (data.action === window.google.picker.Action.PICKED) {
-            console.log('Picker data:', data)
             const doc = data.docs[0]
             onSeleccionada(doc.id, doc.name)
           }
@@ -85,7 +84,8 @@ export function useGooglePicker({ onSeleccionada, modo = 'carpeta' }: PickerOpti
 
   const abrirPicker = () => {
     if (!gToken) {
-      return console.error('No hay gToken disponible')
+      console.error('No hay gToken disponible')
+      return
     }
 
     if (window.gapi && window.google?.picker) {
@@ -93,8 +93,7 @@ export function useGooglePicker({ onSeleccionada, modo = 'carpeta' }: PickerOpti
       return
     }
 
-    const existingScript = document.getElementById('google-picker-script')
-    if (existingScript) {
+    if (document.getElementById('google-picker-script')) {
       window.gapi.load('picker', abrirPickerDirecto)
       return
     }

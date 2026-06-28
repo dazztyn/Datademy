@@ -205,20 +205,6 @@ export default function GenerarInforme() {
         NumSemestre: numSemestre,
         TogglePronombre: pronombre,
         ToggleAsignatura: tipoAsignatura,
-        P_A: promedios[0]?.promedio_constructo != null ? promedios[0].promedio_constructo.toFixed(2) : '0.00',
-        P_T: promedios[1]?.promedio_constructo != null ? promedios[1].promedio_constructo.toFixed(2) : '0.00',
-        P_R: promedios[2]?.promedio_constructo != null ? promedios[2].promedio_constructo.toFixed(2) : '0.00',
-        P_B: promedios[3]?.promedio_constructo != null ? promedios[3].promedio_constructo.toFixed(2) : '0.00',
-        P_D: promedios[4]?.promedio_constructo != null ? promedios[4].promedio_constructo.toFixed(2) : '0.00',
-        P_G: metricas.promedio_satisfaccion_constructos != null
-          ? metricas.promedio_satisfaccion_constructos.toFixed(2)
-          : '0.00',
-        P_V: promediosSocios[0]?.promedio_constructo != null ? promediosSocios[0].promedio_constructo.toFixed(2) : '0.00',
-        P_C: promediosSocios[1]?.promedio_constructo != null ? promediosSocios[1].promedio_constructo.toFixed(2) : '0.00',
-        P_S: promediosSocios[2]?.promedio_constructo != null ? promediosSocios[2].promedio_constructo.toFixed(2) : '0.00',
-        P_GS: metricasSocios?.promedio_satisfaccion_constructos != null
-          ? metricasSocios.promedio_satisfaccion_constructos.toFixed(2)
-          : '0.00',
       }
       const filtros: FiltrosInforme = {
         carrera,

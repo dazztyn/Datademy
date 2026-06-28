@@ -1,20 +1,19 @@
 import { useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import ThemeToggle from '../../components/ThemeToggle'
-
+import logoA from '../../assets/LOGOA+S.png'
+import logoDIDEC from '../../assets/LOGODIDEC.png'
+import Google from '../../assets/GOOGLEICON.svg'
 export default function Login() {
-  const [searchParams] = useSearchParams()
-  const { guardarTokens } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
   const navigate = useNavigate()
 
-useEffect(() => {
-  const gToken = searchParams.get('gToken')
-  if (gToken) {
-    guardarTokens(gToken)
-    navigate('/dashboard')
-  }
-}, [])
+  useEffect(() => {
+      if (!isLoading && isAuthenticated) {
+        navigate('/dashboard', { replace: true })
+      }
+    }, [isAuthenticated, isLoading, navigate])
 
   const handleLogin = () => {
     window.location.href = import.meta.env.VITE_API_URL + '/auth/google'
@@ -29,12 +28,12 @@ useEffect(() => {
 
         <div className="flex items-center justify-between w-full mb-8">
           <img
-            src="/src/assets/LOGOA+S.png"
+            src={logoA}
             alt="Logo A+S"
             className="h-12 w-20 object-contain"
           />
           <img
-            src="/src/assets/LOGODIDEC.png"
+            src={logoDIDEC}
             alt="Logo DIDEC"
             className="h-12 w-20 object-contain"
           />
@@ -53,7 +52,7 @@ useEffect(() => {
           style={{ background: 'linear-gradient(to right, #1b4f96, #7f458f)' }}
         >
           <img
-            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            src={Google}
             alt="Google"
             className="w-5 h-5 bg-white rounded-full p-0.5"
           />
