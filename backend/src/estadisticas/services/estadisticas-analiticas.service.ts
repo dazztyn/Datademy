@@ -6,7 +6,7 @@ import { NpsCalculator } from '../calculadoras/nps.calculator';
 import { RankingCalculator } from '../calculadoras/ranking.calculator';
 import { DemograficosCalculator } from '../calculadoras/demograficos.calculator';
 import { SatisfaccionCalculator } from '../calculadoras/satisfaccion.calculator';
-import { PromedioMongoRaw, PromedioPagina } from '../interfaces/metricas.interface';
+import { PromedioMongoRaw, PromedioPagina, ConteoDemograficoRaw, NpsMongoRaw } from '../interfaces/metricas.interface';
 
 @Injectable()
 export class EstadisticasAnaliticasService 
@@ -25,8 +25,8 @@ export class EstadisticasAnaliticasService
     totalEsperados: number, 
     paginaFiltro?: number, 
     promediosMongoOptimizados?: PromedioMongoRaw[],
-    demograficosOptimizados?: any[],
-    npsOptimizado?: any[]
+    demograficosOptimizados?: ConteoDemograficoRaw[],
+    npsOptimizado?: NpsMongoRaw[]
   ) 
   {
     if (!estadisticasBD || estadisticasBD.length === 0) {
@@ -79,16 +79,19 @@ export class EstadisticasAnaliticasService
     return {
       total_esperados: totalEsperados,
       total_encuestados: estadisticasBD.length,
+
       tasa_respuesta_porcentaje: tasaRespuesta,
-      distribucion_genero: this.demograficosCalculator.calcularDistribucionGenero(estadisticasBD),
-      promedios_por_pagina: this.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos),
+      distribucion_genero: distribucionGeneroFinal,
+      promedios_por_pagina: promediosPorPagina,
       promedio_satisfaccion_constructos: promedioSatisfaccionConstructos,
+
       promedio_satisfaccion_general: this.satisfaccionCalculator.calcularSatisfaccionGeneral(todasLasPreguntas),
       satisfaccion_por_carrera: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'carrera'),
       satisfaccion_por_sede: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'sede'),
       satisfaccion_por_organizacion: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'organizacion'),
       ranking_preguntas: this.rankingCalculator.calcular(estadisticasBD),
-      nps_satisfaccion: this.npsCalculator.calcular(estadisticasBD, ultimaPagina),
+
+      nps_satisfaccion: npsSatisfaccionFinal,
       tabla_socios_comunitarios: this.demograficosCalculator.obtenerListaSociosComunitarios(estadisticasBD),
       detalle_por_dimension: this.satisfaccionCalculator.calcularDetallePreguntasPorDimension(estadisticasBD, nombresConstructos),
       fiabilidad_constructos: this.mathService.calcularFiabilidadCronbach(
@@ -99,29 +102,6 @@ export class EstadisticasAnaliticasService
         paginaFiltro
       )
     };
-  }
-
-  private calcularPromediosPorPagina(preguntas: PreguntaAplanada[], nombresConstructos: string[]) {
-    const sumasPorPagina: Record<number, { suma: number; cantidad: number }> = {};
-    preguntas.forEach(p => {
-      if (p.valor_numerico > 0) {
-        if (!sumasPorPagina[p.numero_pagina]) {
-          sumasPorPagina[p.numero_pagina] = { suma: 0, cantidad: 0 };
-        }
-        sumasPorPagina[p.numero_pagina].suma += p.valor_numerico;
-        sumasPorPagina[p.numero_pagina].cantidad += 1;
-      }
-    });
-
-    return Object.keys(sumasPorPagina).map(pagina => {
-      const numPagina = Number(pagina);
-      const datos = sumasPorPagina[numPagina];
-      return {
-        numero_pagina: numPagina,
-        nombre_constructo: this.mapearNombreConstructo(numPagina, nombresConstructos),
-        promedio_constructo: Number((datos.suma / datos.cantidad).toFixed(1))
-      };
-    });
   }
 
   private extraerPreguntasConPagina(estadisticasBD: Partial<Estadistica>[]): PreguntaAplanada[] {

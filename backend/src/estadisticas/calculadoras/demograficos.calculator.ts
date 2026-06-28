@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Estadistica } from '../schemas/estadisticas.schema';
+import { ConteoDemograficoRaw } from '../interfaces/metricas.interface';
 
 @Injectable()
 export class DemograficosCalculator {
@@ -30,7 +31,7 @@ export class DemograficosCalculator {
     }));
   }
 
-  formatearDistribucionOptimizada(conteoMongo: any[]) {
+  formatearDistribucionOptimizada(conteoMongo: ConteoDemograficoRaw[]) {
     return conteoMongo.map(item => ({
       genero: item._id,
       cantidad: item.cantidad

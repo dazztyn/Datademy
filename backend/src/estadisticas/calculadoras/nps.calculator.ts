@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Estadistica } from '../schemas/estadisticas.schema';
+import { NpsMongoRaw } from '../interfaces/metricas.interface';
 
 @Injectable()
 export class NpsCalculator {
@@ -48,7 +49,7 @@ export class NpsCalculator {
     };
   }
 
-  formatearNpsOptimizado(resultadosMongo: any[]) { 
+  formatearNpsOptimizado(resultadosMongo: NpsMongoRaw []) { 
     if (!resultadosMongo || resultadosMongo.length === 0) return null;
     
     const data = resultadosMongo[0]; 
