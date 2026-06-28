@@ -239,6 +239,8 @@ export class EstadisticasConsultasService {
           return {
             $or: [
               { [campoMapeado]: valor },
+              { [campoMapeado]: 'No especificado' },
+              { [campoMapeado]: 'No especificada' },
               { [campoMapeado]: { $exists: false } }
             ]
           };
@@ -248,16 +250,26 @@ export class EstadisticasConsultasService {
 
     const estadisticas = await this.repositorio.buscarPorQuery(
       queryBusqueda,
-      'tipo_formulario constructos_paginas' 
+      'tipo_formulario constructos_paginas datos_respondente' 
     );
 
     let estFortalezas = ''; let estMejoras = '';
     let socFortalezas = ''; let socMejoras = '';
+    let listaSocios = '';
     
     const esValida = (texto?: string) => texto && texto !== 'Sin respuesta' && texto.trim().length > 1;
 
     estadisticas.forEach(est => 
     {
+
+      if (est.tipo_formulario === 'socios' && est.datos_respondente) 
+      {
+        const nombreSocio = est.datos_respondente.nombre || 'Nombre no especificado';
+        const organizacion = est.datos_respondente.organizacion || 'Organización no especificada';
+        
+        listaSocios += `• Organización: ${organizacion} | Responsable: ${nombreSocio}\n`;
+      }
+
       if (!est.constructos_paginas) return;
 
       const todasLasPreguntas = est.constructos_paginas.flatMap(
@@ -284,7 +296,8 @@ export class EstadisticasConsultasService {
       feedback_estudiantes_fortalezas: estFortalezas || 'No se registraron fortalezas.',
       feedback_estudiantes_mejoras: estMejoras || 'No se registraron oportunidades de mejora.',
       feedback_socios_fortalezas: socFortalezas || 'No se registraron fortalezas.',
-      feedback_socios_mejoras: socMejoras || 'No se registraron oportunidades de mejora.'
+      feedback_socios_mejoras: socMejoras || 'No se registraron oportunidades de mejora.',
+      lista_socios_comunitarios: listaSocios || 'No se registraron socios comunitarios en este proceso.'
     };
   }
 
