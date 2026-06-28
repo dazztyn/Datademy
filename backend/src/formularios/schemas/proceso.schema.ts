@@ -52,6 +52,7 @@ export class Proceso
       id_informe_drive: { type: String, required: true },
       nombre_informe: { type: String, required: true },
       url_descarga: { type: String, required: true },
+      url_edicion: { type: String, required: false },
       fecha_generacion: { type: Date, default: Date.now }
     }],
     default: []

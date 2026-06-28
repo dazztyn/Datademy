@@ -39,6 +39,7 @@ export class ReportesProcessor {
       );
 
       const urlDescargaPdf = `https://docs.google.com/document/d/${resultado.idDocumento}/export?format=pdf`;
+      const urlEdicionWord = `https://docs.google.com/document/d/${resultado.idDocumento}/edit`;
 
       this.eventEmitter.emit('informe.generado', {
         usuarioId,
@@ -47,6 +48,7 @@ export class ReportesProcessor {
           id_informe_drive: resultado.idDocumento,
           nombre_informe: resultado.nombreInforme,
           url_descarga: urlDescargaPdf,
+          url_edicion: urlEdicionWord,
           fecha_generacion: new Date()
         }
       });
