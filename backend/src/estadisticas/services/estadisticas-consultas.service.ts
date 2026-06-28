@@ -207,9 +207,9 @@ export class EstadisticasConsultasService {
   }
 
   @OnEvent('proceso.eliminado')
-  async limpiarDatosHuerfanos(procesoId: string): Promise<void> {
-    console.log(`[Eventos] Escuché que se borró el proceso ${procesoId}. Limpiando estadísticas...`);
-    await this.repositorio.eliminarRespuestasPorProceso(procesoId);
+  async limpiarDatosHuerfanos(payload: { procesoId: string }): Promise<void> {
+    console.log(`[Eventos] Escuché que se borró el proceso ${payload.procesoId}. Limpiando estadísticas...`);
+    await this.repositorio.eliminarRespuestasPorProceso(payload.procesoId);
   }
   
   @OnEvent('formulario.desasignado')
@@ -237,30 +237,34 @@ export class EstadisticasConsultasService {
 
     const estadisticas = await this.repositorio.buscarPorQuery(
       queryBusqueda,
-      'tipo_formulario constructos_paginas'
+      'tipo_formulario constructos_paginas' 
     );
 
     let estFortalezas = ''; let estMejoras = '';
     let socFortalezas = ''; let socMejoras = '';
+    const esValida = (texto?: string) => texto && texto !== 'Sin respuesta' && texto.trim().length > 2;
 
-    const esValida = (texto?: string) => texto && texto !== 'Sin respuesta' && texto.length > 2;
+    estadisticas.forEach(est => 
+    {
+      if (!est.constructos_paginas) return;
 
-    estadisticas.forEach(est => {
-      if (!est.constructos_paginas || est.constructos_paginas.length === 0) return;
-      
-      const ultimaPagina = est.constructos_paginas[est.constructos_paginas.length - 1];
-      if (!ultimaPagina.preguntas_pagina || ultimaPagina.preguntas_pagina.length < 2) return;
+      const todasLasPreguntas = est.constructos_paginas.flatMap(
+        pagina => pagina.preguntas_pagina || []
+      );
 
-      const totalPreguntas = ultimaPagina.preguntas_pagina.length;
-      const resFortaleza = ultimaPagina.preguntas_pagina[totalPreguntas - 2]?.respuesta_texto?.trim();
-      const resMejora = ultimaPagina.preguntas_pagina[totalPreguntas - 1]?.respuesta_texto?.trim();
+      const preguntasDeTexto = todasLasPreguntas.filter(preg => preg.valor_numerico === 0);
+
+      if (preguntasDeTexto.length < 2) return;
+
+      const resFortaleza = preguntasDeTexto[preguntasDeTexto.length - 2].respuesta_texto;
+      const resMejora = preguntasDeTexto[preguntasDeTexto.length - 1].respuesta_texto;
 
       if (est.tipo_formulario === 'estudiantes') {
-        if (esValida(resFortaleza)) estFortalezas += `• ${resFortaleza}\n\n`;
-        if (esValida(resMejora)) estMejoras += `• ${resMejora}\n\n`;
+        if (esValida(resFortaleza)) estFortalezas += `• ${resFortaleza.trim()}\n\n`;
+        if (esValida(resMejora)) estMejoras += `• ${resMejora.trim()}\n\n`;
       } else if (est.tipo_formulario === 'socios') {
-        if (esValida(resFortaleza)) socFortalezas += `• ${resFortaleza}\n\n`;
-        if (esValida(resMejora)) socMejoras += `• ${resMejora}\n\n`;
+        if (esValida(resFortaleza)) socFortalezas += `• ${resFortaleza.trim()}\n\n`;
+        if (esValida(resMejora)) socMejoras += `• ${resMejora.trim()}\n\n`;
       }
     });
 
