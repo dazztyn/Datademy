@@ -53,14 +53,24 @@ export class EstadisticasConsultasService {
       }
     );
 
-    const promediosCrudosMongo = await this.repositorio.calcularPromediosAgrupadosPorPagina(queryMongo);
-    const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, 'constructos_paginas datos_respondente -_id'); 
-
     const proceso = await this.procesosService.obtenerProcesoInterno(usuarioId, procesoId);
     const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
     
     const nombresConstructos = configFormulario?.nombres_constructos || [];
     const totalEsperados = configFormulario?.total_esperados || 0;
+    const ultimaPagina = nombresConstructos.length + 2;
+
+    const [
+      promediosCrudosMongo,
+      demograficosMongo,
+      npsMongo,
+      estadisticas
+    ] = await Promise.all([
+      this.repositorio.calcularPromediosAgrupadosPorPagina(queryMongo),
+      this.repositorio.calcularDistribucionGeneroMongo(queryMongo),
+      this.repositorio.calcularNpsMongo(queryMongo, ultimaPagina),
+      this.repositorio.buscarPorQuery(queryMongo, 'constructos_paginas datos_respondente -_id')
+    ]);
 
     return {
       status: 'exito',
@@ -69,7 +79,9 @@ export class EstadisticasConsultasService {
         nombresConstructos, 
         totalEsperados, 
         paginaFiltro, 
-        promediosCrudosMongo
+        promediosCrudosMongo,
+        demograficosMongo, 
+        npsMongo
       )
     };
   }

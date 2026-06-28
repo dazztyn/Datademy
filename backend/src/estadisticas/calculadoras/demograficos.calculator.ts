@@ -29,4 +29,12 @@ export class DemograficosCalculator {
       nombre_responsable
     }));
   }
+
+  formatearDistribucionOptimizada(conteoMongo: any[]) {
+    return conteoMongo.map(item => ({
+      genero: item._id,
+      cantidad: item.cantidad
+    }));
+  }
+
 }

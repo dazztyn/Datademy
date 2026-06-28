@@ -24,7 +24,9 @@ export class EstadisticasAnaliticasService
     nombresConstructos: string[], 
     totalEsperados: number, 
     paginaFiltro?: number, 
-    promediosMongoOptimizados?: PromedioMongoRaw[]
+    promediosMongoOptimizados?: PromedioMongoRaw[],
+    demograficosOptimizados?: any[],
+    npsOptimizado?: any[]
   ) 
   {
     if (!estadisticasBD || estadisticasBD.length === 0) {
@@ -65,6 +67,14 @@ export class EstadisticasAnaliticasService
     const promedioSatisfaccionConstructos = promediosPorPagina.length > 0 
       ? Number((promediosPorPagina.reduce((acc, p) => acc + p.promedio_constructo, 0) / promediosPorPagina.length).toFixed(1)) 
       : 0;
+
+    const distribucionGeneroFinal = (demograficosOptimizados && demograficosOptimizados.length > 0)
+      ? this.demograficosCalculator.formatearDistribucionOptimizada(demograficosOptimizados)
+      : this.demograficosCalculator.calcularDistribucionGenero(estadisticasBD);
+
+    const npsSatisfaccionFinal = (npsOptimizado && npsOptimizado.length > 0)
+      ? this.npsCalculator.formatearNpsOptimizado(npsOptimizado)
+      : this.npsCalculator.calcular(estadisticasBD, ultimaPagina);
     
     return {
       total_esperados: totalEsperados,
