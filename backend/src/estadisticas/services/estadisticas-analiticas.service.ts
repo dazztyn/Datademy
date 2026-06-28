@@ -44,8 +44,6 @@ export class EstadisticasAnaliticasService
     const totalEncuestados = estadisticasBD.length;
     const tasaRespuesta = totalEsperados > 0 ? Number(((totalEncuestados / totalEsperados) * 100).toFixed(1)) : 0;
 
-    // const promediosPorPagina = this.satisfaccionCalculator.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos);
-
     let promediosPorPagina: PromedioPagina[];
 
     if (promediosMongoOptimizados && promediosMongoOptimizados.length > 0) {

@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { EstadisticasController } from './estadisticas.controller';
-import { Estadistica, EstadisticaSchema } from './schemas/estadisticas.schema';
 import { GoogleModule } from '../google/google.module';
 import { EstadisticasWebhooksService } from './services/estadisticas-webhooks.service';
 import { EstadisticasConsultasService } from './services/estadisticas-consultas.service';
@@ -11,12 +9,13 @@ import { EstadisticasMathService } from './services/estadisticas-math.service';
 import { EstadisticasParserService } from './services/estadisticas-parser.service';
 import { EstadisticasFormatterService } from './services/estadisticas-formatter.service';
 import { EstadisticasAnaliticasService } from './services/estadisticas-analiticas.service';
-import { EstadisticasRepository } from './estadisticas.repository';
 import { DemograficosCalculator } from './calculadoras/demograficos.calculator';
 import { RankingCalculator } from './calculadoras/ranking.calculator';
 import { NpsCalculator } from './calculadoras/nps.calculator';
 import { SatisfaccionCalculator } from './calculadoras/satisfaccion.calculator';
 import { EstadisticasWebhooksController } from './estadisticas-webhooks.controller';
+import { EstadisticasEventosLimpiezaService } from './services/estadisticas-eventos-limpieza.service';
+import { EstadisticasExportacionService } from './services/estadisticas-exportacion.service';
 
 @Module({
   imports: [
@@ -35,6 +34,8 @@ import { EstadisticasWebhooksController } from './estadisticas-webhooks.controll
     EstadisticasParserService,
     EstadisticasFormatterService,
     EstadisticasAnaliticasService,
+    EstadisticasEventosLimpiezaService,
+    EstadisticasExportacionService,
     NpsCalculator,
     RankingCalculator,
     DemograficosCalculator,
