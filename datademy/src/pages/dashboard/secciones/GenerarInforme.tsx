@@ -27,7 +27,12 @@ function fmt(value: number | null | undefined, decimals = 2): string {
   if (value == null || isNaN(value)) return '—'
   return value.toFixed(decimals)
 }
-
+type FiltrosInforme = {
+  carrera: string
+  asignatura: string
+  sede: string
+  nivelFormativo: string
+}
 export default function GenerarInforme() {
   const { idProceso } = useProceso()
   const { estadoJob, urlInforme, iniciarPolling, resetear } = useInforme()
@@ -59,9 +64,11 @@ export default function GenerarInforme() {
   const [ciclo, setCiclo] = useState<'Básico' | 'Profesional'>('Básico')
   const [numSemestre, setNumSemestre] = useState('')
   const [pronombre, setPronombre] = useState<'el' | 'la'>('el')
-  const [tipoClase, setTipoClase] = useState<'Asignatura' | 'Modulo'>('Asignatura')
+  const [tipoClase, setTipoClase] = useState<'Asignatura' | 'Módulo'>('Asignatura')
 
-  
+  const [carreraManual, setCarreraManual] = usePersistedState('carreraManual', false)
+  const [asignaturaManual, setAsignaturaManual] = usePersistedState('asignaturaManual', false)
+
   const { metricas } = useMetricas(idProceso, {
     tipo: 'estudiantes',
     carrera: carrera || undefined,
@@ -183,7 +190,8 @@ export default function GenerarInforme() {
         }
       })
       const datosTexto: Record<string, string> = {
-        AsignaturaModulo: `${tipoClase}: ${asignaturaNombre}`,
+        AsignaturaModulo: asignaturaNombre,
+        TipoClase: tipoClase,
         CarreraPrograma: programa ? `${carrera} - ${programa}` : carrera,
         Periodo: `${mesInicio}-${mesFinal} / ${anio}`,
         Anio: anio,
@@ -212,13 +220,18 @@ export default function GenerarInforme() {
           ? metricasSocios.promedio_satisfaccion_constructos.toFixed(2)
           : '0.00',
       }
-        
+      const filtros: FiltrosInforme = {
+        carrera,
+        asignatura: asignaturaNombre,
+        sede,
+        nivelFormativo: programa,
+      }
 
       const response = await fetch(`${BASE_URL}/reportes/${idProceso}/generar`, {
         method: 'POST',
         headers: getHeaders(),
         credentials: 'include',
-        body: JSON.stringify({ nombreCarrera: carrera, datosTexto, graficos }),
+        body: JSON.stringify({ nombreCarrera: carrera, datosTexto, graficos, filtros }),
       })
 
       if (!response.ok) throw new Error()
@@ -357,34 +370,69 @@ export default function GenerarInforme() {
 
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Datos generales</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={labelClass}>Asignatura/Modulo</label>
-            <Toggle valor={tipoClase} opcion1="Asignatura" opcion2="Modulo" onChange={setTipoClase} />
-          </div>
-          <div>
-            <label className={labelClass}>Nombre Clase</label>
-            <input type="text" value={asignaturaNombre} onChange={e => setAsignaturaNombre(e.target.value)} placeholder="Ej: Ingeniería de Software" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Carrera</label>
-            <select value={carrera} onChange={e => setCarrera(e.target.value)} className={inputClass}>
-              <option value="">Selecciona una carrera...</option>
-              {(filtrosDisponibles?.carreras ?? []).map((c: string) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className={labelClass}>Programa</label>
-            <select value={programa} onChange={e => setPrograma(e.target.value)} className={inputClass}>
-              <option value="">Selecciona un programa...</option>
-              {(filtrosDisponibles?.niveles_formativos ?? []).map((p: string) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <div className="grid grid-cols-2 gap-3 items-start">
+  <div>
+    <div className="flex items-center justify-between mb-1 h-5">
+      <label className={labelClass}>Asignatura/Modulo</label>
+    </div>
+    <Toggle valor={tipoClase} opcion1="Asignatura" opcion2="Módulo" onChange={setTipoClase} />
+  </div>
+  <div>
+    <div className="flex items-center justify-between mb-1 h-5">
+      <label className={labelClass}>Nombre Clase</label>
+      {(filtrosDisponibles?.asignaturas ?? []).length > 0 && (
+        <button
+          onClick={() => { setAsignaturaManual(!asignaturaManual); setAsignaturaNombre('') }}
+          className="text-xs text-blue-400 hover:text-blue-500 transition-colors"
+        >
+          {asignaturaManual ? 'Usar lista' : 'Ingresar manualmente'}
+        </button>
+      )}
+    </div>
+    {asignaturaManual || (filtrosDisponibles?.asignaturas ?? []).length === 0 ? (
+      <input type="text" value={asignaturaNombre} onChange={e => setAsignaturaNombre(e.target.value)} placeholder="Ej: Ingeniería de Software" className={inputClass} />
+    ) : (
+      <select value={asignaturaNombre} onChange={e => setAsignaturaNombre(e.target.value)} className={inputClass}>
+        <option value="">Selecciona una asignatura...</option>
+        {(filtrosDisponibles?.asignaturas ?? []).map((a: string) => (
+          <option key={a} value={a}>{a}</option>
+        ))}
+      </select>
+    )}
+  </div>
+  <div>
+    <div className="flex items-center justify-between mb-1 h-5">
+      <label className={labelClass}>Carrera</label>
+      <button
+        onClick={() => { setCarreraManual(!carreraManual); setCarrera('') }}
+        className="text-xs text-blue-400 hover:text-blue-500 transition-colors"
+      >
+        {carreraManual ? 'Usar lista' : 'Ingresar manualmente'}
+      </button>
+    </div>
+    {carreraManual ? (
+      <input type="text" value={carrera} onChange={e => setCarrera(e.target.value)} placeholder="Ej: Ingeniería Civil" className={inputClass} />
+    ) : (
+      <select value={carrera} onChange={e => setCarrera(e.target.value)} className={inputClass}>
+        <option value="">Selecciona una carrera...</option>
+        {(filtrosDisponibles?.carreras ?? []).map((c: string) => (
+          <option key={c} value={c}>{c}</option>
+        ))}
+      </select>
+    )}
+  </div>
+  <div>
+    <div className="flex items-center justify-between mb-1 h-5">
+      <label className={labelClass}>Programa</label>
+    </div>
+    <select value={programa} onChange={e => setPrograma(e.target.value)} className={inputClass}>
+      <option value="">Selecciona un programa...</option>
+      {(filtrosDisponibles?.niveles_formativos ?? []).map((p: string) => (
+        <option key={p} value={p}>{p}</option>
+      ))}
+    </select>
+  </div>
+</div>
         <div>
           <label className={labelClass}>Período</label>
           <div className="grid grid-cols-3 gap-2">
@@ -531,7 +579,7 @@ export default function GenerarInforme() {
                   Gráfico de género (se incluirá en el informe)
                 </p>
 
-                <div style={{ width: '260px', height: '160px', marginBottom: '12px' }}>
+                <div style={{ width: '260px', height: '140px', marginBottom: '12px' }}>
                   <Pie
                     data={datosGenero}
                     options={{
@@ -552,13 +600,12 @@ export default function GenerarInforme() {
                   />
                 </div>
 
-                <div style={{ position: 'absolute', left: '-9999px', width: '720px', height: '480px' }}>
+                <div style={{ position: 'absolute', left: '-9999px', width: '360px', height: '240px' }}>
                   <Pie
                     ref={pieRef}
                     data={datosGenero}
                     options={{
                       maintainAspectRatio: false,
-                      devicePixelRatio: 1,
                       plugins: {
                         legend: { position: 'right', labels: { font: { size: 16 }, boxWidth: 18 } },
                         datalabels: {
@@ -625,7 +672,6 @@ export default function GenerarInforme() {
                         <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
                           {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
-                        {/* layout.padding.right reserva espacio DENTRO del canvas para las etiquetas */}
                         <div style={{ height: `${preguntas.length * 18 + 32}px`, width:'640px' }}>
                           <Bar
                             ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
