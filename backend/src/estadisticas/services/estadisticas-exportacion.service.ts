@@ -3,7 +3,6 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { EstadisticasRepository } from '../estadisticas.repository';
 import { ConsultaEstadisticas } from '../interfaces/consulta-estadisticas.inteface'; 
 import { MAPA_FILTROS_MONGO } from '../constantes/filtros-mongo.constant';
-import { PromedioPagina } from '../interfaces/metricas.interface';
 
 @Injectable()
 export class EstadisticasExportacionService {
@@ -80,51 +79,5 @@ export class EstadisticasExportacionService {
       feedback_socios_mejoras: socMejoras || 'No se registraron oportunidades de mejora.',
       lista_socios_comunitarios: listaSocios || 'No se registraron socios comunitarios en este proceso.'
     };
-  }
-  
-  public generarEtiquetasTablaPromedios(
-    promediosEstudiantes: PromedioPagina[], 
-    nombresConstructosEst: string[], 
-    promedioGeneralEst: number,
-    
-    promediosSocios: PromedioPagina[],      
-    nombresConstructosSoc: string[], 
-    promedioGeneralSoc: number
-  ): Record<string, string> {
-    
-    const variablesWord: Record<string, string> = {};
-    const LIMITE_ETIQUETAS = 10; 
-
-    const iteracionesEst = Math.max(nombresConstructosEst.length, LIMITE_ETIQUETAS);
-    for (let i = 0; i < iteracionesEst; i++) {
-      if (i < nombresConstructosEst.length) {
-        const nombre = nombresConstructosEst[i];
-        const constructoCalc = promediosEstudiantes.find(p => p.nombre_constructo === nombre);
-        
-        variablesWord[`D_${i + 1}`] = nombre;
-        variablesWord[`P_${i + 1}`] = constructoCalc ? constructoCalc.promedio_constructo.toFixed(1) : '0.0';
-      } else {
-        variablesWord[`D_${i + 1}`] = '';
-        variablesWord[`P_${i + 1}`] = '';
-      }
-    }
-    variablesWord['P_G'] = promedioGeneralEst > 0 ? promedioGeneralEst.toFixed(1) : '';
-
-    const iteracionesSoc = Math.max(nombresConstructosSoc.length, LIMITE_ETIQUETAS);
-    for (let i = 0; i < iteracionesSoc; i++) {
-      if (i < nombresConstructosSoc.length) {
-        const nombre = nombresConstructosSoc[i];
-        const constructoCalc = promediosSocios.find(p => p.nombre_constructo === nombre);
-        
-        variablesWord[`DS_${i + 1}`] = nombre;
-        variablesWord[`PS_${i + 1}`] = constructoCalc ? constructoCalc.promedio_constructo.toFixed(1) : '0.0';
-      } else {
-        variablesWord[`DS_${i + 1}`] = '';
-        variablesWord[`PS_${i + 1}`] = '';
-      }
-    }
-    variablesWord['PG_S'] = promedioGeneralSoc > 0 ? promedioGeneralSoc.toFixed(1) : '';
-
-    return variablesWord;
   }
 }
