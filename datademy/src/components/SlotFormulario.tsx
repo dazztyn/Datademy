@@ -4,6 +4,8 @@ import ModalVincularExistente from './ModalVincularExistente'
 import { createPortal } from 'react-dom'
 import ModalConfirmar from './ModalConfirmar'
 import { desasignarFormulario } from '../services/formularios_service'
+import { useToast } from '../hooks/useToast'
+import Toast from '../components/Toast'
 
 interface SlotFormularioProps {
   label: string
@@ -22,6 +24,8 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const [mostrarDesasignar, setMostrarDesasignar] = useState(false)
   const [desasignando, setDesasignando] = useState(false)
+  const { toast, mostrar, cerrar } = useToast()
+
   const abrirMenu = () => {
   if (menuRef.current) {
     const rect = menuRef.current.getBoundingClientRect()
@@ -42,6 +46,7 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
       setMostrarDesasignar(false)
     } catch (err) {
       console.error('Error al desasignar', err)
+      mostrar('Error al desasignar el formulario. Intenta de nuevo.', 'error')
     } finally {
       setDesasignando(false)
     }
@@ -152,6 +157,7 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
           cargando={desasignando}
         />
       )}
+      {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={cerrar} />}
     </>
   )
 }

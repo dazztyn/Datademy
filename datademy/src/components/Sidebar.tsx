@@ -22,6 +22,9 @@ interface SidebarItem {
   titulo: string
   ruta: string
 }
+interface SidebarProps {
+  onSincronizado?: () => void
+}
 
 const items: SidebarItem[] = [
   { icono: iconoListar, titulo: 'Listar resultados', ruta: '/detalles/listado' },
@@ -29,7 +32,7 @@ const items: SidebarItem[] = [
   { icono: iconoCronbach, titulo: 'Alfa de Cronbach', ruta: '/detalles/cronbach' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ onSincronizado }: SidebarProps) {
   const [open, setOpen] = useState(false)
   const [sync, setSync] = useState(false)
   const navigate = useNavigate()
@@ -65,6 +68,7 @@ const handleCerrarSesion = async () => {
     setSync(true)
     try {
       await sincronizarManual(idProceso)
+      onSincronizado?.()
     } catch (err) {
       console.error("Error al sincronizar", err)
     } finally {
@@ -129,24 +133,24 @@ const handleCerrarSesion = async () => {
 )}
           return (
             <button
-            
               key={item.ruta}
-              disabled={bloqueado} 
-              onClick={() => {
-                if (bloqueado) return
-                navigate(item.ruta)
-              }}
-              
+              disabled={bloqueado}
+              onClick={() => { if (!bloqueado) navigate(item.ruta) }}
               title={bloqueado ? 'Completa los metadatos primero' : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left w-full
                 ${activo ? 'bg-white/20 font-semibold' : ''}
                 ${bloqueado ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10'}`}
             >
-              <img
-                src={bloqueado ? iconoLock : item.icono}
-                alt={item.titulo}
-                className="w-5 h-5 flex-shrink-0 object-contain brightness-0 invert"
-              />
+              <span className="relative flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                <img
+                  src={bloqueado ? iconoLock : item.icono}
+                  alt={item.titulo}
+                  className="w-5 h-5 object-contain brightness-0 invert"
+                />
+                {verificandoMetadatos && requiereMetadatos(item.ruta) && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-white/40 animate-pulse" />
+                )}
+              </span>
               <span className={`text-sm font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
                 {item.titulo}
               </span>
@@ -158,31 +162,19 @@ const handleCerrarSesion = async () => {
       <div className="px-3 flex flex-col gap-2 mt-4">
         <button
           disabled={informeBloqueado}
-          onClick={() => {
-            if (informeBloqueado) return
-            navigate('/detalles/informe')
-          }}
+          onClick={() => { if (!informeBloqueado) navigate('/detalles/informe') }}
           title={informeBloqueado ? 'Completa los metadatos primero' : undefined}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white transition-all overflow-hidden w-full
             ${informeBloqueado ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
         >
           <span className="relative flex-shrink-0 flex items-center justify-center w-5 h-5">
             {informeBloqueado ? (
-              <img
-                src={iconoLock}
-                alt="Bloqueado"
-                className="w-4 h-4 object-contain"
-                style={{ filter: `drop-shadow(0px 0px 0px ${temaBarra.sidebar})` }} 
-              />
+              <img src={iconoLock} alt="Bloqueado" className="w-4 h-4 object-contain" />
             ) : (
               <>
                 <span
-                  className={`text-base font-bold transition-all duration-300 ${
-                    estadoJob === 'procesando' ? 'animate-pulse' : ''
-                  }`}
-                  style={{
-                    color: estadoJob === 'completado' ? '#22c55e' : temaBarra.sidebar
-                  }}
+                  className={`text-base font-bold transition-all duration-300 ${estadoJob === 'procesando' ? 'animate-pulse' : ''}`}
+                  style={{ color: estadoJob === 'completado' ? '#22c55e' : temaBarra.sidebar }}
                 >
                   π
                 </span>
@@ -203,53 +195,44 @@ const handleCerrarSesion = async () => {
           </span>
         </button>
         <button
-  disabled={informeBloqueado}
-  onClick={() => {
-    if (informeBloqueado) return
-    navigate('/detalles/listar-informes')
-  }}
-  title={informeBloqueado ? 'Completa los metadatos primero' : undefined}
-  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all overflow-hidden w-full
-    ${informeBloqueado ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10'}`}
->
-  <img
-    src={informeBloqueado ? iconoLock : iconoInformes}
-    alt="Listar informes"
-    className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
-  />
-  <span className={`text-xs text-white font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
-    Informes Creados
-  </span>
-</button>
+          disabled={informeBloqueado}
+          onClick={() => { if (!informeBloqueado) navigate('/detalles/listar-informes') }}
+          title={informeBloqueado ? 'Completa los metadatos primero' : undefined}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all overflow-hidden w-full
+            ${informeBloqueado ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10'}`}
+        >
+          <img
+            src={informeBloqueado ? iconoLock : iconoInformes}
+            alt="Listar informes"
+            className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
+          />
+          <span className={`text-xs text-white font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+            Informes Creados
+          </span>
+        </button>
+
         <button
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
         >
-          <img
-            src={iconoVolver}
-            alt="Volver al dashboard"
-            className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
-          />
-          <span className={`transition-all duration-300 overflow-hidden text-xs text-white whitespace-nowrap  ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+          <img src={iconoVolver} alt="Volver al dashboard" className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert" />
+          <span className={`transition-all duration-300 overflow-hidden text-xs text-white whitespace-nowrap ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Volver
           </span>
         </button>
         <button
-  onClick={() => setMostrarLogout(true)}
-  title="Cerrar sesión"
-  className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/20 transition-colors w-full"
->
-  <img
-            src={iconoLogout}
-            alt="Cerrar sesión"
-            className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
-          />
-  <span className={`transition-all duration-300 overflow-hidden text-xs text-white whitespace-nowrap  ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
-    Cerrar sesión
-  </span>
-</button>
+          onClick={() => setMostrarLogout(true)}
+          title="Cerrar sesión"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/20 transition-colors w-full"
+        >
+          <img src={iconoLogout} alt="Cerrar sesión" className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert" />
+          <span className={`transition-all duration-300 overflow-hidden text-xs text-white whitespace-nowrap ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+            Cerrar sesión
+          </span>
+        </button>
       </div>
-            {mostrarLogout && (
+
+      {mostrarLogout && (
         <ModalConfirmar
           mensaje="Se cerrará tu sesión actual."
           onConfirmar={handleCerrarSesion}

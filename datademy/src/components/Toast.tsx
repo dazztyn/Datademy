@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 interface ToastProps {
   mensaje: string
   tipo: 'exito' | 'error' | 'cargando'
@@ -6,12 +5,6 @@ interface ToastProps {
 }
 
 export default function Toast({ mensaje, tipo, onCerrar }: ToastProps) {
-  useEffect(() => {
-    if (tipo === 'cargando') return
-    const timer = setTimeout(onCerrar, 3000)
-    return () => clearTimeout(timer)
-  }, [tipo, onCerrar])
-
 const estilos = {
     exito: 'bg-emerald-500 border-emerald-600',
     error: 'bg-rose-500 border-rose-600',

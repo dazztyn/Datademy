@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useProceso } from '../../../context/ProcesoContext'
 import { listarInformes, eliminarInforme } from '../../../services/formularios_service'
 import type { Informe } from '../../../services/formularios_service'
@@ -16,7 +17,9 @@ export default function ListarInformes() {
   const [informeAEliminar, setInformeAEliminar] = useState<Informe | null>(null)
   const [eliminando, setEliminando] = useState(false)
   const { toast, mostrar, cerrar } = useToast()
+  const location = useLocation()
   const tema = temasPagina[location.pathname] ?? temaDefault
+
   const cargar = () => {
     if (!idProceso) return
     setCargando(true)

@@ -146,7 +146,6 @@ export async function obtenerResultados(
   if (filtros.tipo) params.append('tipo', filtros.tipo)
   if (filtros.carrera) params.append('carrera', filtros.carrera)
   if (filtros.sede) params.append('sede', filtros.sede)
-  if (filtros.sede) params.append('sede', filtros.sede)
   if (filtros.genero) params.append('genero', filtros.genero)
   if (filtros.nivel_formativo) params.append('nivel_formativo', filtros.nivel_formativo)
   if (filtros.organizacion) params.append('organizacion', filtros.organizacion)

@@ -6,15 +6,12 @@ interface ProcesoContextType {
   metadatosCompletos: boolean
   setMetadatosCompletos: (v: boolean) => void
   verificandoMetadatos: boolean
+  verificarMetadatos: (id: string) => Promise<void>
 }
 const BASE_URL = import.meta.env.VITE_API_URL
 
 function getHeaders(): HeadersInit {
-  const jwt = sessionStorage.getItem('jwt')
-  return {
-    'Content-Type': 'application/json',
-    ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
-  }
+  return { 'Content-Type': 'application/json' }
 }
 const ProcesoContext = createContext<ProcesoContextType | undefined>(undefined)
 
@@ -63,6 +60,7 @@ export function ProcesoProvider({ children }: { children: React.ReactNode }) {
       metadatosCompletos,
       setMetadatosCompletos,
       verificandoMetadatos,
+      verificarMetadatos,
     }}>
       {children}
     </ProcesoContext.Provider>
