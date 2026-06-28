@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Estadistica } from '../schemas/estadisticas.schema';
 import { PreguntaAplanada } from '../interfaces/pregunta-aplanada.interface';
+import { PromedioMongoRaw, PromedioPagina } from '../interfaces/metricas.interface';
 
 @Injectable()
 export class SatisfaccionCalculator {
@@ -134,11 +135,33 @@ export class SatisfaccionCalculator {
     }).sort((a, b) => a.numero_pagina - b.numero_pagina);
   }
 
-  // Helper interno
   mapearNombreConstructo(numeroPagina: number, nombresConstructos: string[]): string {
     const indice = numeroPagina - 2;
     return (nombresConstructos && nombresConstructos[indice]) 
       ? nombresConstructos[indice] 
       : `Constructo Página ${numeroPagina}`;
   }
+
+  formatearPromediosOptimizados(
+    promediosRaw: PromedioMongoRaw[], 
+    nombresConstructos: string[],
+    ultimaPagina: number,
+    paginaFiltro?: number
+  ): PromedioPagina[] {
+    
+    let promedios = promediosRaw.map(item => ({
+      numero_pagina: item._id,
+      nombre_constructo: this.mapearNombreConstructo(item._id, nombresConstructos), 
+      promedio_constructo: Number(item.promedio_bruto.toFixed(1))
+    }));
+
+    promedios = promedios.filter(p => p.numero_pagina < ultimaPagina);
+    
+    if (paginaFiltro) {
+      promedios = promedios.filter(p => p.numero_pagina === paginaFiltro);
+    }
+
+    return promedios;
+  }
+
 }
