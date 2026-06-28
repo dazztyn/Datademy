@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { google, forms_v1 } from 'googleapis';
+import { google, forms_v1, drive_v3 } from 'googleapis';
 import { ArchivoGoogleDrive } from './interfaces/archivo-google.interface';
 
 @Injectable()
 export class GoogleService 
 {
   private oauth2Client;
+  private drive: drive_v3.Drive;
+  private forms: forms_v1.Forms;
 
   constructor(private readonly configService: ConfigService) 
   {
@@ -19,14 +21,16 @@ export class GoogleService
     this.oauth2Client.setCredentials({
       refresh_token: this.configService.get<string>('GOOGLE_REFRESH_TOKEN'),
     });
+
+    this.drive = google.drive({ version: 'v3', auth: this.oauth2Client });
+    this.forms = google.forms({ version: 'v1', auth: this.oauth2Client });
+
   }
 
   async listarPlantillas(idCarpeta: string): Promise<ArchivoGoogleDrive[]> {
     try 
-    {
-      const drive = google.drive({ version: 'v3', auth: this.oauth2Client });
-      
-      const respuesta = await drive.files.list({
+    { 
+      const respuesta = await this.drive.files.list({
         q: `'${idCarpeta}' in parents and trashed = false`,
         fields: 'files(id, name, mimeType)',
       });
@@ -41,13 +45,11 @@ export class GoogleService
   async copiarPlantillaYGuardar(idPlantilla: string, nombreNuevoFormulario: string, idCarpetaDestino: string) {
     try 
     {
-      const drive = google.drive({ version: 'v3', auth: this.oauth2Client });
-
       if (!idCarpetaDestino) {
         throw new Error('No se ha proporcionado una carpeta de destino válida.');
       }
 
-      const respuesta = await drive.files.copy({
+      const respuesta = await this.drive.files.copy({
         fileId: idPlantilla,
         requestBody: {
           name: nombreNuevoFormulario,
@@ -70,10 +72,9 @@ export class GoogleService
   }
 
   async enviarArchivoAPapelera(idArchivo: string): Promise<void> {
-    try {
-      const drive = google.drive({ version: 'v3', auth: this.oauth2Client });
-      
-      await drive.files.update({
+    try 
+    {
+      await this.drive.files.update({
         fileId: idArchivo,
         requestBody: {
           trashed: true,
@@ -86,8 +87,7 @@ export class GoogleService
 
   async obtenerDisenoFormulario(idFormulario: string): Promise<forms_v1.Schema$Form> {
     try {
-      const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
-      const respuesta = await formsApi.forms.get({ formId: idFormulario });
+      const respuesta = await this.forms.forms.get({ formId: idFormulario });
       return respuesta.data;
     } catch (error) {
       console.error('Error al obtener el diseño del formulario:', error);
@@ -96,8 +96,8 @@ export class GoogleService
   }
 
   async obtenerTodasLasRespuestas(idFormulario: string, ultimaSincronizacion?: Date): Promise<forms_v1.Schema$FormResponse[]> {
-    try {
-      const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
+    try 
+    {
       const parametros: forms_v1.Params$Resource$Forms$Responses$List = {
         formId: idFormulario,
       };
@@ -106,7 +106,7 @@ export class GoogleService
         parametros.filter = `timestamp > "${ultimaSincronizacion.toISOString()}"`;
       }
 
-      const respuesta = await formsApi.forms.responses.list(parametros);
+      const respuesta = await this.forms.forms.responses.list(parametros);
 
       return (respuesta.data.responses as forms_v1.Schema$FormResponse[]) || [];
     } catch (error) {
@@ -116,11 +116,11 @@ export class GoogleService
   }
 
   async activarVigilanciaRespuestas(idFormulario: string): Promise<any> {
-    try {
-      const formsApi = google.forms({ version: 'v1', auth: this.oauth2Client });
+    try 
+    {
       const nombreTema = `projects/${process.env.GOOGLE_PROJECT_ID}/topics/respuestas-datademy`;
 
-      const respuesta = await formsApi.forms.watches.create({
+      const respuesta = await this.forms.forms.watches.create({
         formId: idFormulario,
         requestBody: {
           watch: {
@@ -154,10 +154,9 @@ export class GoogleService
   }
 
   async eliminarArchivoDrive(idArchivo: string): Promise<void> {
-    try {
-      const drive = google.drive({ version: 'v3', auth: this.oauth2Client });
-      
-      await drive.files.delete({ fileId: idArchivo });
+    try 
+    {      
+      await this.drive.files.delete({ fileId: idArchivo });
       console.log(`Archivo ${idArchivo} eliminado de Google Drive exitosamente.`);
     } catch (error: unknown) {
       console.warn(`Aviso: No se pudo eliminar el archivo de Drive (Quizás ya fue borrado manualmente). ID: ${idArchivo}`);
