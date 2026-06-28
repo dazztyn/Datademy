@@ -7,6 +7,7 @@ import { MetricaConstructo } from '../interfaces/metrica-constructo.interface';
 import { TipoFormulario } from '../../common/enum/tipo-formulario.enum';
 import { EstadisticasRepository } from '../estadisticas.repository';
 import { ProcesosService } from 'src/formularios/services/procesos.service';
+import { ConsultaEstadisticas } from '../interfaces/consulta-estadisticas.inteface';
 
 @Injectable()
 export class EstadisticasConsultasService {
@@ -224,15 +225,25 @@ export class EstadisticasConsultasService {
   @OnEvent('estadisticas.solicitar_feedback')
   async extraerFeedbackAgrupadoParaInforme(payload: { idProceso: string, filtros?: Record<string, string> }): Promise<Record<string, string>> {
     
-    const queryBusqueda: Record<string, any> = { proceso_id: payload.idProceso };
+    const queryBusqueda: ConsultaEstadisticas = { proceso_id: payload.idProceso };
 
-    if (payload.filtros && Object.keys(payload.filtros).length > 0) {
-      queryBusqueda.$and = Object.entries(payload.filtros).map(([campo, valor]) => ({
-        $or: [
-          { [campo]: valor },
-          { [campo]: { $exists: false } }
-        ]
-      }));
+    if (payload.filtros && Object.keys(payload.filtros).length > 0) 
+    {
+      const filtrosValidos = Object.entries(payload.filtros).filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '');
+      
+      if (filtrosValidos.length > 0) {
+        queryBusqueda.$and = filtrosValidos.map(([campoFrontend, valor]) => {
+          
+          const campoMapeado = this.mapaFiltrosMongo[campoFrontend] || campoFrontend;
+          
+          return {
+            $or: [
+              { [campoMapeado]: valor },
+              { [campoMapeado]: { $exists: false } }
+            ]
+          };
+        });
+      }
     }
 
     const estadisticas = await this.repositorio.buscarPorQuery(
@@ -242,7 +253,8 @@ export class EstadisticasConsultasService {
 
     let estFortalezas = ''; let estMejoras = '';
     let socFortalezas = ''; let socMejoras = '';
-    const esValida = (texto?: string) => texto && texto !== 'Sin respuesta' && texto.trim().length > 2;
+    
+    const esValida = (texto?: string) => texto && texto !== 'Sin respuesta' && texto.trim().length > 1;
 
     estadisticas.forEach(est => 
     {
@@ -254,17 +266,17 @@ export class EstadisticasConsultasService {
 
       const preguntasDeTexto = todasLasPreguntas.filter(preg => preg.valor_numerico === 0);
 
-      if (preguntasDeTexto.length < 2) return;
+      if (preguntasDeTexto.length === 0) return;
 
-      const resFortaleza = preguntasDeTexto[preguntasDeTexto.length - 2].respuesta_texto;
+      const resFortaleza = preguntasDeTexto.length >= 2 ? preguntasDeTexto[preguntasDeTexto.length - 2].respuesta_texto : undefined;
       const resMejora = preguntasDeTexto[preguntasDeTexto.length - 1].respuesta_texto;
 
       if (est.tipo_formulario === 'estudiantes') {
-        if (esValida(resFortaleza)) estFortalezas += `• ${resFortaleza.trim()}\n\n`;
-        if (esValida(resMejora)) estMejoras += `• ${resMejora.trim()}\n\n`;
+        if (esValida(resFortaleza)) estFortalezas += `• ${resFortaleza!.trim()}\n\n`;
+        if (esValida(resMejora)) estMejoras += `• ${resMejora!.trim()}\n\n`;
       } else if (est.tipo_formulario === 'socios') {
-        if (esValida(resFortaleza)) socFortalezas += `• ${resFortaleza.trim()}\n\n`;
-        if (esValida(resMejora)) socMejoras += `• ${resMejora.trim()}\n\n`;
+        if (esValida(resFortaleza)) socFortalezas += `• ${resFortaleza!.trim()}\n\n`;
+        if (esValida(resMejora)) socMejoras += `• ${resMejora!.trim()}\n\n`;
       }
     });
 
