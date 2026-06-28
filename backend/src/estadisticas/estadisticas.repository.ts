@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { EstadisticaDocument } from './schemas/estadisticas.schema';
+import { Estadistica, EstadisticaDocument } from './schemas/estadisticas.schema';
+import { PromedioMongoRaw } from './interfaces/promedios.interface';
+
 
 @Injectable()
 export class EstadisticasRepository {
@@ -25,6 +27,27 @@ export class EstadisticasRepository {
 
   async eliminarEstadisticasPorFiltro(filtro: Record<string, string>) {
     return await this.modelo.deleteMany(filtro);
+  }
+
+  async calcularPromediosAgrupadosPorPagina(queryMongo: Record<string, unknown>
+  ): Promise<PromedioMongoRaw[]>
+  {
+    return await this.modelo.aggregate<PromedioMongoRaw>([
+      { $match: queryMongo },
+      
+      { $unwind: '$constructos_paginas' },
+      { $unwind: '$constructos_paginas.preguntas_pagina' },
+      
+      { $match: { 'constructos_paginas.preguntas_pagina.valor_numerico': { $gt: 0 } } },
+      
+      {
+        $group: {
+          _id: '$constructos_paginas.numero_pagina',
+          promedio_bruto: { $avg: '$constructos_paginas.preguntas_pagina.valor_numerico' }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]).exec();
   }
 
 }

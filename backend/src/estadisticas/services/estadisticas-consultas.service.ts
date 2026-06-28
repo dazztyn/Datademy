@@ -50,7 +50,7 @@ export class EstadisticasConsultasService {
   }
 
   async obtenerMetricasAnaliticas(procesoId: string, usuarioId: string, filtros: Record<string, string>, paginaFiltro?: number) {
-    const queryMongo: Record<string, string | number | boolean | Record<string, unknown>> = { proceso_id: procesoId, usuario_id: usuarioId };
+    const queryMongo: Record<string, unknown> = { proceso_id: procesoId, usuario_id: usuarioId };
     const tipoFormulario = filtros['tipo'] as TipoFormulario || TipoFormulario.ESTUDIANTES;
 
     Object.entries(filtros)
@@ -60,7 +60,10 @@ export class EstadisticasConsultasService {
         if (campoMapeadoMongo) {
           queryMongo[campoMapeadoMongo] = valor;
         }
-      });
+      }
+    );
+
+    const promediosCrudosMongo = await this.repositorio.calcularPromediosAgrupadosPorPagina(queryMongo);
     const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, 'constructos_paginas datos_respondente -_id'); 
 
     const proceso = await this.procesosService.obtenerProcesoInterno(usuarioId, procesoId);
@@ -71,7 +74,13 @@ export class EstadisticasConsultasService {
 
     return {
       status: 'exito',
-      metricas: this.analiticasService.calcularMetricasAnaliticas(estadisticas, nombresConstructos, totalEsperados, paginaFiltro)
+      metricas: this.analiticasService.calcularMetricasAnaliticas(
+        estadisticas, 
+        nombresConstructos, 
+        totalEsperados, 
+        paginaFiltro, 
+        promediosCrudosMongo
+      )
     };
   }
 

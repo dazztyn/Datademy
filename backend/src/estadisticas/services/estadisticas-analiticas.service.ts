@@ -6,6 +6,7 @@ import { NpsCalculator } from '../calculadoras/nps.calculator';
 import { RankingCalculator } from '../calculadoras/ranking.calculator';
 import { DemograficosCalculator } from '../calculadoras/demograficos.calculator';
 import { SatisfaccionCalculator } from '../calculadoras/satisfaccion.calculator';
+import { PromedioMongoRaw, PromedioPagina } from '../interfaces/promedios.interface';
 
 @Injectable()
 export class EstadisticasAnaliticasService 
@@ -18,7 +19,14 @@ export class EstadisticasAnaliticasService
     private readonly satisfaccionCalculator: SatisfaccionCalculator
   ) {}
 
-  calcularMetricasAnaliticas(estadisticasBD: Partial<Estadistica>[], nombresConstructos: string[], totalEsperados: number, paginaFiltro?: number) {
+  calcularMetricasAnaliticas(
+    estadisticasBD: Partial<Estadistica>[], 
+    nombresConstructos: string[], 
+    totalEsperados: number, 
+    paginaFiltro?: number, 
+    promediosMongoOptimizados?: PromedioMongoRaw[]
+  ) 
+  {
     if (!estadisticasBD || estadisticasBD.length === 0) {
       return this.generarMetricasVacias(totalEsperados);
     }
@@ -36,7 +44,25 @@ export class EstadisticasAnaliticasService
     const totalEncuestados = estadisticasBD.length;
     const tasaRespuesta = totalEsperados > 0 ? Number(((totalEncuestados / totalEsperados) * 100).toFixed(1)) : 0;
 
-    const promediosPorPagina = this.satisfaccionCalculator.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos);
+    // const promediosPorPagina = this.satisfaccionCalculator.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos);
+
+    let promediosPorPagina: PromedioPagina[];
+
+    if (promediosMongoOptimizados && promediosMongoOptimizados.length > 0) {
+      promediosPorPagina = this.satisfaccionCalculator.formatearPromediosOptimizados(
+        promediosMongoOptimizados, 
+        nombresConstructos, 
+        ultimaPagina, 
+        paginaFiltro
+      );
+    } 
+    else 
+    {
+      let constructosAProcesar = todasLasPreguntas.filter(p => p.numero_pagina < ultimaPagina);
+      if (paginaFiltro) constructosAProcesar = constructosAProcesar.filter(p => p.numero_pagina === paginaFiltro);
+      
+      promediosPorPagina = this.satisfaccionCalculator.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos);
+    }
 
     const promedioSatisfaccionConstructos = promediosPorPagina.length > 0 
       ? Number((promediosPorPagina.reduce((acc, p) => acc + p.promedio_constructo, 0) / promediosPorPagina.length).toFixed(1)) 
@@ -121,5 +147,4 @@ export class EstadisticasAnaliticasService
       fiabilidad_constructos: []
     };
   }
-
 }
