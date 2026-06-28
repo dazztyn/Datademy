@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Estadistica } from '../schemas/estadisticas.schema';
 import { PreguntaAplanada } from '../interfaces/pregunta-aplanada.interface';
-import { PromedioMongoRaw, PromedioPagina } from '../interfaces/promedios.interface';
+import { PromedioMongoRaw, PromedioPagina } from '../interfaces/metricas.interface';
 
 @Injectable()
 export class SatisfaccionCalculator {

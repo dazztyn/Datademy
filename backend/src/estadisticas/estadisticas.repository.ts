@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Estadistica, EstadisticaDocument } from './schemas/estadisticas.schema';
-import { PromedioMongoRaw } from './interfaces/promedios.interface';
+import { PromedioMongoRaw } from './interfaces/metricas.interface';
 
 
 @Injectable()

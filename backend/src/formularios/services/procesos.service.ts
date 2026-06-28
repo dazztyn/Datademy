@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { UpdateQuery } from 'mongoose';
 import { CrearProcesoDto } from '../dto/crear-proceso.dto';
 import { ActualizarProcesoDto } from '../dto/actualizar-proceso.dto';
@@ -34,13 +34,13 @@ export class ProcesosService {
         }) 
       };
     } catch (error) {
-      throw new Error('Hubo un problema al intentar leer la base de datos.');
+      throw new InternalServerErrorException('Hubo un problema al intentar leer la base de datos.');
     }
   }
   
   async actualizar(usuario_id: string, id: string, datos: ActualizarProcesoDto | UpdateQuery<ProcesoDocument>) {
     const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, id, datos);
-    if (!actualizado) throw new Error('No se encontró el proceso con ese ID');
+    if (!actualizado) throw new NotFoundException('No se encontró el proceso con ese ID');
     return {
       mensaje: '¡Proceso actualizado con éxito!',
       datos: { idProceso: actualizado._id.toString(), nombreProceso: actualizado.nombre_proceso, anio: actualizado.anio }
@@ -54,7 +54,7 @@ export class ProcesosService {
 
   async obtenerProcesoInterno(usuario_id: string, id: string) {
     const proceso = await this.procesosRepo.encontrarProcesoPorId(usuario_id, id);
-    if (!proceso) throw new Error('El proceso que intentas buscar no existe.');
+    if (!proceso) throw new NotFoundException('El proceso que intentas buscar no existe.');
     return proceso;
   }
 
@@ -99,7 +99,7 @@ export class ProcesosService {
     const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, datosAActualizar);
     
     if (!actualizado) {
-      throw new Error('No se pudo desasignar: El proceso no existe o no tienes permisos.');
+      throw new NotFoundException('No se pudo desasignar: El proceso no existe o no tienes permisos.');
     }
 
     this.eventEmitter.emit('formulario.desasignado', { 
@@ -132,7 +132,7 @@ export class ProcesosService {
       informes_generados: informesActuales
     });
 
-    if (!actualizado) throw new Error('No se pudo guardar el informe en el proceso.');
+    if (!actualizado) throw new InternalServerErrorException('No se pudo guardar el informe en el proceso.');
     return actualizado;
   }
 
@@ -155,7 +155,7 @@ export class ProcesosService {
       informes_generados: informesRestantes
     });
 
-    if (!actualizado) throw new Error('No se encontró el proceso o no tienes permisos.');
+    if (!actualizado) throw new NotFoundException('No se encontró el proceso o no tienes permisos.');
     
     return actualizado;
 
@@ -165,7 +165,7 @@ export class ProcesosService {
     const eliminado = await this.procesosRepo.eliminarProcesoFisico(usuario_id, idProceso);
     
     if (!eliminado) {
-      throw new Error('No se pudo eliminar el proceso físicamente. Verifique permisos.');
+      throw new NotFoundException('No se pudo eliminar el proceso físicamente. Verifique permisos.');
     }
     
     return eliminado;

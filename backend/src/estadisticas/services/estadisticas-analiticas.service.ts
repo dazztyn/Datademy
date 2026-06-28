@@ -6,7 +6,7 @@ import { NpsCalculator } from '../calculadoras/nps.calculator';
 import { RankingCalculator } from '../calculadoras/ranking.calculator';
 import { DemograficosCalculator } from '../calculadoras/demograficos.calculator';
 import { SatisfaccionCalculator } from '../calculadoras/satisfaccion.calculator';
-import { PromedioMongoRaw, PromedioPagina } from '../interfaces/promedios.interface';
+import { PromedioMongoRaw, PromedioPagina } from '../interfaces/metricas.interface';
 
 @Injectable()
 export class EstadisticasAnaliticasService 

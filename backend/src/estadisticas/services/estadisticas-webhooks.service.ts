@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { mongo } from 'mongoose';
+import { forms_v1 } from 'googleapis';
 import { GoogleService } from '../../google/google.service';
 import { EstadisticasParserService } from './estadisticas-parser.service';
 import { GoogleFormDiseno } from '../interfaces/diseno-google.interface';
@@ -38,7 +39,7 @@ export class EstadisticasWebhooksService {
       ? TipoFormulario.ESTUDIANTES : TipoFormulario.SOCIOS;
 
     const diseno = await this.googleService.obtenerDisenoFormulario(idFormulario);
-    const disenoAdaptado = diseno as unknown as GoogleFormDiseno;
+    const disenoAdaptado = this.adaptarDisenoGoogle(diseno);
 
     let fechaFiltro: Date | undefined = undefined;
     
@@ -68,7 +69,7 @@ export class EstadisticasWebhooksService {
     for (const respuestaCruda of listaRespuestas) {
       if (setIdsExistentes.has(respuestaCruda.responseId!)) continue;
       
-      const respuestaAdaptada = respuestaCruda as unknown as GoogleFormRespuesta;
+      const respuestaAdaptada = this.adaptarRespuestaGoogle(respuestaCruda);
 
       const documentoListo = this.parserService.procesarEncuesta(
         disenoAdaptado, 
@@ -127,4 +128,42 @@ export class EstadisticasWebhooksService {
       detalle: mensajes
     };
   }
+
+  private adaptarDisenoGoogle(diseno: forms_v1.Schema$Form): GoogleFormDiseno {
+    return {
+      items: (diseno.items || []).map(item => ({
+        title: item.title || undefined,
+        pageBreakItem: item.pageBreakItem ? {} : undefined,
+        questionItem: item.questionItem ? {
+          question: {
+            questionId: item.questionItem.question?.questionId || '',
+            choiceQuestion: item.questionItem.question?.choiceQuestion ? {
+              options: (item.questionItem.question.choiceQuestion.options || []).map(opt => ({
+                value: opt.value || ''
+              }))
+            } : undefined
+          }
+        } : undefined
+      }))
+    };
+  }
+
+  private adaptarRespuestaGoogle(respuesta: forms_v1.Schema$FormResponse): GoogleFormRespuesta {
+    const answersMap: Record<string, any> = {};
+    if (respuesta.answers) {
+      Object.entries(respuesta.answers).forEach(([key, ans]) => {
+        answersMap[key] = {
+          textAnswers: {
+            answers: (ans.textAnswers?.answers || []).map(t => ({ value: t.value || '' }))
+          }
+        };
+      });
+    }
+    return {
+      responseId: respuesta.responseId || '',
+      createTime: respuesta.createTime || undefined,
+      answers: answersMap
+    };
+  }
+
 }
