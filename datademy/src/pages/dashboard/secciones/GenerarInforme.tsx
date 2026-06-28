@@ -27,7 +27,12 @@ function fmt(value: number | null | undefined, decimals = 2): string {
   if (value == null || isNaN(value)) return '—'
   return value.toFixed(decimals)
 }
-
+type FiltrosInforme = {
+  carrera: string
+  asignatura: string
+  sede: string
+  nivelFormativo: string
+}
 export default function GenerarInforme() {
   const { idProceso } = useProceso()
   const { estadoJob, urlInforme, iniciarPolling, resetear } = useInforme()
@@ -212,13 +217,18 @@ export default function GenerarInforme() {
           ? metricasSocios.promedio_satisfaccion_constructos.toFixed(2)
           : '0.00',
       }
-        
+      const filtros: FiltrosInforme = {
+        carrera,
+        asignatura: asignaturaNombre,
+        sede,
+        nivelFormativo: programa,
+      }
 
       const response = await fetch(`${BASE_URL}/reportes/${idProceso}/generar`, {
         method: 'POST',
         headers: getHeaders(),
         credentials: 'include',
-        body: JSON.stringify({ nombreCarrera: carrera, datosTexto, graficos }),
+        body: JSON.stringify({ nombreCarrera: carrera, datosTexto, graficos, filtros }),
       })
 
       if (!response.ok) throw new Error()
