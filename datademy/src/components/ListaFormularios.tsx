@@ -1,12 +1,14 @@
 
 import SlotFormulario from './SlotFormulario'
 import ModalConfirmar from './ModalConfirmar'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import {
   eliminarProceso,
   desasignarFormulario
 } from '../services/formularios_service'
+import { useToast } from '../hooks/useToast'
+import Toast from '../components/Toast'
 
 interface Periodo {
   id: string
@@ -28,17 +30,20 @@ interface ListaFormulariosProps {
 export default function ListaFormularios({ periodos, seleccionado, onSeleccionar, onReload, onEliminar }: ListaFormulariosProps) {
   const [procesoAEliminar, setProcesoAEliminar] = useState<string | null>(null)
   const [eliminando, setEliminando] = useState(false)
+  const { toast, mostrar, cerrar } = useToast()
 
   const handleEliminar = async () => {
     if (!procesoAEliminar) return
     setEliminando(true)
     try {
       await eliminarProceso(procesoAEliminar)
+      mostrar('Formulario eliminado con éxito', 'exito')
       onReload()
       onEliminar?.()
       setProcesoAEliminar(null)
-    } catch {
-      // el error lo maneja el padre con toast si quiere
+    } catch (err) {
+      console.error('Error al desasignar', err)
+      mostrar('Error al eliminar. Intenta de nuevo.', 'error')
     } finally {
       setEliminando(false)
     }
@@ -64,6 +69,23 @@ export default function ListaFormularios({ periodos, seleccionado, onSeleccionar
   setMenuAbierto(idProceso)
 }
 
+useEffect(() => {
+  const manejarCierreFlotante = () => {
+    if (menuAbierto !== null) {
+      setMenuAbierto(null); 
+    }
+  };
+
+  if (menuAbierto !== null) {
+    window.addEventListener('scroll', manejarCierreFlotante, true);
+    window.addEventListener('resize', manejarCierreFlotante);
+  }
+
+  return () => {
+    window.removeEventListener('scroll', manejarCierreFlotante, true);
+    window.removeEventListener('resize', manejarCierreFlotante);
+  };
+}, [menuAbierto]);
 const handleDesasignarTodo = async () => {
   if (!procesoADesasignar) return
 
@@ -97,12 +119,13 @@ const handleDesasignarTodo = async () => {
     }
 
     await Promise.all(promesas)
-
+    mostrar('Formulario desasignado con éxito', 'exito')
     onReload()
     setProcesoADesasignar(null)
 
   } catch (err) {
     console.error(err)
+    mostrar('Error al desasignar. Intenta de nuevo.', 'error')
   } finally {
     setDesasignando(false)
   }
@@ -240,6 +263,7 @@ const handleDesasignarTodo = async () => {
           cargando={desasignando}
         />
       )}
+      {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={cerrar} />}{toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={cerrar} />}
     </>
   )
 }

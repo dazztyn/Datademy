@@ -22,7 +22,47 @@ const BASE_URL = import.meta.env.VITE_API_URL
 function getHeaders(): HeadersInit {
   return { 'Content-Type': 'application/json' }
 }
+function mapearTablaPromediosParaWord(
+  promediosEstudiantes: any[],
+  nombresConstructosEst: string[],
+  promedioGeneralEst: number,
+  promediosSocios: any[],
+  nombresConstructosSoc: string[],
+  promedioGeneralSoc: number
+): Record<string, string> {
+  const variablesWord: Record<string, string> = {}
+  const LIMITE_ETIQUETAS = 10
 
+  const iteracionesEst = Math.max(nombresConstructosEst.length, LIMITE_ETIQUETAS)
+  for (let i = 0; i < iteracionesEst; i++) {
+    if (i < nombresConstructosEst.length) {
+      const nombre = nombresConstructosEst[i]
+      const constructoCalc = promediosEstudiantes.find((p: any) => p.nombre_constructo === nombre)
+      variablesWord[`D_${i + 1}`] = nombre
+      variablesWord[`P_${i + 1}`] = constructoCalc ? constructoCalc.promedio_constructo.toFixed(1) : '0.0'
+    } else {
+      variablesWord[`D_${i + 1}`] = ''
+      variablesWord[`P_${i + 1}`] = ''
+    }
+  }
+  variablesWord['P_G'] = promedioGeneralEst > 0 ? promedioGeneralEst.toFixed(1) : ''
+
+  const iteracionesSoc = Math.max(nombresConstructosSoc.length, LIMITE_ETIQUETAS)
+  for (let i = 0; i < iteracionesSoc; i++) {
+    if (i < nombresConstructosSoc.length) {
+      const nombre = nombresConstructosSoc[i]
+      const constructoCalc = promediosSocios.find((p: any) => p.nombre_constructo === nombre)
+      variablesWord[`DS_${i + 1}`] = nombre
+      variablesWord[`PS_${i + 1}`] = constructoCalc ? constructoCalc.promedio_constructo.toFixed(1) : '0.0'
+    } else {
+      variablesWord[`DS_${i + 1}`] = ''
+      variablesWord[`PS_${i + 1}`] = ''
+    }
+  }
+  variablesWord['PG_S'] = promedioGeneralSoc > 0 ? promedioGeneralSoc.toFixed(1) : ''
+
+  return variablesWord
+}
 function fmt(value: number | null | undefined, decimals = 2): string {
   if (value == null || isNaN(value)) return '—'
   return value.toFixed(decimals)
@@ -108,7 +148,26 @@ export default function GenerarInforme() {
       }
     },
   })
+  const [nombresConstructosEst, setNombresConstructosEst] = useState<string[]>([])
+  const [nombresConstructosSoc, setNombresConstructosSoc] = useState<string[]>([])
 
+  useEffect(() => {
+    if (!idProceso) return
+    fetch(`${BASE_URL}/formularios/${idProceso}/metadatos`, {
+      headers: getHeaders(),
+      credentials: 'include',
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.metadatos?.estudiantes?.nombres_constructos) {
+          setNombresConstructosEst(data.metadatos.estudiantes.nombres_constructos)
+        }
+        if (data.metadatos?.socios?.nombres_constructos) {
+          setNombresConstructosSoc(data.metadatos.socios.nombres_constructos)
+        }
+      })
+      .catch(() => {})
+  }, [idProceso])
   const distribucionGenero = metricas?.distribucion_genero ?? []
   const datosGenero =
     distribucionGenero.length > 0
@@ -189,6 +248,15 @@ export default function GenerarInforme() {
           graficos[`SOCIO_DIMENSION${index + 1}`] = chartInstance.toBase64Image()
         }
       })
+      const tablaPromedios = mapearTablaPromediosParaWord(
+        promedios,
+        nombresConstructosEst,
+        metricas.promedio_satisfaccion_constructos ?? 0,
+        promediosSocios,
+        nombresConstructosSoc,
+        metricasSocios?.promedio_satisfaccion_constructos ?? 0
+      )
+
       const datosTexto: Record<string, string> = {
         AsignaturaModulo: asignaturaNombre,
         TipoClase: tipoClase,
@@ -205,6 +273,7 @@ export default function GenerarInforme() {
         NumSemestre: numSemestre,
         TogglePronombre: pronombre,
         ToggleAsignatura: tipoAsignatura,
+        ...tablaPromedios,
       }
       const filtros: FiltrosInforme = {
         carrera,
@@ -586,29 +655,33 @@ export default function GenerarInforme() {
                   />
                 </div>
 
-                <div style={{ position: 'absolute', left: '-9999px', width: '360px', height: '240px' }}>
-                  <Pie
-                    ref={pieRef}
-                    data={datosGenero}
-                    options={{
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: { position: 'right', labels: { font: { size: 16 }, boxWidth: 18 } },
-                        datalabels: {
-                          color: 'white',
-                          font: { weight: 'bold', size: 18 },
-                          formatter: (value, ctx) => {
-                            const total = (ctx.chart.data.datasets[0].data as number[]).reduce((a, b) => a + b, 0)
-                            const pct = ((value / total) * 100).toFixed(1)
-                            const label = ctx.chart.data.labels?.[ctx.dataIndex]
-                            return `${label}\n${pct}%`
-                          },
-                        },
-                        tooltip: { enabled: false },
-                      },
-                    }}
-                  />
-                </div>
+                <div style={{ position: 'absolute', left: '-9999px', width: '720px', height: '240px' }}>
+  <Pie
+    ref={pieRef}
+    data={datosGenero}
+    options={{
+      maintainAspectRatio: false,
+      devicePixelRatio: 1,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { font: { size: 13 }, boxWidth: 14, padding: 10 },
+        },
+        datalabels: {
+          color: 'white',
+          font: { weight: 'bold', size: 13 },
+          formatter: (value, ctx) => {
+            const total = (ctx.chart.data.datasets[0].data as number[]).reduce((a, b) => a + b, 0)
+            const pct = ((value / total) * 100).toFixed(1)
+            const label = ctx.chart.data.labels?.[ctx.dataIndex]
+            return `${label}\n${pct}%`
+          },
+        },
+        tooltip: { enabled: false },
+      },
+    }}
+  />
+</div>
 
                 <div className="flex gap-2 flex-wrap">
                   {distribucionGenero.map((item, i) => {
@@ -658,7 +731,7 @@ export default function GenerarInforme() {
                         <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
                           {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
-                        <div style={{ height: `${preguntas.length * 18 + 32}px`, width:'640px' }}>
+                        <div style={{ height: `${preguntas.length * 18 + 32}px`, width:'720px' }}>
                           <Bar
                             ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
                             data={chartData}

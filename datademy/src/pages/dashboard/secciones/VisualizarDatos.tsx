@@ -287,7 +287,6 @@ export default function Visualizar() {
               <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
                 {fmt(metricas.promedio_satisfaccion_constructos)}
               </p>
-              <p className="text-xs text-slate-400 mt-1">sobre 7.0</p>
             </div>
 
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
