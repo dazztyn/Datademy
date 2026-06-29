@@ -5,5 +5,5 @@ services:
     image: mongo:latest
     container_name: mongodb_as_universidad
     ports:
-      - "27017:27017" # Conecta el puerto de tu PC con el del contenedor
-    restart: always # Si apagas el PC, se vuelve a prender solo la próxima vez
+      - "27017:27017" 
+    restart: always 
