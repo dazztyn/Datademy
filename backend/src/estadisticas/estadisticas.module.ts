@@ -3,7 +3,6 @@ import { EstadisticasController } from './estadisticas.controller';
 import { GoogleModule } from '../google/google.module';
 import { EstadisticasWebhooksService } from './services/estadisticas-webhooks.service';
 import { EstadisticasConsultasService } from './services/estadisticas-consultas.service';
-import { EstadisticasSeederService } from './services/estadisticas-seeder.service';
 import { FormulariosModule } from 'src/formularios/formularios.module';
 import { EstadisticasMathService } from './services/estadisticas-math.service';
 import { EstadisticasParserService } from './services/estadisticas-parser.service';
@@ -29,7 +28,6 @@ import { EstadisticasExportacionService } from './services/estadisticas-exportac
   providers: [
     EstadisticasWebhooksService,
     EstadisticasConsultasService,
-    EstadisticasSeederService,
     EstadisticasMathService,
     EstadisticasParserService,
     EstadisticasFormatterService,
