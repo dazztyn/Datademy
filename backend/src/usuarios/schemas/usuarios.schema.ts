@@ -12,11 +12,9 @@ export class Usuario {
   @Prop({ required: true, unique: true })
   correo!: string;
 
-  // id de cuenta
   @Prop()
   googleId?: string;
 
-  // url de pfp para frontend
   @Prop()
   avatarUrl?: string;
 
