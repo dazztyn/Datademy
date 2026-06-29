@@ -13,6 +13,7 @@ import { BullModule } from '@nestjs/bull';
 import { DatabaseModule } from './database/database.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { HealthController } from './health.controller';
+import { CsrfGuard } from './common/guards/csrf.guard';
 
 @Module({
   imports: 
@@ -48,6 +49,10 @@ import { HealthController } from './health.controller';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: CsrfGuard,
     },
   ],
 })
