@@ -16,10 +16,27 @@ async function bootstrap()
 
   app.use(helmet(
     {
-      contentSecurityPolicy: false,
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://apis.google.com", "https://www.gstatic.com"],
+        
+        frameSrc: [
+          "'self'", 
+          "https://apis.google.com", 
+          "https://accounts.google.com", 
+          "https://docs.google.com", 
+          "https://drive.google.com"
+        ],
+        
+        imgSrc: ["'self'", "data:", "https://*.googleusercontent.com", "https://ssl.gstatic.com"],
+        
+        connectSrc: ["'self'", "https://apis.google.com", "https://accounts.google.com", "https://www.googleapis.com"],
+        
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      },
       crossOriginEmbedderPolicy: false,
-      crossOriginOpenerPolicy: false,
-    }
+    } as any
   ));
 
   app.use(express.json({ limit: '10mb' }));
