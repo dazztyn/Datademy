@@ -1,10 +1,9 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { setGoogleToken, clearGoogleToken } from '../services/googleToken.ts'
 
 interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
-  gToken: string | null
-  guardarTokens: (gToken: string) => void
   cerrarSesion: () => void
 }
 
@@ -14,63 +13,68 @@ const BASE_URL = import.meta.env.VITE_API_URL
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [gToken, setGToken] = useState<string | null>(null)
-
- useEffect(() => {
-  const recuperarTokenDeGoogle = async () => {
+  const limpiarAutenticacionLocal = useCallback(() => {
+    setIsAuthenticated(false)
+    clearGoogleToken()
+  }, [])
+  const cerrarSesion = useCallback(async () => {
     try {
-      const response = await fetch(`${BASE_URL}/auth/google-token`, {
-        method: 'GET',
+      await fetch(`${BASE_URL}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        
-        if (data.estado === 'exito' && data.googleAccessToken) {          
-          setIsAuthenticated(true)
-          setGToken(data.googleAccessToken) 
-        } else {
-          cerrarSesion()
-        }
-      } else {
-        cerrarSesion()
-      }
     } catch (error) {
-      console.error('Error al recuperar el token de Google:', error)
-      cerrarSesion()
+      console.error('Error cerrando sesión en el servidor:', error)
     } finally {
-      setIsLoading(false) 
+      limpiarAutenticacionLocal()
     }
-  }
+  }, [limpiarAutenticacionLocal])
 
-  recuperarTokenDeGoogle()
-}, [])
+ useEffect(() => {
+    let activo = true 
 
-  const guardarTokens = (gToken: string) => {
-    setIsAuthenticated(true)
-    setGToken(gToken)
-  }
+    const recuperarTokenDeGoogle = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/auth/google-token`, {
+          method: 'GET',
+          credentials: 'include',
+        })
+        
+        if (!activo) return
 
-  const cerrarSesion = async () => {
-  try {
-    await fetch(`${BASE_URL}/auth/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${gToken}`,
-      },
-      credentials: 'include', 
-    })
-  } catch (error) {
-    console.error('Error cerrando sesión:', error)
-  } finally {
-    setIsAuthenticated(false)
-    setGToken(null)
-  }
-}
+        if (response.ok) {
+          const data = await response.json()
+          if (data.estado === 'exito' && data.googleAccessToken) {
+            setIsAuthenticated(true)
+            setGoogleToken(data.googleAccessToken)
+          } else {
+            limpiarAutenticacionLocal()
+          }
+        } else {
+          limpiarAutenticacionLocal()
+        }
+      } catch (error) {
+        console.error('Error al recuperar el token de Google:', error)
+        if (activo) {
+          limpiarAutenticacionLocal()
+        }
+      } finally {
+        if (activo) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    recuperarTokenDeGoogle()
+
+    return () => {
+      activo = false 
+    }
+  }, [limpiarAutenticacionLocal])
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, gToken, guardarTokens, cerrarSesion }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, cerrarSesion }}>
       {children}
     </AuthContext.Provider>
   )
