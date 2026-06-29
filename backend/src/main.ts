@@ -14,30 +14,26 @@ async function bootstrap()
 
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
-  app.use(helmet(
-    {
+  app.use(helmet({
+    contentSecurityPolicy: {
       directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://apis.google.com", "https://www.gstatic.com"],
-        
-        frameSrc: [
+        "default-src": ["'self'"],
+        "script-src": ["'self'", "'unsafe-inline'", "https://apis.google.com", "https://www.gstatic.com"],
+        "frame-src": [
           "'self'", 
           "https://apis.google.com", 
           "https://accounts.google.com", 
           "https://docs.google.com", 
           "https://drive.google.com"
         ],
-        
-        imgSrc: ["'self'", "data:", "https://*.googleusercontent.com", "https://ssl.gstatic.com"],
-        
-        connectSrc: ["'self'", "https://apis.google.com", "https://accounts.google.com", "https://www.googleapis.com"],
-        
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+        "img-src": ["'self'", "data:", "https://*.googleusercontent.com", "https://ssl.gstatic.com"],
+        "connect-src": ["'self'", "https://apis.google.com", "https://accounts.google.com", "https://www.googleapis.com"],
+        "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
       },
-      crossOriginEmbedderPolicy: false,
-    } as any
-  ));
+    },
+    crossOriginEmbedderPolicy: false, 
+  }));
 
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
