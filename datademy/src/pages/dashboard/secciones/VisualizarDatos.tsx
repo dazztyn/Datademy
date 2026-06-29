@@ -48,10 +48,6 @@ export default function Visualizar() {
     setFiltros({ tipo: tipoActivo })
   }, [tipoActivo])
 
-  const actualizarFiltro = (campo: keyof FiltrosMetricas, valor: any) => {
-    setFiltros(prev => ({ ...prev, [campo]: valor || undefined }))
-  }
-
   const distribucionGenero = metricas?.distribucion_genero ?? []
   const datosGenero =
     distribucionGenero.length > 0

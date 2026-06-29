@@ -81,7 +81,8 @@ export default function GenerarInforme() {
   const tema = temasPagina[location.pathname] ?? temaDefault
 
   const pieRef = useRef<ChartJS<'pie'> | null>(null)
-  const barrasRefs = useRef<Record<string, ChartJS<'bar'> | null>>({})
+  const barrasRefs = useRef<Record<number, ChartJS<"bar", number[], string> | null | undefined>>({})
+  const barrasSociosRefs = useRef<Record<number, ChartJS<"bar", number[], string> | null | undefined>>({})
 
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, 'estudiantes')
 
@@ -116,7 +117,6 @@ export default function GenerarInforme() {
     nivel_formativo: programa || undefined,
   })
   const { metricas: metricasSocios } = useMetricas(idProceso, { tipo: 'socios' })
-  const barrasSociosRefs = useRef<Record<string, ChartJS<'bar'> | null>>({})
   const totalEstudiantes = metricas?.total_esperados ?? 0
   const totalRespuestas = metricas?.total_encuestados ?? 0
   const porcRespuestas = fmt(metricas?.tasa_respuesta_porcentaje, 1)

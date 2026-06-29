@@ -29,7 +29,7 @@ function interpretarAlfa(alfa: number): { texto: string; color: string } {
 
 export default function Cronbach() {
   const { idProceso } = useProceso()
-  const [tipoActivo, setTipoActivo] = useState<'estudiantes' | 'socios'>('estudiantes')
+  const [tipoActivo] = useState<'estudiantes' | 'socios'>('estudiantes')
   const [filtros, setFiltros] = useState<FiltrosMetricas>({ tipo: 'estudiantes' })
   const { metricas, cargando, error } = useMetricas(idProceso, filtros)
   const { theme } = useTheme()

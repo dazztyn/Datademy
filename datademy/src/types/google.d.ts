@@ -14,8 +14,10 @@ interface Window {
       };
     };
     picker: {
-      PickerBuilder: new () => any; 
+      PickerBuilder: new () => any;
+      DocsView: new () => any;
       ViewId: { DOCS: string };
+      Action: { PICKED: string };
     };
   };
 }
