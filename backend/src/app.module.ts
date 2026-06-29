@@ -44,7 +44,7 @@ import { join } from 'path';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'), 
-      exclude: ['api', 'api/*']
+      exclude: ['/api/:path*'],
     }),
   ],
   controllers: 
