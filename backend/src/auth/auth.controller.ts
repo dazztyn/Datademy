@@ -39,8 +39,6 @@ export class AuthController {
   {
     const resultadoLogin = await this.authService.validarUsuarioGoogle(req.user);
 
-    const urlFrontendBase = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
-    
     const jwt = resultadoLogin.tokens.backendJwt;
     const gToken = resultadoLogin.tokens.googleAccessToken;
 
@@ -59,7 +57,7 @@ export class AuthController {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: tiempoVida8Horas,
     });
-    return res.redirect(`${urlFrontendBase}/dashboard`);
+    return res.redirect('/dashboard');
   }
 
   @Get('me')

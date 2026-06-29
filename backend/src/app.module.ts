@@ -14,6 +14,8 @@ import { DatabaseModule } from './database/database.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { HealthController } from './health.controller';
 import { CsrfGuard } from './common/guards/csrf.guard';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: 
@@ -39,6 +41,10 @@ import { CsrfGuard } from './common/guards/csrf.guard';
         password: process.env.REDIS_PASSWORD || undefined,
         tls: process.env.NODE_ENV === 'production' ? {} : undefined,
       },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'), 
+      exclude: ['/api/(.*)'], 
     }),
   ],
   controllers: 
