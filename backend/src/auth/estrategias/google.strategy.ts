@@ -1,6 +1,6 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 
@@ -28,6 +28,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google')
   {
     const { name, emails, photos, id } = profile;
     
+    if (!emails || emails.length === 0 || !emails[0].value) {
+      return done(new UnauthorizedException('Google no proporcionó un correo electrónico válido. Revisa tus opciones de privacidad.'), false);
+    }
+
     const usuarioDeGoogle = {
       googleId: id,
       correo: emails?.[0]?.value || 'sin-correo@ucn.cl',
