@@ -1,0 +1,40 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_as_universidad
+    ports:
+      - "27017:27017" 
+    restart: always
+    volumes:
+      - mongo_data:/data/db 
+
+  redis-datademy:
+    image: redis:alpine
+    container_name: redis_datademy
+    ports:
+      - "6379:6379"
+    restart: always
+
+  backend-datademy:
+    build: ./backend 
+    container_name: backend_datademy
+    ports:
+      - "3000:3000"
+    restart: always
+    env_file: 
+      - ./backend/.env
+    volumes:
+      - ./backend:/usr/src/app 
+      - /usr/src/app/node_modules 
+    command: npx --node-options="--max-old-space-size=2048" nest start --watch
+    depends_on:
+      - mongodb
+      - redis-datademy
+    environment:
+      - PORT=3000
+      - FRONTEND_URL=http://localhost:5173
+      - MONGODB_URI=mongodb://mongodb:27017/datademy
+      - REDIS_URL=redis://redis-datademy:6379
+
+volumes:
+  mongo_data:
