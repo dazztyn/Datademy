@@ -30,7 +30,7 @@ export class ReportesService {
 
       await this.docsService.aplicarCambios(nuevoDocId, imagenesSubidas, datosTexto);
 
-      const nombreInforme = `Informe de Resultados - ${nombreCarrera} - ${new Date().toLocaleDateString('es-CL', { timeZone: 'America/Santiago' })}`;
+      const nombreInforme = `Informe de Resultados - ${nombreCarrera} - ${new Date().toLocaleDateString()}`;
       
       return {
         estado: 'exito',
