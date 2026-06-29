@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import { useProceso } from '../../../context/ProcesoContext'
 import { listarInformes, eliminarInforme } from '../../../services/formularios_service'
 import type { Informe } from '../../../services/formularios_service'
 import ModalConfirmar from '../../../components/ModalConfirmar'
-import { temasPagina, temaDefault } from '../../../utils/temasPagina'
 import { useToast } from '../../../hooks/useToast'
 import Toast from '../../../components/Toast'
 import iconoRefresh from '../../../assets/REFRESH.png'
@@ -17,9 +15,6 @@ export default function ListarInformes() {
   const [informeAEliminar, setInformeAEliminar] = useState<Informe | null>(null)
   const [eliminando, setEliminando] = useState(false)
   const { toast, mostrar, cerrar } = useToast()
-  const location = useLocation()
-  const tema = temasPagina[location.pathname] ?? temaDefault
-
   const cargar = () => {
     if (!idProceso) return
     setCargando(true)

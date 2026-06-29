@@ -60,22 +60,19 @@ const handleCerrarSesion = async () => {
 }
   const requiereMetadatos = (ruta: string) =>
     ['/detalles/alumnos', '/detalles/socios', '/detalles/graficos', '/detalles/cronbach', '/detalles/informe'].includes(ruta)
-  const bloqueado = (ruta: string) =>
-  requiereMetadatos(ruta) && !metadatosCompletos && !verificandoMetadatos
 
   const handleRefresh = async () => {
-    if (!idProceso || sync) return
-    setSync(true)
-    try {
-      await sincronizarManual(idProceso)
-      onSincronizado?.()
-    } catch (err) {
-      console.error("Error al sincronizar", err)
-    } finally {
-      setSync(false)
-      window.location.reload()
-    }
+  if (!idProceso || sync) return
+  setSync(true)
+  try {
+    await sincronizarManual(idProceso)
+    onSincronizado?.() 
+  } catch (err) {
+    console.error("Error al sincronizar", err)
+  } finally {
+    setSync(false)
   }
+}
 
   const informeBloqueado = requiereMetadatos('/detalles/informe') && !metadatosCompletos
 
