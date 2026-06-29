@@ -12,6 +12,7 @@ import { ReportesModule } from './reportes/reportes.module';
 import { BullModule } from '@nestjs/bull';
 import { DatabaseModule } from './database/database.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: 
@@ -37,7 +38,10 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       },
     }),
   ],
-  controllers: [],
+  controllers: 
+  [
+    HealthController,
+  ],
   providers: [
     {
       provide: APP_GUARD,
