@@ -1,7 +1,6 @@
 import { Controller, Post, Body, HttpCode, BadRequestException, Get, UseGuards, Req, Param, Query } from '@nestjs/common';
 import { EstadisticasWebhooksService } from './services/estadisticas-webhooks.service';
 import { EstadisticasConsultasService } from './services/estadisticas-consultas.service';
-import { EstadisticasSeederService } from './services/estadisticas-seeder.service';
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
 import { AuthGuard } from '@nestjs/passport';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
@@ -16,18 +15,7 @@ export class EstadisticasController {
   constructor(
     private readonly webhooksService: EstadisticasWebhooksService,
     private readonly consultasService: EstadisticasConsultasService,
-    private readonly seederService: EstadisticasSeederService
   ) {}
-
-  @Post(':idProceso/generar-dummy')
-  async generarDatosPrueba(
-    @Req() req: RequestConUsuario,
-    @Param('idProceso') idProceso: string,
-    @Body('cantidad') cantidad: number
-  ) {
-    const cantidadSegura = cantidad || 50; 
-    return await this.seederService.generarVolumenDummy(idProceso, req.user.userId, cantidadSegura);
-  }
 
   @Get('comparativa-global')
   async obtenerComparativaGlobal(

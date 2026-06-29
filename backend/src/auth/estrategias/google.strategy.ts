@@ -34,7 +34,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google')
 
     const usuarioDeGoogle = {
       googleId: id,
-      correo: emails?.[0]?.value || 'sin-correo@ucn.cl',
+      correo: emails?.[0]?.value,
       nombre: name ? `${name.givenName || ''} ${name.familyName || ''}`.trim() : 'Usuario Sin Nombre',
       avatarUrl: photos?.[0]?.value || '',
       accessToken, 

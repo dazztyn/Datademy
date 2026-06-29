@@ -33,19 +33,4 @@ export class UsuariosService {
       throw new Error('No se pudo crear el usuario. ¿Quizás el correo ya existe en la base de datos?');
     }
   }
-
-  async crearUsuarioAutomatico(perfilGoogle: any) 
-  {
-    const esAlumno = perfilGoogle.correo.endsWith('@alumnos.ucn.cl');
-
-    return await this.repositorio.crearUsuario({
-      nombre: perfilGoogle.nombre,
-      correo: perfilGoogle.correo,
-      googleId: perfilGoogle.googleId,
-      avatarUrl: perfilGoogle.avatarUrl,
-      rol: esAlumno ? 'estudiante' : 'funcionario',
-      activo: true
-    });
-  }
-
 }
