@@ -17,6 +17,26 @@ import { CsrfGuard } from './common/guards/csrf.guard';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
+const getRedisConfig = () => {
+  if (process.env.REDIS_URL) {
+    const url = new URL(process.env.REDIS_URL);
+    return {
+      host: url.hostname,
+      port: parseInt(url.port || '6379', 10),
+      password: url.password,
+      tls: {
+        rejectUnauthorized: false,
+      },
+    };
+  }
+  
+  return {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD || undefined,
+  };
+};
+
 @Module({
   imports: 
   [
@@ -35,7 +55,7 @@ import { join } from 'path';
     EstadisticasModule, 
     ReportesModule,
     BullModule.forRoot({
-      url: process.env.REDIS_URL,
+      redis: getRedisConfig(),
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'), 
