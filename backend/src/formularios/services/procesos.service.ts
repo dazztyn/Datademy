@@ -93,7 +93,10 @@ export class ProcesosService {
       : 'formulario_socios';
     
     const datosAActualizar: UpdateQuery<ProcesoDocument> = {
-      $set: { [campoBase]: null }
+      $set: { 
+        [campoBase]: null,
+        informes_generados: [] 
+      }
     };
 
     const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, datosAActualizar);
@@ -102,7 +105,8 @@ export class ProcesosService {
       throw new NotFoundException('No se pudo desasignar: El proceso no existe o no tienes permisos.');
     }
 
-    this.eventEmitter.emit('formulario.desasignado', { 
+    this.eventEmitter.emit('formulario.desasignado', {
+      usuario_id: usuario_id, 
       procesoId: idProceso, 
       tipoFormulario: tipoFormulario 
     });
