@@ -58,8 +58,8 @@ export class ProcesosService {
     return proceso;
   }
 
-  async buscarPorIdFormularioGoogle(idFormulario: string) {
-    return await this.procesosRepo.buscarPorIdFormularioGoogle(idFormulario);
+  async buscarTodosPorIdFormularioGoogle(idFormulario: string) {
+    return await this.procesosRepo.buscarTodosPorIdFormularioGoogle(idFormulario);
   }
 
   async guardarMetadatosFormulario(usuario_id: string, idProceso: string, tipoFormulario: 'socios' | 'estudiantes', nombresConstructos: string[], totalEsperados: number) {
@@ -95,7 +95,7 @@ export class ProcesosService {
     const datosAActualizar: UpdateQuery<ProcesoDocument> = {
       $set: { 
         [campoBase]: null,
-        informes_generados: [] 
+         
       }
     };
 

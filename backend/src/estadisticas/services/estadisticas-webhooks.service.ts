@@ -30,78 +30,71 @@ export class EstadisticasWebhooksService {
   }
 
   async manejarNuevoWebhookGoogle(idFormulario: string, esSincronizacionManual: boolean = false) {
-    const procesoAsociado = await this.procesosService.buscarPorIdFormularioGoogle(idFormulario);
-    if (!procesoAsociado) throw new NotFoundException('Formulario no encontrado en el sistema');
-
-    const usuarioIdReal = procesoAsociado.usuario_id;
-    const procesoIdReal = String(procesoAsociado._id);
-    const tipoFormularioReal = procesoAsociado.formulario_estudiantes?.id_google_form === idFormulario 
-      ? TipoFormulario.ESTUDIANTES : TipoFormulario.SOCIOS;
+    const procesosAsociados = await this.procesosService.buscarTodosPorIdFormularioGoogle(idFormulario);
+    if (!procesosAsociados || procesosAsociados.length === 0) { 
+      throw new NotFoundException('Formulario no encontrado en ningún proceso del sistema');
+    }
 
     const diseno = await this.googleService.obtenerDisenoFormulario(idFormulario);
     const disenoAdaptado = this.adaptarDisenoGoogle(diseno);
+    let totalGuardadasGlobal = 0;
 
-    let fechaFiltro: Date | undefined = undefined;
-    
-    if (!esSincronizacionManual) {
-      const ultimaFecha = await this.obtenerFechaUltimaSincronizacion(procesoIdReal, tipoFormularioReal);
-      if (ultimaFecha) {
-        fechaFiltro = ultimaFecha;
+    for (const proceso of procesosAsociados) {
+      const usuarioIdReal = proceso.usuario_id;
+      const procesoIdReal = String(proceso._id);
+      const tipoFormularioReal = proceso.formulario_estudiantes?.id_google_form === idFormulario 
+        ? TipoFormulario.ESTUDIANTES : TipoFormulario.SOCIOS;
+
+      let fechaFiltro: Date | undefined = undefined;
+      if (!esSincronizacionManual) {
+        const ultimaFecha = await this.obtenerFechaUltimaSincronizacion(procesoIdReal, tipoFormularioReal);
+        if (ultimaFecha) fechaFiltro = ultimaFecha;
       }
-    }
 
-    const listaRespuestas = await this.googleService.obtenerTodasLasRespuestas(idFormulario, fechaFiltro);
+      const listaRespuestas = await this.googleService.obtenerTodasLasRespuestas(idFormulario, fechaFiltro);
+      if (!listaRespuestas || listaRespuestas.length === 0) continue;
 
-    if (!listaRespuestas || listaRespuestas.length === 0) return { estado: 'exito', guardadas: 0 };
-
-    const idsRespuestasGoogle = listaRespuestas.map(r => r.responseId!);
-
-    const encuestasExistentes = await this.repositorio.buscarPorQuery(
-      { id_respuesta_google: { $in: idsRespuestasGoogle } },
-      'id_respuesta_google'
-    );
+      const idsRespuestasGoogle = listaRespuestas.map(r => r.responseId!);
       
-    const setIdsExistentes = new Set(encuestasExistentes.map(e => e.id_respuesta_google));
-    
-    type NuevaEstadistica = ReturnType<typeof this.parserService.procesarEncuesta> & { tipo_formulario: string };
-    const nuevasEstadisticas: NuevaEstadistica[] = [];
-
-    for (const respuestaCruda of listaRespuestas) {
-      if (setIdsExistentes.has(respuestaCruda.responseId!)) continue;
-      
-      const respuestaAdaptada = this.adaptarRespuestaGoogle(respuestaCruda);
-
-      const documentoListo = this.parserService.procesarEncuesta(
-        disenoAdaptado, 
-        respuestaAdaptada, 
-        respuestaCruda.responseId!, 
-        usuarioIdReal, 
-        procesoIdReal
+      const encuestasExistentes = await this.repositorio.buscarPorQuery(
+        { 
+          id_respuesta_google: { $in: idsRespuestasGoogle },
+          proceso_id: procesoIdReal 
+        },
+        'id_respuesta_google'
       );
+      const setIdsExistentes = new Set(encuestasExistentes.map(e => e.id_respuesta_google));
       
-      nuevasEstadisticas.push({
-        ...documentoListo,
-        tipo_formulario: tipoFormularioReal
-      });
-    }
+      type NuevaEstadistica = ReturnType<typeof this.parserService.procesarEncuesta> & { tipo_formulario: string };
+      const nuevasEstadisticas: NuevaEstadistica[] = [];
 
-    if (nuevasEstadisticas.length === 0) return { estado: 'exito', guardadas: 0 };
+      for (const respuestaCruda of listaRespuestas) {
+        if (setIdsExistentes.has(respuestaCruda.responseId!)) continue;
 
-    let nuevasGuardadas = 0;
-    try {
-      const resultado = await this.repositorio.insertarMultiples(nuevasEstadisticas);
-      nuevasGuardadas = resultado.length;
-    } catch (error: unknown) {
-      if (error instanceof mongo.MongoBulkWriteError && error.code === 11000) {
-        nuevasGuardadas = error.insertedCount || 0;
-        console.warn(`Aviso de concurrencia: Se ignoraron inserciones duplicadas al procesar el Webhook.`);
-      } else {
-        throw error
+        const respuestaAdaptada = this.adaptarRespuestaGoogle(respuestaCruda);
+        const documentoListo = this.parserService.procesarEncuesta(
+          disenoAdaptado, respuestaAdaptada, respuestaCruda.responseId!, usuarioIdReal, procesoIdReal
+        );
+        
+        nuevasEstadisticas.push({ ...documentoListo, tipo_formulario: tipoFormularioReal });
+      }
+
+      if (nuevasEstadisticas.length > 0) {
+        try {
+          const resultado = await this.repositorio.insertarMultiples(nuevasEstadisticas);
+          totalGuardadasGlobal += resultado.length;
+          console.log(`Guardadas ${resultado.length} respuestas para el proceso: ${proceso.nombre_proceso}`);
+        } catch (error: any) {
+          if (error.code === 11000) {
+            console.warn(`Aviso de concurrencia en proceso ${proceso.nombre_proceso}.`);
+          } else {
+            throw error;
+          }
+        }
       }
     }
 
-    console.log(`\n¡ÉXITO! Se guardaron ${nuevasGuardadas} respuestas nuevas para: ${procesoAsociado.nombre_proceso}\n`);
-    return { estado: 'exito', guardadas: nuevasGuardadas };
+    return { estado: 'exito', guardadas: totalGuardadasGlobal };
   }
 
   async sincronizarProcesoManual(procesoId: string, usuarioId: string) {

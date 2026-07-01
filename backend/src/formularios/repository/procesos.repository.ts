@@ -24,8 +24,8 @@ export class ProcesosRepository {
     return await this.modelo.find({ estado: 'borrado_pendiente' }).exec();
   }
 
-  async buscarPorIdFormularioGoogle(idFormulario: string): Promise<ProcesoDocument | null> {
-    return await this.modelo.findOne({
+  async buscarTodosPorIdFormularioGoogle(idFormulario: string): Promise<ProcesoDocument[]> {
+    return await this.modelo.find({
       $or: [
         { 'formulario_estudiantes.id_google_form': idFormulario },
         { 'formulario_socios.id_google_form': idFormulario }

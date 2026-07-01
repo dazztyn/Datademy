@@ -91,3 +91,8 @@ export class Estadistica {
 export const EstadisticaSchema = SchemaFactory.createForClass(Estadistica);
 
 EstadisticaSchema.index({ proceso_id: 1, usuario_id: 1, tipo_formulario: 1 });
+
+EstadisticaSchema.index(
+  { id_respuesta_google: 1, proceso_id: 1, tipo_formulario: 1 }, 
+  { unique: true }
+);
