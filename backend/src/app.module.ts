@@ -15,6 +15,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { HealthController } from './health.controller';
 import { CsrfGuard } from './common/guards/csrf.guard';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 import { join } from 'path';
 
 const getRedisConfig = () => {
@@ -56,6 +58,23 @@ const getRedisConfig = () => {
     ReportesModule,
     BullModule.forRoot({
       redis: getRedisConfig(),
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => {
+        const redisConf = getRedisConfig();
+        return {
+          store: await redisStore({
+            socket: {
+              host: redisConf.host,
+              port: redisConf.port,
+              tls: redisConf.tls as any,
+            },
+            password: redisConf.password,
+            ttl: 60 * 60 * 1000, 
+          }),
+        };
+      },
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'client'), 

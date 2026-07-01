@@ -1,5 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { mongo } from 'mongoose';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { forms_v1 } from 'googleapis';
 import { EstadisticasParserService } from './estadisticas-parser.service';
 import { GoogleFormDiseno } from '../interfaces/diseno-google.interface';
@@ -8,6 +7,8 @@ import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 import { EstadisticasRepository } from '../estadisticas.repository';
 import { ProcesosService } from 'src/formularios/services/procesos.service';
 import { GoogleFormsService } from 'src/google/services/google-forms.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 @Injectable()
 export class EstadisticasWebhooksService {
@@ -15,7 +16,8 @@ export class EstadisticasWebhooksService {
     private readonly procesosService: ProcesosService,
     private readonly googleFormsService: GoogleFormsService,
     private readonly parserService: EstadisticasParserService,
-    private readonly repositorio: EstadisticasRepository
+    private readonly repositorio: EstadisticasRepository,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   private async obtenerFechaUltimaSincronizacion(procesoId: string, tipoFormulario: TipoFormulario): Promise<Date | null> {
@@ -83,7 +85,12 @@ export class EstadisticasWebhooksService {
         try {
           const resultado = await this.repositorio.insertarMultiples(nuevasEstadisticas);
           totalGuardadasGlobal += resultado.length;
+
+          const idProceso = String(proceso._id);
+          await this.cacheManager.del(`/api/estadisticas/${idProceso}/metricas`);
+          
           console.log(`Guardadas ${resultado.length} respuestas para el proceso: ${proceso.nombre_proceso}`);
+          
         } catch (error: any) {
           if (error.code === 11000) {
             console.warn(`Aviso de concurrencia en proceso ${proceso.nombre_proceso}.`);

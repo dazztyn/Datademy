@@ -1,4 +1,5 @@
-import { Controller, Post, Body, HttpCode, BadRequestException, Get, UseGuards, Req, Param, Query } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, BadRequestException, Get, UseGuards, Req, Param, Query, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { EstadisticasWebhooksService } from './services/estadisticas-webhooks.service';
 import { EstadisticasConsultasService } from './services/estadisticas-consultas.service';
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
@@ -20,6 +21,8 @@ export class EstadisticasController {
   ) {}
 
   @Get('comparativa-global')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(15 * 60 * 1000)
   async obtenerComparativaGlobal(
     @Req() req: RequestConUsuario,
     @Query('procesos') procesosUrl: string,
@@ -52,6 +55,8 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/metricas')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(30 * 60 * 1000)
   async obtenerMetricasFrontend(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
@@ -69,6 +74,8 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/filtros-disponibles')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(60 * 60 * 1000)
   async obtenerOpcionesFiltros(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
