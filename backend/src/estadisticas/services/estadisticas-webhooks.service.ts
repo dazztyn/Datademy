@@ -95,7 +95,9 @@ export class EstadisticasWebhooksService {
           totalGuardadasGlobal += resultado.length;
 
           const idProceso = String(proceso._id);
-          await this.cacheManager.del(`/api/estadisticas/${idProceso}/metricas`);
+          
+          await this.cacheManager.del(`/api/estadisticas/${idProceso}/metricas?tipo=estudiantes`);
+          await this.cacheManager.del(`/api/estadisticas/${idProceso}/metricas?tipo=socios`);
           
           console.log(`Guardadas ${resultado.length} respuestas para el proceso: ${proceso.nombre_proceso}`);
           
