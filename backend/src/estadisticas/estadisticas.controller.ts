@@ -4,6 +4,7 @@ import { EstadisticasConsultasService } from './services/estadisticas-consultas.
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
 import { AuthGuard } from '@nestjs/passport';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
+import { EstadisticasComparativasService } from './services/estadisticas-comparativas.service';
 
 interface RequestConUsuario extends Request {
   user: UsuarioActivo;
@@ -15,6 +16,7 @@ export class EstadisticasController {
   constructor(
     private readonly webhooksService: EstadisticasWebhooksService,
     private readonly consultasService: EstadisticasConsultasService,
+    private readonly comparativasService: EstadisticasComparativasService,
   ) {}
 
   @Get('comparativa-global')
@@ -29,7 +31,7 @@ export class EstadisticasController {
     const procesosIds = procesosUrl.split(',');
     const tipoSeguro = (tipo as TipoFormulario) || TipoFormulario.ESTUDIANTES;
 
-    return await this.consultasService.obtenerComparativaGlobal(req.user.userId, procesosIds, tipoSeguro);
+    return await this.comparativasService.obtenerComparativaGlobal(req.user.userId, procesosIds, tipoSeguro);
   }
 
   @Post(':idProceso/sincronizar-manual')

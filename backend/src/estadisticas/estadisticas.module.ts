@@ -15,6 +15,7 @@ import { SatisfaccionCalculator } from './calculadoras/satisfaccion.calculator';
 import { EstadisticasWebhooksController } from './estadisticas-webhooks.controller';
 import { EstadisticasEventosLimpiezaService } from './services/estadisticas-eventos-limpieza.service';
 import { EstadisticasExportacionService } from './services/estadisticas-exportacion.service';
+import { EstadisticasComparativasService } from './services/estadisticas-comparativas.service';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { EstadisticasExportacionService } from './services/estadisticas-exportac
     EstadisticasAnaliticasService,
     EstadisticasEventosLimpiezaService,
     EstadisticasExportacionService,
+    EstadisticasComparativasService,
     NpsCalculator,
     RankingCalculator,
     DemograficosCalculator,
