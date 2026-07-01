@@ -20,8 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.dazztyn.datademymobile",
-      "usesCleartextTraffic": true
+      "package": "com.dazztyn.datademymobile"
     },
     "web": {
       "output": "static",
@@ -43,7 +42,13 @@
       ],
       "expo-web-browser",
       "expo-secure-store",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-build-properties",
+        {
+          "android": { "usesCleartextTraffic": true }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
