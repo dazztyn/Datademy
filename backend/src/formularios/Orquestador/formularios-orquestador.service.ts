@@ -1,12 +1,13 @@
 
 import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
-import { GoogleService } from 'src/google/google.service';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 import { ProcesosService } from '../services/procesos.service';
 import { PlantillasService } from '../services/plantillas.service';
 import { ConfiguracionesService } from '../services/configuraciones.service';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import type { ProcesoDocument } from '../schemas/proceso.schema';
+import { GoogleDriveService } from 'src/google/services/google-drive.service';
+import { GoogleFormsService } from 'src/google/services/google-forms.service';
 
 
 @Injectable()
@@ -15,7 +16,8 @@ export class FormulariosOrquestadorService {
     private readonly procesosService: ProcesosService,
     private readonly plantillasService: PlantillasService,
     private readonly configuracionesService: ConfiguracionesService,
-    private readonly googleService: GoogleService,
+    private readonly googleDriveService: GoogleDriveService, 
+    private readonly googleFormsService: GoogleFormsService,
     private readonly eventEmitter: EventEmitter2
   ) {}
 
@@ -29,7 +31,7 @@ export class FormulariosOrquestadorService {
   {
 
     const idCarpetaDestino = await this.configuracionesService.obtenerCarpetaDestino(usuario_id);
-    const resultadoCopia = await this.googleService.copiarPlantillaYGuardar(
+    const resultadoCopia = await this.googleDriveService.copiarPlantillaYGuardar(
       idPlantilla,
       nombreNuevoFormulario,
       idCarpetaDestino
@@ -42,7 +44,7 @@ export class FormulariosOrquestadorService {
       throw new InternalServerErrorException('Error crítico: Google Drive no retornó un ID válido al clonar el formulario.');
     }
 
-    await this.googleService.activarVigilanciaRespuestas(nuevoFormId);
+    await this.googleFormsService.activarVigilanciaRespuestas(nuevoFormId);
 
     const urlEdicionGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/edit`;
     const urlRespuestaGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/viewform`;
@@ -77,7 +79,7 @@ export class FormulariosOrquestadorService {
   {
     try 
     {
-      const archivosEnDrive = await this.googleService.listarPlantillas(idCarpeta);
+      const archivosEnDrive = await this.googleDriveService.listarPlantillas(idCarpeta);
 
       const plantillasGuardadas = await this.plantillasService.guardarPlantillasEnCache(usuario_id, archivosEnDrive);
 
@@ -111,9 +113,9 @@ export class FormulariosOrquestadorService {
     tipoFormulario: TipoFormulario
   ) {
     try {
-      const diseno = await this.googleService.obtenerDisenoFormulario(idFormularioExistente);
+      const diseno = await this.googleFormsService.obtenerDisenoFormulario(idFormularioExistente);
       const nombreFormulario = diseno.info?.title || 'Formulario Importado';
-      await this.googleService.activarVigilanciaRespuestas(idFormularioExistente);
+      await this.googleFormsService.activarVigilanciaRespuestas(idFormularioExistente);
       const urlEdicion = `https://docs.google.com/forms/d/${idFormularioExistente}/edit`;
       const urlRespuesta = `https://docs.google.com/forms/d/${idFormularioExistente}/viewform`;
       const campoBase = `formulario_${tipoFormulario}`;
@@ -155,7 +157,7 @@ export class FormulariosOrquestadorService {
       throw new BadRequestException(`El formulario de ${tipoFormulario} aún no ha sido vinculado a este proceso.`);
     }
 
-    const diseno = await this.googleService.obtenerDisenoFormulario(configFormulario.id_google_form);
+    const diseno = await this.googleFormsService.obtenerDisenoFormulario(configFormulario.id_google_form);
 
     let cantidadPaginas = 1;
     if (diseno.items) {
@@ -176,7 +178,7 @@ export class FormulariosOrquestadorService {
 
   async eliminarInformeCompleto(usuario_id: string, idProceso: string, idInformeDrive: string) 
   {
-    await this.googleService.eliminarArchivoDrive(idInformeDrive);    
+    await this.googleDriveService.eliminarArchivoDrive(idInformeDrive);    
     await this.procesosService.eliminarInformeDeProceso(usuario_id, idProceso, idInformeDrive);
     
     return {
@@ -193,14 +195,14 @@ export class FormulariosOrquestadorService {
     try {
       const idProcesoStr = String(proceso._id);
       if (proceso.formulario_estudiantes?.id_google_form) {
-        await this.googleService.eliminarArchivoDrive(proceso.formulario_estudiantes.id_google_form);
+        await this.googleDriveService.eliminarArchivoDrive(proceso.formulario_estudiantes.id_google_form);
       }
       if (proceso.formulario_socios?.id_google_form) {
-        await this.googleService.eliminarArchivoDrive(proceso.formulario_socios.id_google_form);
+        await this.googleDriveService.eliminarArchivoDrive(proceso.formulario_socios.id_google_form);
       }
       const informes = proceso.informes_generados || [];
       for (const informe of informes) {
-        await this.googleService.eliminarArchivoDrive(informe.id_informe_drive);
+        await this.googleDriveService.eliminarArchivoDrive(informe.id_informe_drive);
       }
       this.eventEmitter.emit('proceso.eliminado', { procesoId: idProcesoStr });
       await this.procesosService.eliminarProcesoFisico(proceso.usuario_id, idProcesoStr);

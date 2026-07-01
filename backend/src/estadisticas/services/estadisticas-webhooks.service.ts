@@ -1,19 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { mongo } from 'mongoose';
 import { forms_v1 } from 'googleapis';
-import { GoogleService } from '../../google/google.service';
 import { EstadisticasParserService } from './estadisticas-parser.service';
 import { GoogleFormDiseno } from '../interfaces/diseno-google.interface';
 import { GoogleFormRespuesta } from '../interfaces/respuesta-google.interface';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 import { EstadisticasRepository } from '../estadisticas.repository';
 import { ProcesosService } from 'src/formularios/services/procesos.service';
+import { GoogleFormsService } from 'src/google/services/google-forms.service';
 
 @Injectable()
 export class EstadisticasWebhooksService {
   constructor(
     private readonly procesosService: ProcesosService,
-    private readonly googleService: GoogleService,
+    private readonly googleFormsService: GoogleFormsService,
     private readonly parserService: EstadisticasParserService,
     private readonly repositorio: EstadisticasRepository
   ) {}
@@ -35,7 +35,7 @@ export class EstadisticasWebhooksService {
       throw new NotFoundException('Formulario no encontrado en ningún proceso del sistema');
     }
 
-    const diseno = await this.googleService.obtenerDisenoFormulario(idFormulario);
+    const diseno = await this.googleFormsService.obtenerDisenoFormulario(idFormulario);
     const disenoAdaptado = this.adaptarDisenoGoogle(diseno);
     let totalGuardadasGlobal = 0;
 
@@ -51,7 +51,7 @@ export class EstadisticasWebhooksService {
         if (ultimaFecha) fechaFiltro = ultimaFecha;
       }
 
-      const listaRespuestas = await this.googleService.obtenerTodasLasRespuestas(idFormulario, fechaFiltro);
+      const listaRespuestas = await this.googleFormsService.obtenerTodasLasRespuestas(idFormulario, fechaFiltro);
       if (!listaRespuestas || listaRespuestas.length === 0) continue;
 
       const idsRespuestasGoogle = listaRespuestas.map(r => r.responseId!);

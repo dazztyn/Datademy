@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { GoogleService } from '../google/google.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProcesosRepository } from './repository/procesos.repository';
+import { GoogleDriveService } from 'src/google/services/google-drive.service';
 
 @Injectable()
 export class FormulariosWorkerService {
@@ -10,7 +10,7 @@ export class FormulariosWorkerService {
 
   constructor(
     private readonly procesosRepo: ProcesosRepository,
-    private readonly googleService: GoogleService,
+    private readonly googleDriveService: GoogleDriveService,
     private readonly eventEmitter: EventEmitter2
   ) {}
 
@@ -27,11 +27,11 @@ export class FormulariosWorkerService {
     for (const proceso of procesosPendientes) {
       try {
         if (proceso.formulario_socios && proceso.formulario_socios.id_google_form) {
-          await this.googleService.enviarArchivoAPapelera(proceso.formulario_socios.id_google_form);
+          await this.googleDriveService.enviarArchivoAPapelera(proceso.formulario_socios.id_google_form);
         }
         
         if (proceso.formulario_estudiantes && proceso.formulario_estudiantes.id_google_form) {
-          await this.googleService.enviarArchivoAPapelera(proceso.formulario_estudiantes.id_google_form);
+          await this.googleDriveService.enviarArchivoAPapelera(proceso.formulario_estudiantes.id_google_form);
         }
 
         this.eventEmitter.emit('proceso.eliminado', proceso._id.toString());
