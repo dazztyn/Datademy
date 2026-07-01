@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export function usePersistedState<T>(key: string, initialValue: T) {
   const [state, setState] = useState<T>(() => {
@@ -10,9 +10,22 @@ export function usePersistedState<T>(key: string, initialValue: T) {
     }
   })
 
-  useEffect(() => {
-    sessionStorage.setItem(key, JSON.stringify(state))
+  const prevKeyRef = useRef(key)
+
+   useEffect(() => {
+    if (prevKeyRef.current === key) {
+      sessionStorage.setItem(key, JSON.stringify(state))
+      return
+   }
+
+   prevKeyRef.current = key
+   try {
+    const stored = sessionStorage.getItem(key)
+    setState(stored ? JSON.parse(stored) : initialValue)
+   } catch {
+    setState(initialValue)
+   }
   }, [key, state])
 
-  return [state, setState] as const
-}
+   return [state, setState] as const
+ }

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useProceso } from '../../../context/ProcesoContext'
 import { useMetricas } from '../../../hooks/useMetricas'
+import { useCantidadPaginas } from '../../../hooks/useCantidadPaginas'
 import { configurarMetadatos } from '../../../services/formularios_service'
 import { useToast } from '../../../hooks/useToast'
 import Toast from '../../../components/Toast'
@@ -15,22 +16,45 @@ export default function CompletarDatos() {
   const { metricas: metricasEstudiantes } = useMetricas(idProceso, { tipo: 'estudiantes' })
   const { metricas: metricasSocios } = useMetricas(idProceso, { tipo: 'socios' })
 
+  const { datosPaginas: paginasEstudiantes } = useCantidadPaginas(idProceso, 'estudiantes')
+  const { datosPaginas: paginasSocios } = useCantidadPaginas(idProceso, 'socios')
+
+  const [countsGuardados, setCountsGuardados] = useState<{ estudiantes: number | null; socios: number | null }>({
+    estudiantes: null,
+    socios: null,
+  })
+  const idProcesoRef = useRef<string | null>(null)
+
   const [totalEstudiantes, setTotalEstudiantes] = usePersistedState(`completar_totalEstudiantes_${idProceso}`, '')
   const [constructosEstudiantes, setConstructosEstudiantes] = usePersistedState<string[]>(`completar_constructos_estudiantes_${idProceso}`, [])
   const [totalSocios, setTotalSocios] = usePersistedState(`completar_totalSocios_${idProceso}`, '')
   const [constructosSocios, setConstructosSocios] = usePersistedState<string[]>(`completar_constructos_socios_${idProceso}`, [])
+  
+  const desfaseEstudiantes =
+    countsGuardados.estudiantes != null &&
+    paginasEstudiantes != null &&
+    countsGuardados.estudiantes !== paginasEstudiantes.cantidad_constructos
+
+  const desfaseSocios =
+    countsGuardados.socios != null &&
+    paginasSocios != null &&
+    countsGuardados.socios !== paginasSocios.cantidad_constructos
+  
+  
   useEffect(() => {
     document.title = 'Datademy - Completar Datos'
     return () => { document.title = 'Datademy' }
   }, []) 
   useEffect(() => {
   if (!idProceso) return
+  idProcesoRef.current = idProceso
   fetch(`${import.meta.env.VITE_API_URL}/formularios/${idProceso}/metadatos`, {
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
   })
     .then(r => r.json())
     .then(data => {
+      if (idProcesoRef.current !== idProceso) return
       if (data.estan_completos) {
         const est = data.metadatos?.estudiantes
         const soc = data.metadatos?.socios
@@ -42,6 +66,12 @@ export default function CompletarDatos() {
           setTotalSocios(String(soc.total_esperados))
           setConstructosSocios(soc.nombres_constructos)
         }
+        setCountsGuardados({
+          estudiantes: est?.nombres_constructos.length ?? null,
+          socios: soc?.nombres_constructos.length ?? null,
+        })
+        } else {
+          setCountsGuardados({ estudiantes: null, socios: null })
       }
     })
     .catch(() => {})
@@ -112,7 +142,23 @@ export default function CompletarDatos() {
   
   return (
     <div className="space-y-6 w-full max-w-5xl mx-auto">
-      
+      {(desfaseEstudiantes || desfaseSocios) && (
+        <div className="rounded-2xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 flex items-start gap-3">
+          <div>
+           <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+              Los datos guardados podrían estar desactualizados
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+              {desfaseEstudiantes && desfaseSocios
+                ? 'La cantidad de constructos guardada para estudiantes y socios no coincide con la estructura actual de sus formularios. '
+                : desfaseEstudiantes
+                ? 'La cantidad de constructos guardada para estudiantes no coincide con la estructura actual del formulario. '
+                : 'La cantidad de constructos guardada para socios no coincide con la estructura actual del formulario. '}
+              Es posible que el formulario haya cambiado desde que se completaron estos datos. Revísalos y vuelve a guardar antes de generar el informe.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
         
         <div className={cardClass}>
