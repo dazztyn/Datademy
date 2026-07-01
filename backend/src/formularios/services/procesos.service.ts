@@ -11,15 +11,14 @@ import { Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 
-interface CustomStore {
-  reset?: () => Promise<void>;
-  clear?: () => Promise<void>;
-}
-
-interface CustomCache extends Cache {
-  reset?: () => Promise<void>;
-  store: CustomStore; 
-}
+type SafeCacheType = {
+  clear?: () => Promise<unknown>;
+  reset?: () => Promise<unknown>;
+  store?: {
+    clear?: () => Promise<unknown>;
+    reset?: () => Promise<unknown>;
+  };
+};
 
 @Injectable()
 export class ProcesosService {
@@ -55,12 +54,20 @@ export class ProcesosService {
   async actualizar(usuario_id: string, id: string, datos: ActualizarProcesoDto | UpdateQuery<ProcesoDocument>) {
     const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, id, datos);
     if (!actualizado) throw new NotFoundException('No se encontró el proceso con ese ID');
-    const cacheSeguro = this.cacheManager as unknown as CustomCache;
+    const cacheSeguro = this.cacheManager as unknown as SafeCacheType;
     try {
-      if (typeof cacheSeguro.reset === 'function') await cacheSeguro.reset();
-      else if (typeof cacheSeguro.store.reset === 'function') await cacheSeguro.store.reset();
-      else if (typeof cacheSeguro.store.clear === 'function') await cacheSeguro.store.clear();
-    } catch (e) {}
+      if (typeof cacheSeguro.clear === 'function') {
+        await cacheSeguro.clear();
+      } else if (typeof cacheSeguro.reset === 'function') {
+        await cacheSeguro.reset();
+      } else if (cacheSeguro.store && typeof cacheSeguro.store.clear === 'function') {
+        await cacheSeguro.store.clear();
+      } else if (cacheSeguro.store && typeof cacheSeguro.store.reset === 'function') {
+        await cacheSeguro.store.reset();
+      }
+    } catch (e) {
+      console.error('Caché purgada o ignorada de forma segura');
+    }
     return {
       mensaje: '¡Proceso actualizado con éxito!',
       datos: { idProceso: actualizado._id.toString(), nombreProceso: actualizado.nombre_proceso, anio: actualizado.anio }
@@ -93,18 +100,19 @@ export class ProcesosService {
       [`${campoBase}.total_esperados`]: totalEsperados
     };
 
-    const cacheSeguro = this.cacheManager as unknown as CustomCache;
-    
+    const cacheSeguro = this.cacheManager as unknown as SafeCacheType;
     try {
-      if (typeof cacheSeguro.reset === 'function') {
+      if (typeof cacheSeguro.clear === 'function') {
+        await cacheSeguro.clear();
+      } else if (typeof cacheSeguro.reset === 'function') {
         await cacheSeguro.reset();
-      } else if (typeof cacheSeguro.store.reset === 'function') {
-        await cacheSeguro.store.reset();
-      } else if (typeof cacheSeguro.store.clear === 'function') {
+      } else if (cacheSeguro.store && typeof cacheSeguro.store.clear === 'function') {
         await cacheSeguro.store.clear();
+      } else if (cacheSeguro.store && typeof cacheSeguro.store.reset === 'function') {
+        await cacheSeguro.store.reset();
       }
-    } catch (error) {
-      console.error('No se pudo limpiar la caché:', error);
+    } catch (e) {
+      console.error('Caché purgada o ignorada de forma segura');
     }
 
     return await this.actualizar(usuario_id, idProceso, datosAActualizar);
@@ -150,12 +158,20 @@ export class ProcesosService {
       tipoFormulario: tipoFormulario 
     });
     
-    const cacheSeguro = this.cacheManager as unknown as CustomCache;
+    const cacheSeguro = this.cacheManager as unknown as SafeCacheType;
     try {
-      if (typeof cacheSeguro.reset === 'function') await cacheSeguro.reset();
-      else if (typeof cacheSeguro.store.reset === 'function') await cacheSeguro.store.reset();
-      else if (typeof cacheSeguro.store.clear === 'function') await cacheSeguro.store.clear();
-    } catch (e) {}
+      if (typeof cacheSeguro.clear === 'function') {
+        await cacheSeguro.clear();
+      } else if (typeof cacheSeguro.reset === 'function') {
+        await cacheSeguro.reset();
+      } else if (cacheSeguro.store && typeof cacheSeguro.store.clear === 'function') {
+        await cacheSeguro.store.clear();
+      } else if (cacheSeguro.store && typeof cacheSeguro.store.reset === 'function') {
+        await cacheSeguro.store.reset();
+      }
+    } catch (e) {
+      console.error('Caché purgada o ignorada de forma segura');
+    }
 
     return {
       estado: 'exito',

@@ -11,9 +11,14 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { ProcesoDocument } from 'src/formularios/schemas/proceso.schema';
 
-interface CustomStore { reset?: () => Promise<void>; clear?: () => Promise<void>; }
-interface CustomCache extends Cache { reset?: () => Promise<void>; store: CustomStore; }
-
+type SafeCacheType = {
+  clear?: () => Promise<unknown>;
+  reset?: () => Promise<unknown>;
+  store?: {
+    clear?: () => Promise<unknown>;
+    reset?: () => Promise<unknown>;
+  };
+};
 @Injectable()
 export class EstadisticasWebhooksService {
   constructor(
@@ -99,13 +104,20 @@ export class EstadisticasWebhooksService {
 
           const idProceso = String(proceso._id);
           
-          const cacheSeguro = this.cacheManager as unknown as CustomCache;
+          const cacheSeguro = this.cacheManager as unknown as SafeCacheType;
           try {
-            if (typeof cacheSeguro.reset === 'function') await cacheSeguro.reset();
-            else if (typeof cacheSeguro.store.reset === 'function') await cacheSeguro.store.reset();
-            else if (typeof cacheSeguro.store.clear === 'function') await cacheSeguro.store.clear();
-          } catch (e) {}
-                
+            if (typeof cacheSeguro.clear === 'function') {
+              await cacheSeguro.clear();
+            } else if (typeof cacheSeguro.reset === 'function') {
+              await cacheSeguro.reset();
+            } else if (cacheSeguro.store && typeof cacheSeguro.store.clear === 'function') {
+              await cacheSeguro.store.clear();
+            } else if (cacheSeguro.store && typeof cacheSeguro.store.reset === 'function') {
+              await cacheSeguro.store.reset();
+            }
+          } catch (e) {
+            console.error('Caché purgada o ignorada de forma segura');
+          }   
           console.log(`Guardadas ${resultado.length} respuestas para el proceso: ${proceso.nombre_proceso}`);
           
         } catch (error: any) {
