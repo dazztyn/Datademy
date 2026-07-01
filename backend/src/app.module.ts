@@ -63,16 +63,20 @@ const getRedisConfig = () => {
       isGlobal: true,
       useFactory: async () => {
         const redisConf = getRedisConfig();
+        
+        const storeConfig = {
+          socket: {
+            host: redisConf.host,
+            port: redisConf.port,
+            tls: true,
+            rejectUnauthorized: false, 
+          },
+          password: redisConf.password,
+          ttl: 60 * 60 * 1000,
+        };
+
         return {
-          store: await redisStore({
-            socket: {
-              host: redisConf.host,
-              port: redisConf.port,
-              tls: redisConf.tls as any,
-            },
-            password: redisConf.password,
-            ttl: 60 * 60 * 1000, 
-          }),
+          store: await redisStore(storeConfig),
         };
       },
     }),
