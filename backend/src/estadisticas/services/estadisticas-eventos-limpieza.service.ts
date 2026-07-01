@@ -3,15 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { EstadisticasRepository } from '../estadisticas.repository';
 import { CACHE_MANAGER } from '@nestjs/cache-manager'; 
 import type { Cache } from 'cache-manager';
-
-type SafeCacheType = {
-  clear?: () => Promise<unknown>;
-  reset?: () => Promise<unknown>;
-  store?: {
-    clear?: () => Promise<unknown>;
-    reset?: () => Promise<unknown>;
-  };
-};
+import { SafeCacheType } from 'src/common/interfaces/safe-cache.interface';
 
 @Injectable()
 export class EstadisticasEventosLimpiezaService {

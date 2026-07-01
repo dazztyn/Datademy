@@ -10,15 +10,7 @@ import { OnEvent, EventEmitter2 } from '@nestjs/event-emitter';
 import { Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
-
-type SafeCacheType = {
-  clear?: () => Promise<unknown>;
-  reset?: () => Promise<unknown>;
-  store?: {
-    clear?: () => Promise<unknown>;
-    reset?: () => Promise<unknown>;
-  };
-};
+import { SafeCacheType } from 'src/common/interfaces/safe-cache.interface';
 
 @Injectable()
 export class ProcesosService {
