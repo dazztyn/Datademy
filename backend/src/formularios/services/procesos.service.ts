@@ -7,12 +7,26 @@ import { ProcesoDocument } from '../schemas/proceso.schema';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 import { InformeGenerado } from '../interfaces/informe-generado.interface';
 import { OnEvent, EventEmitter2 } from '@nestjs/event-emitter';
+import { Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
+
+interface CustomStore {
+  reset?: () => Promise<void>;
+  clear?: () => Promise<void>;
+}
+
+interface CustomCache extends Cache {
+  reset?: () => Promise<void>;
+  store: CustomStore; 
+}
 
 @Injectable()
 export class ProcesosService {
   constructor(
     private readonly procesosRepo: ProcesosRepository,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {}
 
   async obtenerTodosLosProcesos(usuario_id: string) {
@@ -72,6 +86,21 @@ export class ProcesosService {
       [`${campoBase}.nombres_constructos`]: nombresConstructos,
       [`${campoBase}.total_esperados`]: totalEsperados
     };
+
+    const cacheSeguro = this.cacheManager as unknown as CustomCache;
+    
+    try {
+      if (typeof cacheSeguro.reset === 'function') {
+        await cacheSeguro.reset();
+      } else if (typeof cacheSeguro.store.reset === 'function') {
+        await cacheSeguro.store.reset();
+      } else if (typeof cacheSeguro.store.clear === 'function') {
+        await cacheSeguro.store.clear();
+      }
+    } catch (error) {
+      console.error('No se pudo limpiar la caché:', error);
+    }
+    
     return await this.actualizar(usuario_id, idProceso, datosAActualizar);
   }
 
@@ -90,27 +119,6 @@ export class ProcesosService {
       }
     };
   }
-
-  // async obtenerMetadatosGuardados(usuario_id: string, idProceso: string) {
-  //   const proceso = await this.obtenerProcesoInterno(usuario_id, idProceso);
-  //   const est = proceso.formulario_estudiantes;
-  //   const soc = proceso.formulario_socios;
-
-  //   return {
-  //     estado: 'exito',
-  //     estan_completos: true, 
-  //     metadatos: {
-  //       estudiantes: { 
-  //         nombres_constructos: est?.nombres_constructos || [], 
-  //         total_esperados: est?.total_esperados || 0 
-  //       },
-  //       socios: { 
-  //         nombres_constructos: soc?.nombres_constructos || [], 
-  //         total_esperados: soc?.total_esperados || 0 
-  //       }
-  //     }
-  //   }
-  // }
 
   async desasignarFormulario(usuario_id: string, idProceso: string, tipoFormulario: TipoFormulario) {
     const campoBase = tipoFormulario === TipoFormulario.ESTUDIANTES 
