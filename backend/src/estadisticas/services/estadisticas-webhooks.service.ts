@@ -10,15 +10,8 @@ import { GoogleFormsService } from 'src/google/services/google-forms.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { ProcesoDocument } from 'src/formularios/schemas/proceso.schema';
+import { SafeCacheType } from 'src/common/interfaces/safe-cache.interface';
 
-type SafeCacheType = {
-  clear?: () => Promise<unknown>;
-  reset?: () => Promise<unknown>;
-  store?: {
-    clear?: () => Promise<unknown>;
-    reset?: () => Promise<unknown>;
-  };
-};
 @Injectable()
 export class EstadisticasWebhooksService {
   constructor(

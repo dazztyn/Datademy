@@ -8,13 +8,16 @@ import { ReportesDriveService } from './services/reportes-drive.service';
 import { ReportesConfigService } from './services/reportes-config.service';
 import { BullModule } from '@nestjs/bull';
 import { ReportesProcessor } from './reportes.processor';
-import { FormulariosModule } from 'src/formularios/formularios.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: ConfiguracionReportes.name, schema: ConfiguracionReportesSchema }]),
     BullModule.registerQueue({
       name: 'reportes', 
+      settings: {
+        stalledInterval: 0,
+        guardInterval: 0 
+      }
     })
   ],
   providers: [
