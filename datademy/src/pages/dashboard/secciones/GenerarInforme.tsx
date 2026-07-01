@@ -98,8 +98,8 @@ export default function GenerarInforme() {
   const tema = temasPagina[location.pathname] ?? temaDefault
 
   const pieRef = useRef<ChartJS<'pie'> | null>(null)
-  const barrasRefs = useRef<Record<number, ChartJS<"bar", number[], string> | null | undefined>>({})
-  const barrasSociosRefs = useRef<Record<number, ChartJS<"bar", number[], string> | null | undefined>>({})
+  const barrasRefs = useRef<Record<number, ChartJS<"bar", number[], string[]> | null | undefined>>({})
+  const barrasSociosRefs = useRef<Record<number, ChartJS<"bar", number[], string[]> | null | undefined>>({})
 
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, 'estudiantes')
 
