@@ -80,7 +80,7 @@ export default function Visualizar() {
           <button
             key={tipo}
             onClick={() => setTipoActivo(tipo)}
-            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all duration-200 capitalize
+            className={`flex-1 py-2 rounded-lg text-md font-medium transition-all duration-200 capitalize
               ${
                 tipoActivo === tipo
                   ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
@@ -93,9 +93,9 @@ export default function Visualizar() {
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
-        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-3">Filtros</h3>
+        <h3 className="text-lg ml-1 font-medium text-slate-600 dark:text-slate-300 mb-3">Filtros</h3>
          {(() => {
-  const selectClass = "w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+  const selectClass = "w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-md focus:outline-none focus:ring-2 focus:ring-blue-400"
   
   const fd = {
     carreras: filtrosDisponibles.carreras ?? [],
@@ -110,7 +110,7 @@ export default function Visualizar() {
   const filtrosActivos = [
     tipoActivo === 'estudiantes' && fd.carreras.length > 0 && (
       <div key="carrera">
-        <label className="text-xs text-slate-400 mb-1 block">Carrera</label>
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Carrera</label>
         <select onChange={e => setFiltros(f => ({ ...f, carrera: e.target.value || undefined }))} className={selectClass}>
           <option value="">Todas</option>
           {fd.carreras.map(c => <option key={c}>{c}</option>)}
@@ -119,7 +119,7 @@ export default function Visualizar() {
     ),
     tipoActivo === 'estudiantes' && fd.sedes.length > 0 && (
       <div key="sede">
-        <label className="text-xs text-slate-400 mb-1 block">Sede</label>
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Sede</label>
         <select onChange={e => setFiltros(f => ({ ...f, sede: e.target.value || undefined }))} className={selectClass}>
           <option value="">Todas</option>
           {fd.sedes.map(s => <option key={s}>{s}</option>)}
@@ -128,7 +128,7 @@ export default function Visualizar() {
     ),
     tipoActivo === 'estudiantes' && fd.generos.length > 0 && (
       <div key="genero_est">
-        <label className="text-xs text-slate-400 mb-1 block">Género</label>
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Género</label>
         <select onChange={e => setFiltros(f => ({ ...f, genero: e.target.value || undefined }))} className={selectClass}>
           <option value="">Todos</option>
           {fd.generos.map(g => <option key={g}>{g}</option>)}
@@ -137,7 +137,7 @@ export default function Visualizar() {
     ),
     tipoActivo === 'estudiantes' && fd.niveles_formativos.length > 0 && (
       <div key="nivel">
-        <label className="text-xs text-slate-400 mb-1 block">Nivel formativo</label>
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Nivel formativo</label>
         <select onChange={e => setFiltros(f => ({ ...f, nivel_formativo: e.target.value || undefined }))} className={selectClass}>
           <option value="">Todos</option>
           {fd.niveles_formativos.map(n => <option key={n}>{n}</option>)}
@@ -146,7 +146,7 @@ export default function Visualizar() {
     ),
     tipoActivo === 'estudiantes' && fd.asignaturas.length > 0 && (
       <div key="asignatura_est">
-        <label className="text-xs text-slate-400 mb-1 block">Asignatura</label>
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Asignatura</label>
         <select onChange={e => setFiltros(f => ({ ...f, asignatura: e.target.value || undefined }))} className={selectClass}>
           <option value="">Todas</option>
           {fd.asignaturas.map(n => <option key={n}>{n}</option>)}
@@ -155,7 +155,7 @@ export default function Visualizar() {
     ),
     tipoActivo === 'socios' && fd.organizaciones.length > 0 && (
       <div key="organizacion">
-        <label className="text-xs text-slate-400 mb-1 block">Organización</label>
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Organización</label>
         <select onChange={e => setFiltros(f => ({ ...f, organizacion: e.target.value || undefined }))} className={selectClass}>
           <option value="">Todas</option>
           {fd.organizaciones.map(o => <option key={o}>{o}</option>)}
@@ -164,7 +164,7 @@ export default function Visualizar() {
     ),
     tipoActivo === 'socios' && fd.generos.length > 0 && (
       <div key="genero_socios">
-        <label className="text-xs text-slate-400 mb-1 block">Género</label>
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Género</label>
         <select onChange={e => setFiltros(f => ({ ...f, genero: e.target.value || undefined }))} className={selectClass}>
           <option value="">Todos</option>
           {fd.generos.map(g => <option key={g}>{g}</option>)}
@@ -173,7 +173,7 @@ export default function Visualizar() {
     ),
     tipoActivo === 'socios' && fd.carreras.length > 0 && (
       <div key="asignatura_socios">
-        <label className="text-xs text-slate-400 mb-1 block">Asignatura</label>
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Asignatura</label>
         <select onChange={e => setFiltros(f => ({ ...f, asignatura: e.target.value || undefined }))} className={selectClass}>
           <option value="">Todas</option>
           {fd.carreras.map(o => <option key={o}>{o}</option>)}
@@ -182,7 +182,7 @@ export default function Visualizar() {
     ),
     tipoActivo === 'socios' && fd.asignaturas.length > 0 && (
       <div key="nivel_socios">
-        <label className="text-xs text-slate-400 mb-1 block">Nivel formativo</label>
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Nivel formativo</label>
         <select onChange={e => setFiltros(f => ({ ...f, nivel_formativo: e.target.value || undefined }))} className={selectClass}>
           <option value="">Todos</option>
           {fd.asignaturas.map(n => <option key={n}>{n}</option>)}
@@ -191,7 +191,7 @@ export default function Visualizar() {
     ),
         fd.nombres_constructos.length > 0 && (
       <div key="constructo">
-        <label className="text-xs text-slate-400 mb-1 block">
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">
           Constructo
         </label>
 
@@ -250,7 +250,7 @@ export default function Visualizar() {
           <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
             Sin resultados para este filtro
           </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500">
+          <p className="text-md text-slate-400 dark:text-slate-500">
             Prueba cambiando o quitando algún filtro para ver datos.
           </p>
         </div>
@@ -260,14 +260,14 @@ export default function Visualizar() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Total encuestados</p>
+              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">Total encuestados</p>
               <p className="text-4xl font-bold text-slate-800 dark:text-slate-100">
                 {metricas.total_encuestados}
               </p>
             </div>
 
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
+              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
                 Satisfacción general
               </p>
               <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
@@ -277,7 +277,7 @@ export default function Visualizar() {
             </div>
 
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
+              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
                 Promedio preguntas
               </p>
               <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
@@ -286,7 +286,7 @@ export default function Visualizar() {
             </div>
 
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Tasa de respuesta</p>
+              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">Tasa de respuesta</p>
               <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
                 {fmt(metricas.tasa_respuesta_porcentaje, 0)}%
               </p>
@@ -294,7 +294,7 @@ export default function Visualizar() {
 
             {datosGenero && (
               <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-                <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
+                <p className="text-sm text-slate-600 dark:text-slate-50 mb-2">
                   Distribución por género
                 </p>
                 <div className="w-full h-24">
@@ -363,7 +363,24 @@ export default function Visualizar() {
                 (metricas.promedios_por_pagina ?? []).find(
                   p => p.numero_pagina === constructo.numero_pagina
                 )?.promedio_constructo ?? 0
+                const preguntasConValor = preguntas.filter(p => p.promedio != null)
+                const masAlta = preguntasConValor.length
+                  ? preguntasConValor.reduce((max, p) =>
+                      (p.promedio as number) > (max.promedio as number) ? p : max
+                    )
+                  : null
+                const masBaja = preguntasConValor.length
+                  ? preguntasConValor.reduce((min, p) =>
+                      (p.promedio as number) < (min.promedio as number) ? p : min
+                    )
+                  : null
 
+                const clampStyle: React.CSSProperties = {
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }
               return (
                 <div
                   key={constructo.numero_pagina}
@@ -374,83 +391,141 @@ export default function Visualizar() {
                       {constructo.nombre_constructo ??
                         `Constructo — Página ${constructo.numero_pagina}`}
                     </h3>
-                    <span className="text-xs text-slate-400 dark:text-slate-500">
+                    <span className="text-md text-slate-400 dark:text-slate-500">
                       Promedio:{' '}
                       <strong style={{ color: tema.sidebar }}>
                         {fmt(promedio_constructo, 2)}
                       </strong>
                     </span>
                   </div>
+                   <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-3 flex flex-col justify-center">
+                      <p className="text-xs text-slate-400 mb-0.5">Promedio general</p>
+                      <p className="text-lg font-bold" style={{ color: tema.sidebar }}>
+                        {fmt(promedio_constructo, 2)}
+                      </p>
+                    </div>
 
-                  <div style={{ height: `${preguntas.length * 44 + 40}px` }}>
-                    <Bar
-                      key={`bar-${constructo.numero_pagina}-${theme}`}
-                      data={datosConstructo}
-                      options={{
-                        indexAxis: 'y',
-                        maintainAspectRatio: false,
-                        scales: {
-                          x: {
-                            min: 0,
-                            max: 4,
-                            ticks: { color: colorTexto },
-                            grid: { color: colorGrid },
-                          },
-                          y: {
-                            ticks: { color: colorTexto },
-                            grid: { color: colorGrid },
-                          },
-                        },
-                        plugins: {
-                          legend: { display: false },
-                          tooltip: {
-                            backgroundColor:
-                              theme === 'dark' ? tema.sidebar : 'white',
-                            titleColor:
-                              theme === 'dark' ? 'white' : tema.sidebar,
-                            bodyColor:
-                              theme === 'dark' ? 'white' : tema.sidebar,
-                            callbacks: {
-                              title: ctx =>
-                                preguntas[ctx[0].dataIndex]?.pregunta ?? '',
-                              label: ctx =>
-                                `Promedio: ${Number(ctx.raw).toFixed(2)}`,
-                            },
-                          },
-                        },
-                        animation: false,
-                      }}
-                      plugins={[
-                        {
-                          id: `labels-${constructo.numero_pagina}`,
-                          afterDatasetsDraw(chart) {
-                            const { ctx } = chart
-                            chart.data.datasets.forEach((_, datasetIndex) => {
-                              const meta = chart.getDatasetMeta(datasetIndex)
-                              meta.data.forEach((bar, index) => {
-                                const value = chart.data.datasets[datasetIndex]
-                                  .data[index] as number
-                                ctx.save()
-                                ctx.fillStyle = colorTexto
-                                ctx.font = 'bold 11px sans-serif'
-                                ctx.textAlign = 'left'
-                                ctx.textBaseline = 'middle'
-                                ctx.fillText(
-                                  value.toFixed(2),
-                                  bar.x + 6,
-                                  bar.y
-                                )
-                                ctx.restore()
-                              })
-                            })
-                          },
-                        },
-                      ]}
-                    />
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3">
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-1">
+                        Pregunta más alta
+                      </p>
+                      <p
+                        className="text-xs text-slate-600 dark:text-slate-300"
+                        style={clampStyle}
+                        title={masAlta?.pregunta ?? undefined}
+                      >
+                        {masAlta?.pregunta ?? '—'}
+                      </p>
+                      <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                        {fmt(masAlta?.promedio, 2)}
+                      </p>
+                    </div>
+
+                    <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-3">
+                      <p className="text-xs text-rose-600 dark:text-rose-400 mb-1">
+                        Pregunta más baja
+                      </p>
+                      <p
+                        className="text-xs text-slate-600 dark:text-slate-300"
+                        style={clampStyle}
+                        title={masBaja?.pregunta ?? undefined}
+                      >
+                        {masBaja?.pregunta ?? '—'}
+                      </p>
+                      <p className="text-sm font-bold text-rose-600 dark:text-rose-400 mt-1">
+                        {fmt(masBaja?.promedio, 2)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                  
+                 <div
+          className="flex gap-3"
+          style={{ height: `${preguntas.length * 44 + 40}px` }}
+        >
+          <div className="w-1/2 flex flex-col pr-2" style={{ paddingBottom: '40px' }}>
+            {preguntas.map((p, i) => (
+              <div
+                key={i}
+                className="flex items-center text-xs text-slate-600 dark:text-slate-300 leading-tight"
+                style={{ height: '44px', ...clampStyle }}
+                title={p.pregunta}
+              >
+                {p.pregunta}
+              </div>
+            ))}
+          </div>
+
+          <div className="w-1/2">
+            <Bar
+              key={`bar-${constructo.numero_pagina}-${theme}`}
+              data={datosConstructo}
+              options={{
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                scales: {
+                  x: {
+                    min: 0,
+                    max: 4,
+                    ticks: { color: colorTexto },
+                    grid: { color: colorGrid },
+                  },
+                  y: {
+                    ticks: { display: false },
+                    grid: { display: false },
+                  },
+                },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    backgroundColor:
+                      theme === 'dark' ? tema.sidebar : 'white',
+                    titleColor:
+                      theme === 'dark' ? 'white' : tema.sidebar,
+                    bodyColor:
+                      theme === 'dark' ? 'white' : tema.sidebar,
+                    callbacks: {
+                      title: ctx =>
+                        preguntas[ctx[0].dataIndex]?.pregunta ?? '',
+                      label: ctx =>
+                        `Promedio: ${Number(ctx.raw).toFixed(2)}`,
+                    },
+                  },
+                },
+                animation: false,
+              }}
+              plugins={[
+                {
+                  id: `labels-${constructo.numero_pagina}`,
+                  afterDatasetsDraw(chart) {
+                    const { ctx } = chart
+                    chart.data.datasets.forEach((_, datasetIndex) => {
+                      const meta = chart.getDatasetMeta(datasetIndex)
+                      meta.data.forEach((bar, index) => {
+                        const value = chart.data.datasets[datasetIndex]
+                          .data[index] as number
+                        ctx.save()
+                        ctx.fillStyle = colorTexto
+                        ctx.font = 'bold 11px sans-serif'
+                        ctx.textAlign = 'left'
+                        ctx.textBaseline = 'middle'
+                        ctx.fillText(
+                          value.toFixed(2),
+                          bar.x + 6,
+                          bar.y
+                        )
+                        ctx.restore()
+                      })
+                    })
+                  },
+                },
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  })}
         </>
       )}
     </div>

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { temasPagina, temaDefault } from '../utils/temasPagina'
 import { useProceso } from '../context/ProcesoContext'
-import { sincronizarManual } from '../services/estadisticos_service'
 import { useInforme } from '../context/InformeContext'
 import { useAuth } from '../context/AuthContext'
 
@@ -23,7 +22,8 @@ interface SidebarItem {
   ruta: string
 }
 interface SidebarProps {
-  onSincronizado?: () => void
+  sync?: boolean
+  onSincronizar?: () => void
 }
 
 const items: SidebarItem[] = [
@@ -32,9 +32,8 @@ const items: SidebarItem[] = [
   { icono: iconoCronbach, titulo: 'Alfa de Cronbach', ruta: '/detalles/cronbach' },
 ]
 
-export default function Sidebar({ onSincronizado }: SidebarProps) {
+export default function Sidebar({ sync = false, onSincronizar }: SidebarProps) {
   const [open, setOpen] = useState(false)
-  const [sync, setSync] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   
@@ -62,17 +61,9 @@ const handleCerrarSesion = async () => {
     ['/detalles/alumnos', '/detalles/socios', '/detalles/graficos', '/detalles/cronbach', '/detalles/informe'].includes(ruta)
 
   const handleRefresh = async () => {
-  if (!idProceso || sync) return
-  setSync(true)
-  try {
-    await sincronizarManual(idProceso)
-    onSincronizado?.() 
-  } catch (err) {
-    console.error("Error al sincronizar", err)
-  } finally {
-    setSync(false)
-  }
-}
+    if (!idProceso || sync) return
+      onSincronizar?.()
+      }
 
   const informeBloqueado = requiereMetadatos('/detalles/informe') && !metadatosCompletos
 
@@ -94,11 +85,11 @@ const handleCerrarSesion = async () => {
           <img
             src={iconoRefresh}
             alt="Refresh"
-            className={`w-5 h-5 object-contain flex-shrink-0 brightness-0 invert ${
+            className={`w-6 h-6 object-contain flex-shrink-0 brightness-0 invert ${
               sync ? 'animate-spin' : ''
             }`}
           />
-          <span className={`text-xs text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+          <span className={`text-md text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Sincronizar
           </span>
         </button>
@@ -112,9 +103,9 @@ const handleCerrarSesion = async () => {
           <img
             src={iconoCompletar}
             alt="Completar datos"
-            className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
+            className="w-6 h-6 object-contain flex-shrink-0 brightness-0 invert"
           />
-          <span className={`text-xs font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+          <span className={`text-md font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Completar datos
           </span>
         </button>
@@ -138,17 +129,17 @@ const handleCerrarSesion = async () => {
                 ${activo ? 'bg-white/20 font-semibold' : ''}
                 ${bloqueado ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10'}`}
             >
-              <span className="relative flex-shrink-0 w-5 h-5 flex items-center justify-center">
+              <span className="relative flex-shrink-0 w-6 h-6 flex items-center justify-center">
                 <img
                   src={bloqueado ? iconoLock : item.icono}
                   alt={item.titulo}
-                  className="w-5 h-5 object-contain brightness-0 invert"
+                  className="w-6 h-6 object-contain brightness-0 invert"
                 />
                 {verificandoMetadatos && requiereMetadatos(item.ruta) && (
                   <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-white/40 animate-pulse" />
                 )}
               </span>
-              <span className={`text-sm font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+              <span className={`text-md font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
                 {item.titulo}
               </span>
             </button>
@@ -158,39 +149,59 @@ const handleCerrarSesion = async () => {
 
       <div className="px-3 flex flex-col gap-2 mt-4">
         <button
-          disabled={informeBloqueado}
-          onClick={() => { if (!informeBloqueado) navigate('/detalles/informe') }}
-          title={informeBloqueado ? 'Completa los metadatos primero' : undefined}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white transition-all overflow-hidden w-full
-            ${informeBloqueado ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
+  disabled={informeBloqueado}
+  onClick={() => { if (!informeBloqueado) navigate('/detalles/informe') }}
+  title={informeBloqueado ? 'Completa los metadatos primero' : undefined}
+  className={`flex items-center flex-nowrap gap-3 px-3 py-2.5 rounded-xl bg-white transition-all w-full
+    ${informeBloqueado ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
+>
+  
+  <span className="relative flex-shrink-0 flex items-center justify-center w-6 h-6">
+    {informeBloqueado ? (
+      <img
+        src={iconoLock}
+        alt="Bloqueado"
+        className="w-4 h-4 object-contain"
+      />
+    ) : (
+      <>
+        <span
+          className={`text-xl font-bold transition-all duration-300 ${
+            estadoJob === 'procesando' ? 'animate-pulse' : ''
+          }`}
+          style={{
+            color:
+              estadoJob === 'completado'
+                ? '#22c55e'
+                : temaBarra.sidebar
+          }}
         >
-          <span className="relative flex-shrink-0 flex items-center justify-center w-5 h-5">
-            {informeBloqueado ? (
-              <img src={iconoLock} alt="Bloqueado" className="w-4 h-4 object-contain" />
-            ) : (
-              <>
-                <span
-                  className={`text-base font-bold transition-all duration-300 ${estadoJob === 'procesando' ? 'animate-pulse' : ''}`}
-                  style={{ color: estadoJob === 'completado' ? '#22c55e' : temaBarra.sidebar }}
-                >
-                  π
-                </span>
-                {estadoJob === 'procesando' && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
-                )}
-                {estadoJob === 'completado' && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full" />
-                )}
-              </>
-            )}
-          </span>
-          <span
-            className={`text-xs font-semibold whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}
-            style={{ color: temaBarra.sidebar }}
-          >
-            Generar informe
-          </span>
-        </button>
+          π
+        </span>
+
+        {estadoJob === 'procesando' && (
+          <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+        )}
+
+        {estadoJob === 'completado' && (
+          <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full" />
+        )}
+      </>
+    )}
+  </span>
+
+  <p
+    className={`text-md font-semibold whitespace-nowrap transition-all duration-300 ${
+      open
+        ? 'opacity-100 max-w-xs'
+        : 'opacity-0 max-w-0'
+    }`}
+    style={{ color: temaBarra.sidebar }}
+  >
+    Generar informe
+  </p>
+
+</button>
         <button
           disabled={informeBloqueado}
           onClick={() => { if (!informeBloqueado) navigate('/detalles/listar-informes') }}
@@ -201,9 +212,9 @@ const handleCerrarSesion = async () => {
           <img
             src={informeBloqueado ? iconoLock : iconoInformes}
             alt="Listar informes"
-            className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert"
+            className="w-6 h-6 object-contain flex-shrink-0 brightness-0 invert"
           />
-          <span className={`text-xs text-white font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+          <span className={`text-md text-white font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Informes Creados
           </span>
         </button>
@@ -212,8 +223,8 @@ const handleCerrarSesion = async () => {
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
         >
-          <img src={iconoVolver} alt="Volver al dashboard" className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert" />
-          <span className={`transition-all duration-300 overflow-hidden text-xs text-white whitespace-nowrap ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+          <img src={iconoVolver} alt="Volver al dashboard" className="w-6 h-6 object-contain flex-shrink-0 brightness-0 invert" />
+          <span className={`transition-all duration-300 overflow-hidden text-md text-white whitespace-nowrap ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Volver
           </span>
         </button>
@@ -222,8 +233,8 @@ const handleCerrarSesion = async () => {
           title="Cerrar sesión"
           className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/20 transition-colors w-full"
         >
-          <img src={iconoLogout} alt="Cerrar sesión" className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert" />
-          <span className={`transition-all duration-300 overflow-hidden text-xs text-white whitespace-nowrap ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+          <img src={iconoLogout} alt="Cerrar sesión" className="w-6 h-6 object-contain flex-shrink-0 brightness-0 invert" />
+          <span className={`transition-all duration-300 overflow-hidden text-md text-white whitespace-nowrap ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
             Cerrar sesión
           </span>
         </button>

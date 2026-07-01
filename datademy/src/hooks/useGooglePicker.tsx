@@ -53,7 +53,7 @@ export function useGooglePicker({ onSeleccionada, modo = 'carpeta' }: PickerOpti
   const abrirPickerDirecto = useCallback((tokenActual: string) => {
     try {
       let view
-
+      
       if (modo === 'formulario') {
         view = new window.google.picker.DocsView()
           .setMimeTypes('application/vnd.google-apps.form')
@@ -80,8 +80,13 @@ export function useGooglePicker({ onSeleccionada, modo = 'carpeta' }: PickerOpti
           }
         })
         .build()
+        const scrollX = window.scrollX
+        const scrollY = window.scrollY
+        const restaurarScroll = () => window.scrollTo(scrollX, scrollY)
+        window.addEventListener('scroll', restaurarScroll, { once: true })
 
-      picker.setVisible(true)
+        picker.setVisible(true)
+
     } catch (err) {
       console.error('Error interno al inicializar Google Picker:', err)
     }

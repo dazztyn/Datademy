@@ -107,7 +107,7 @@ export default function CompletarDatos() {
   }
 
   const inputClass = "w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-  const labelClass = "text-xs text-slate-500 dark:text-slate-400 mb-1 block font-medium"
+  const labelClass = "text-md ml-1 text-slate-800 dark:text-slate-400 mb-1 block font-medium"
   const cardClass = "bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 space-y-4 flex flex-col h-full"
   
   return (
@@ -116,7 +116,7 @@ export default function CompletarDatos() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
         
         <div className={cardClass}>
-          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 pb-2 capitalize">
+          <h3 className="text-lg ml-1 font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 pb-2 capitalize">
             Datos Estudiantes
           </h3>
           
@@ -140,7 +140,7 @@ export default function CompletarDatos() {
                 <div className="flex flex-col gap-4 flex-grow justify-start py-1">
                   {constructosEstudiantes.map((nombre, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 w-20 flex-shrink-0">
+                      <span className="text-sm ml-1 text-slate-600 dark:text-slate-400 w-20 flex-shrink-0">
                         Constructo {i + 1}
                       </span>
                       <input
@@ -166,7 +166,7 @@ export default function CompletarDatos() {
           </div>
         </div>
         <div className={cardClass}>
-          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 pb-2 capitalize">
+          <h3 className="text-lg ml-1 font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 pb-2 capitalize">
             Datos Socios Comunitarios
           </h3>
           
@@ -189,7 +189,7 @@ export default function CompletarDatos() {
                 <div className="flex flex-col gap-4 flex-grow justify-start py-1">
                   {constructosSocios.map((nombre, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500 w-20 flex-shrink-0">
+                      <span className="text-sm ml-1 text-slate-600 dark:text-slate-300 w-20 flex-shrink-0">
                         Constructo {i + 1}
                       </span>
                       <input
@@ -221,7 +221,7 @@ export default function CompletarDatos() {
         <button
           onClick={handleGuardar}
           disabled={guardando || !metricasEstudiantes || !metricasSocios}
-          className="w-full py-3.5 rounded-xl text-white text-sm font-semibold transition-all disabled:opacity-60 shadow-md hover:opacity-95"
+          className="w-full py-3.5 rounded-xl text-white text-2xl font-semibold transition-all disabled:opacity-60 shadow-md hover:opacity-95"
           style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
         >
           {guardando ? 'Guardando todo...' : 'Guardar todo'}

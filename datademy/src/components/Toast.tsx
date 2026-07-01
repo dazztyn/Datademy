@@ -31,7 +31,7 @@ const estilos = {
 
   return (
     <div 
-      className={`fixed bottom-16 right-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl shadow-slate-900/10 border text-white text-sm font-medium transition-all duration-300 animate-fade-in-up ${estilos[tipo]}`}
+      className={`fixed bottom-16 right-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl shadow-slate-900/10 border text-white text-lg font-medium transition-all duration-300 animate-fade-in-up ${estilos[tipo]}`}
     >
       <div className="flex-shrink-0">
         {iconos[tipo]}

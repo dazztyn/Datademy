@@ -26,7 +26,7 @@ export default function CerrarSesionBtn() {
     <>
       <button
         onClick={() => setMostrarModal(true)}
-        className="fixed bottom-5 left-5 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md rounded-full px-4 py-2 text-sm text-red-400 hover:text-red-500 dark:text-red-400 hover:shadow-lg transition-all"
+        className="fixed hover:underline bottom-5 left-5 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md rounded-full px-4 py-2 text-xl text-red-400 hover:text-red-500 dark:text-red-400 hover:shadow-lg transition-all"
       >
         Cerrar sesión
       </button>

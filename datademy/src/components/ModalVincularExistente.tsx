@@ -58,11 +58,11 @@ export default function ModalVincularExistente({
         className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6"
         onClick={e => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-1">
+        <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-1">
           Vincular formulario existente
         </h2>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">
-          Tipo: <span className="font-medium text-slate-500 dark:text-slate-300">{labelTipo}</span>
+        <p className="text-md text-slate-500 dark:text-slate-500 mb-4">
+          Tipo: <span className="font-medium text-slate-600 dark:text-slate-300">{labelTipo}</span>
         </p>
 
         <div
@@ -82,10 +82,10 @@ export default function ModalVincularExistente({
             </div>
           ) : (
             <div>
-              <p className="text-sm text-slate-400 dark:text-slate-500">
+              <p className="text-md text-slate-500 dark:text-slate-500">
                 Seleccionar formulario de Google Drive
               </p>
-              <p className="text-xs text-slate-300 dark:text-slate-600 mt-1">
+              <p className="text-sm text-slate-400 dark:text-slate-600 mt-1">
                 Se abrirá el selector de Google
               </p>
             </div>
@@ -94,14 +94,14 @@ export default function ModalVincularExistente({
         <div className="flex gap-2">
           <button
             onClick={onCerrar}
-            className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleVincular}
             disabled={guardando || !idSeleccionado}
-            className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium transition-all disabled:opacity-60 hover:opacity-95 bg-gradient-to-r from-[#5fb7bb] to-[#0d438b] shadow-md shadow-blue-900/10"
+            className="flex-1 py-2.5 rounded-xl text-white text-md font-medium transition-all disabled:opacity-60 hover:opacity-95 bg-gradient-to-r from-[#5fb7bb] to-[#0d438b] shadow-md shadow-blue-900/10"
           >
             {guardando ? 'Vinculando...' : 'Vincular'}
           </button>

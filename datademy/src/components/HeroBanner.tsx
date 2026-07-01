@@ -15,14 +15,14 @@ export default function HeroBanner({ nombre }: HeroBannerProps) {
         <img
           src={logoDidec}
           alt="Logo DIDEC"
-          className="h-16 w-24 object-contain transition-all duration-300 cursor-pointer brightness-0 invert hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+          className="h-24 w-36 object-contain transition-all duration-300 cursor-pointer brightness-0 invert hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
         />
 
         <div className="flex flex-col items-center text-center">
           <h1 className="text-3xl font-semibold text-white">
             Bienvenid@ <span className="text-white/70">{nombre}</span>
           </h1>
-          <p className="text-white/60 text-sm">
+          <p className="text-white/60 text-lg mt-1">
             Por favor seleccione un formulario para proceder
           </p>
         </div>
@@ -30,7 +30,7 @@ export default function HeroBanner({ nombre }: HeroBannerProps) {
         <img
           src={logoAs}
           alt="Logo A+S"
-          className="h-16 w-24 object-contain transition-all duration-300 cursor-pointer brightness-0 invert hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+          className="h-24 w-36 object-contain transition-all duration-300 cursor-pointer brightness-0 invert hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
         />
       </div>
       <svg

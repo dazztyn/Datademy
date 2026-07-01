@@ -45,14 +45,17 @@ export function InformeProvider({ children }: { children: React.ReactNode }) {
 
         if (data.estado === 'completado') {
           clearInterval(intervaloRef.current!)
+          intervaloRef.current = null
           setEstadoJob('completado')
           setUrlInforme(data.resultado.url_informe)
         } else if (data.estado === 'error') {
           clearInterval(intervaloRef.current!)
+          intervaloRef.current = null
           setEstadoJob('error')
         }
       } catch {
         clearInterval(intervaloRef.current!)
+        intervaloRef.current = null
         setEstadoJob('error')
       }
     }, 3000)
