@@ -15,8 +15,8 @@ import { ReportesProcessor } from './reportes.processor';
     BullModule.registerQueue({
       name: 'reportes', 
       settings: {
-        stalledInterval: 0,
-        guardInterval: 0 
+        stalledInterval: 86400000, 
+        guardInterval: 86400000
       }
     })
   ],
