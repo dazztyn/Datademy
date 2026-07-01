@@ -72,7 +72,7 @@ const getRedisConfig = () => {
             rejectUnauthorized: false, 
           },
           password: redisConf.password,
-          ttl: 60 * 60 * 1000,
+          ttl: 86400000,
         };
 
         return {

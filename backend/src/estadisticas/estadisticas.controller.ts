@@ -22,7 +22,7 @@ export class EstadisticasController {
 
   @Get('comparativa-global')
   @UseInterceptors(CacheInterceptor)
-  @CacheTTL(15 * 60 * 1000)
+  @CacheTTL(86400000)
   async obtenerComparativaGlobal(
     @Req() req: RequestConUsuario,
     @Query('procesos') procesosUrl: string,
@@ -56,7 +56,7 @@ export class EstadisticasController {
 
   @Get(':idProceso/metricas')
   @UseInterceptors(CacheInterceptor)
-  @CacheTTL(30 * 60 * 1000)
+  @CacheTTL(86400000)
   async obtenerMetricasFrontend(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
@@ -75,7 +75,7 @@ export class EstadisticasController {
 
   @Get(':idProceso/filtros-disponibles')
   @UseInterceptors(CacheInterceptor)
-  @CacheTTL(60 * 60 * 1000)
+  @CacheTTL(86400000)
   async obtenerOpcionesFiltros(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
