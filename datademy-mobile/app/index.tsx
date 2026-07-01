@@ -68,7 +68,7 @@ export default function HomeScreen() {
         {!cargando && !error && formularios.length === 0 && (
           <View className="bg-slate-800 rounded-2xl border border-slate-700 p-8 items-center">
             <Text className="text-slate-500 text-sm text-center">
-              Todavía no hay procesos creados. Creá uno desde la web para verlo acá.
+              Todavía no hay procesos creados. Crea uno desde la web Datademy para verlo acá.
             </Text>
           </View>
         )}

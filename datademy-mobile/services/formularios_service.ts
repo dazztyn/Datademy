@@ -78,3 +78,20 @@ export async function configurarCarpetaDestino(idCarpeta: string): Promise<void>
   })
   if (!response.ok) throw new Error('Error al configurar carpeta destino')
 }
+
+export interface InformeGenerado {
+  id_informe_drive: string;
+  nombre_informe: string;
+  url_descarga: string;
+  url_edicion: string;
+  fecha_generacion: string;
+}
+
+export async function obtenerInformes(idProceso: string): Promise<InformeGenerado[]> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/informes`, {
+    headers: await getHeaders(),
+  });
+  if (!response.ok) throw new Error('Error al obtener los informes generados');
+  const data = await response.json();
+  return data.informes || [];
+}
