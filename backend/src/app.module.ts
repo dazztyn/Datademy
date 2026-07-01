@@ -1,8 +1,6 @@
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { FormulariosModule } from './formularios/formularios.module';
 import { GoogleModule } from './google/google.module';
@@ -11,7 +9,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { EstadisticasModule } from './estadisticas/estadisticas.module';
 import { ReportesModule } from './reportes/reportes.module';
-import * as express from 'express';
+import { BullModule } from '@nestjs/bull';
+import { DatabaseModule } from './database/database.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { HealthController } from './health.controller';
+import { CsrfGuard } from './common/guards/csrf.guard';
 
 @Module({
   imports: 
@@ -22,33 +24,36 @@ import * as express from 'express';
       ttl: 60000,
       limit: 100, 
     }]),
+    EventEmitterModule.forRoot(),
     UsuariosModule, 
+    DatabaseModule,
     FormulariosModule, 
     GoogleModule, 
     AuthModule, 
     EstadisticasModule, 
-    ReportesModule
+    ReportesModule,
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+        password: process.env.REDIS_PASSWORD || undefined,
+        tls: process.env.NODE_ENV === 'production' ? {} : undefined,
+      },
+    }),
   ],
-  controllers: [AppController],
+  controllers: 
+  [
+    HealthController,
+  ],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    {
+      provide: APP_GUARD,
+      useClass: CsrfGuard,
+    },
   ],
 })
-export class AppModule implements NestModule 
-{
-  configure(consumer: MiddlewareConsumer) 
-  {
-    consumer
-      .apply(express.json({ limit: '10mb' }), express.urlencoded({ limit: '10mb', extended: true }))
-      .forRoutes('reportes/generar');
-
-    consumer
-      .apply(express.json({ limit: '2mb' }), express.urlencoded({ limit: '2mb', extended: true }))
-      .exclude('reportes/generar') 
-      .forRoutes('*'); 
-  }
-}
+export class AppModule{}

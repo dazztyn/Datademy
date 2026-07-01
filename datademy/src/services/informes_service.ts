@@ -18,3 +18,4 @@ export async function configurarReportes(config: {
   })
   if (!response.ok) throw new Error('Error al configurar reportes')
 }
+

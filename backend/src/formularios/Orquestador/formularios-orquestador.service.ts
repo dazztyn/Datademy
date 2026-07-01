@@ -1,17 +1,22 @@
 
 import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
-import { FormulariosService } from '../formularios.service';
 import { GoogleService } from 'src/google/google.service';
-import { InjectConnection } from '@nestjs/mongoose'; 
-import { Connection } from 'mongoose';
+import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
+import { ProcesosService } from '../services/procesos.service';
+import { PlantillasService } from '../services/plantillas.service';
+import { ConfiguracionesService } from '../services/configuraciones.service';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import type { ProcesoDocument } from '../schemas/proceso.schema';
 
 
 @Injectable()
 export class FormulariosOrquestadorService {
   constructor(
-    private readonly formulariosService: FormulariosService,
+    private readonly procesosService: ProcesosService,
+    private readonly plantillasService: PlantillasService,
+    private readonly configuracionesService: ConfiguracionesService,
     private readonly googleService: GoogleService,
-    @InjectConnection() private readonly connection: Connection
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async crearYVincularFormulario(
@@ -19,11 +24,11 @@ export class FormulariosOrquestadorService {
     idProceso: string,
     idPlantilla: string,
     nombreNuevoFormulario: string,
-    tipoFormulario: 'socios' | 'estudiantes'
+    tipoFormulario: TipoFormulario
   ) 
   {
 
-    const idCarpetaDestino = await this.formulariosService.obtenerCarpetaDestino(usuario_id);
+    const idCarpetaDestino = await this.configuracionesService.obtenerCarpetaDestino(usuario_id);
     const resultadoCopia = await this.googleService.copiarPlantillaYGuardar(
       idPlantilla,
       nombreNuevoFormulario,
@@ -44,14 +49,18 @@ export class FormulariosOrquestadorService {
 
     const campoBase = `formulario_${tipoFormulario}`; 
     const datosAActualizar = {
-      [`${campoBase}.id_google_form`]: nuevoFormId,
-      [`${campoBase}.nombre_formulario`]: nombreNuevoFormulario,
-      [`${campoBase}.id_carpeta_drive`]: idCarpetaDestino,
-      [`${campoBase}.url_edicion`]: urlEdicionGenerada,
-      [`${campoBase}.url_respuesta`]: urlRespuestaGenerada
+      [campoBase]: {
+        id_google_form: nuevoFormId,
+        nombre_formulario: nombreNuevoFormulario, 
+        id_carpeta_drive: idCarpetaDestino, 
+        url_edicion: `https://docs.google.com/forms/d/${nuevoFormId}/edit`,
+        url_respuesta: `https://docs.google.com/forms/d/${nuevoFormId}/viewform`,
+        nombres_constructos: [],
+        total_esperados: 0
+      }
     };
 
-    const resultadoActualizacion = await this.formulariosService.actualizar(usuario_id, idProceso, datosAActualizar);
+    const resultadoActualizacion = await this.procesosService.actualizar(usuario_id, idProceso, datosAActualizar);
 
     return {
       estado: 'exito',
@@ -70,7 +79,7 @@ export class FormulariosOrquestadorService {
     {
       const archivosEnDrive = await this.googleService.listarPlantillas(idCarpeta);
 
-      const plantillasGuardadas = await this.formulariosService.guardarPlantillasEnCache(usuario_id, archivosEnDrive);
+      const plantillasGuardadas = await this.plantillasService.guardarPlantillasEnCache(usuario_id, archivosEnDrive);
 
       return {
         estado: 'exito',
@@ -85,17 +94,12 @@ export class FormulariosOrquestadorService {
 
   async eliminarProcesoCompleto(usuario_id: string, idProceso: string) 
   {
-    await this.formulariosService.actualizar(
-      usuario_id, 
-      idProceso, 
-      { 
-        estado: 'borrado_pendiente' 
-      }
-    );
-
-    return {
-      estado: 'exito',
-      mensaje: 'El proceso ha sido marcado para eliminación. Se procesará en segundo plano.',
+    await this.procesosService.actualizar(usuario_id, idProceso, { estado: 'borrado_pendiente' });
+    const proceso = await this.procesosService.obtenerProcesoInterno(usuario_id, idProceso);
+    this.eventEmitter.emit('proceso.iniciar_destruccion', proceso);
+    return { 
+      estado: 'exito', 
+      mensaje: 'El proceso se ha ocultado y se está eliminando de forma segura en segundo plano.',
       idProceso: idProceso
     };
   }
@@ -104,7 +108,7 @@ export class FormulariosOrquestadorService {
     usuario_id: string,
     idProceso: string,
     idFormularioExistente: string,
-    tipoFormulario: 'socios' | 'estudiantes'
+    tipoFormulario: TipoFormulario
   ) {
     try {
       const diseno = await this.googleService.obtenerDisenoFormulario(idFormularioExistente);
@@ -114,14 +118,18 @@ export class FormulariosOrquestadorService {
       const urlRespuesta = `https://docs.google.com/forms/d/${idFormularioExistente}/viewform`;
       const campoBase = `formulario_${tipoFormulario}`;
       const datosAActualizar = {
-        [`${campoBase}.id_google_form`]: idFormularioExistente,
-        [`${campoBase}.nombre_formulario`]: nombreFormulario,
-        [`${campoBase}.id_carpeta_drive`]: 'importado_externamente', 
-        [`${campoBase}.url_edicion`]: urlEdicion,
-        [`${campoBase}.url_respuesta`]: urlRespuesta
-      };
+      [campoBase]: {
+        id_google_form: idFormularioExistente,
+        nombre_formulario: nombreFormulario, 
+        id_carpeta_drive: 'exportado_externamente',
+        url_edicion: `https://docs.google.com/forms/d/${idFormularioExistente}/edit`,
+        url_respuesta: `https://docs.google.com/forms/d/${idFormularioExistente}/viewform`,
+        nombres_constructos: [],
+        total_esperados: 0
+      }
+    };
 
-      const resultadoActualizacion = await this.formulariosService.actualizar(usuario_id, idProceso, datosAActualizar);
+      const resultadoActualizacion = await this.procesosService.actualizar(usuario_id, idProceso, datosAActualizar);
 
       return {
         estado: 'exito',
@@ -138,10 +146,10 @@ export class FormulariosOrquestadorService {
     }
   }
 
-  async obtenerCantidadConstructos(usuario_id: string, idProceso: string, tipoFormulario: 'estudiantes' | 'socios') 
+  async obtenerCantidadConstructos(usuario_id: string, idProceso: string, tipoFormulario: TipoFormulario) 
   {
-    const proceso = await this.formulariosService.obtenerProcesoInterno(usuario_id, idProceso);
-    const configFormulario = tipoFormulario === 'estudiantes' ? proceso.formulario_estudiantes : proceso.formulario_socios;
+    const proceso = await this.procesosService.obtenerProcesoInterno(usuario_id, idProceso);
+    const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
 
     if (!configFormulario || !configFormulario.id_google_form) {
       throw new BadRequestException(`El formulario de ${tipoFormulario} aún no ha sido vinculado a este proceso.`);
@@ -164,6 +172,43 @@ export class FormulariosOrquestadorService {
       cantidad_paginas_total: cantidadPaginas,
       cantidad_constructos: cantidadConstructos
     };
+  }
+
+  async eliminarInformeCompleto(usuario_id: string, idProceso: string, idInformeDrive: string) 
+  {
+    await this.googleService.eliminarArchivoDrive(idInformeDrive);    
+    await this.procesosService.eliminarInformeDeProceso(usuario_id, idProceso, idInformeDrive);
+    
+    return {
+      estado: 'exito',
+      mensaje: 'Informe eliminado correctamente de Google Drive y del sistema.',
+      idEliminado: idInformeDrive
+    };
+  }
+
+  @OnEvent('proceso.iniciar_destruccion')
+  async ejecutarDestruccionEnSegundoPlano(proceso: ProcesoDocument) {
+    console.log(`[Background] Iniciando destrucción total del proceso ${proceso._id}...`);
+    
+    try {
+      const idProcesoStr = String(proceso._id);
+      if (proceso.formulario_estudiantes?.id_google_form) {
+        await this.googleService.eliminarArchivoDrive(proceso.formulario_estudiantes.id_google_form);
+      }
+      if (proceso.formulario_socios?.id_google_form) {
+        await this.googleService.eliminarArchivoDrive(proceso.formulario_socios.id_google_form);
+      }
+      const informes = proceso.informes_generados || [];
+      for (const informe of informes) {
+        await this.googleService.eliminarArchivoDrive(informe.id_informe_drive);
+      }
+      this.eventEmitter.emit('proceso.eliminado', { procesoId: idProcesoStr });
+      await this.procesosService.eliminarProcesoFisico(proceso.usuario_id, idProcesoStr);
+      
+      console.log(`[Background] Destrucción completada. Proceso ${idProcesoStr} erradicado.`);
+    } catch (error) {
+      console.error(`[Background] Error durante la destrucción del proceso ${proceso._id}:`, error);
+    }
   }
 
 }

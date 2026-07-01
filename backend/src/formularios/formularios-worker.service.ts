@@ -1,22 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Proceso, ProcesoDocument } from './schemas/proceso.schema';
 import { GoogleService } from '../google/google.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ProcesosRepository } from './repository/procesos.repository';
 
 @Injectable()
 export class FormulariosWorkerService {
   private readonly logger = new Logger(FormulariosWorkerService.name);
 
   constructor(
-    @InjectModel(Proceso.name) private procesoModelo: Model<ProcesoDocument>,
-    private readonly googleService: GoogleService
+    private readonly procesosRepo: ProcesosRepository,
+    private readonly googleService: GoogleService,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   @Cron(CronExpression.EVERY_5_MINUTES)
   async procesarEliminacionesPendientes() {
-    const procesosPendientes = await this.procesoModelo.find({ estado: 'borrado_pendiente' }).exec();
+    const procesosPendientes = await this.procesosRepo.encontrarProcesosPendientesDeBorrado();
 
     if (procesosPendientes.length === 0) {
       return; 
@@ -34,8 +34,10 @@ export class FormulariosWorkerService {
           await this.googleService.enviarArchivoAPapelera(proceso.formulario_estudiantes.id_google_form);
         }
 
-        await this.procesoModelo.findByIdAndDelete(proceso._id).exec();
-        
+        this.eventEmitter.emit('proceso.eliminado', proceso._id.toString());
+
+        await this.procesosRepo.eliminarProceso(proceso._id.toString());
+
         this.logger.log(`Proceso "${proceso.nombre_proceso}" eliminado exitosamente de Drive y MongoDB.`);
 
       } catch (error) 

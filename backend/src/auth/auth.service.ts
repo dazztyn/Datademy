@@ -10,26 +10,20 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validarUsuarioGoogle(perfilGoogle: PerfilGoogle) {
+  async validarUsuarioGoogle(perfilGoogle: PerfilGoogle) 
+  {
     const { correo, nombre, avatarUrl, googleId } = perfilGoogle;
 
     let usuario = await this.usuariosService.buscarPorCorreo(correo);
 
     if (!usuario) {
-      const esDominioValido = correo.endsWith('@ucn.cl') || correo.endsWith('@alumnos.ucn.cl');
-
-      if (esDominioValido) {
-        console.log('Creando nuevo usuario institucional automáticamente...');
-        usuario = await this.usuariosService.crearUsuarioAutomatico(perfilGoogle);
-      } else {
-        throw new UnauthorizedException(
-          'Acceso denegado. Para ingresar a Datademy debes usar tu correo institucional.'
-        );
-      }
+      throw new UnauthorizedException(
+        `Acceso denegado. El correo ${correo} no está registrado en Datademy. Por favor, contacta al profesor/administrador para que te dé acceso.`
+      );
     }
 
     if (!usuario.googleId) {
-      usuario = await this.usuariosService.vincularCuentaGoogle(usuario._id, {
+      usuario = await this.usuariosService.vincularCuentaGoogle(String(usuario._id), {
         googleId,
         avatarUrl,
         nombre: usuario.nombre === 'Socia Comunitaria' ? nombre : usuario.nombre 
@@ -45,7 +39,7 @@ export class AuthService {
       correo: usuario.correo, 
       rol: usuario.rol 
     };
-    
+
     const jwt = this.jwtService.sign(payload);
     
     return {

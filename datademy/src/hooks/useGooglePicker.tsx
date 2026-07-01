@@ -1,5 +1,5 @@
-import { useAuth } from '../context/AuthContext'
-import { useEffect, useState } from 'react'
+import { getGoogleToken } from '../services/googleToken'
+import { useEffect, useState, useCallback } from 'react'
 
 interface PickerOptions {
   onSeleccionada: (id: string, nombre?: string) => void
@@ -7,46 +7,50 @@ interface PickerOptions {
 }
 
 export function useGooglePicker({ onSeleccionada, modo = 'carpeta' }: PickerOptions) {
-  const { gToken } = useAuth()
   const apiKey = import.meta.env.VITE_GOOGLE_API_KEY
   const [scriptCargado, setScriptCargado] = useState(false)
 
-   useEffect(() => {
-    if (window.gapi) {
+  useEffect(() => {
+    let activo = true
+
+    if (window.gapi && window.google?.picker) {
       setScriptCargado(true)
       return
     }
 
-    const script = document.createElement('script')
-    script.src = 'https://apis.google.com/js/api.js'
-    script.async = true
-    script.defer = true
-    script.onload = () => {
-      window.gapi.load('picker', () => {
-        setScriptCargado(true)
-      })
-    }
-    script.onerror = () => console.error('Error al cargar Google API Script')
-    
-    document.body.appendChild(script)
+    let script = document.getElementById('google-picker-script') as HTMLScriptElement
 
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script)
+    if (!script) {
+      script = document.createElement('script')
+      script.id = 'google-picker-script'
+      script.src = 'https://apis.google.com/js/api.js'
+      script.async = true
+      script.defer = true
+      document.head.appendChild(script)
+    }
+
+    const inicializarPicker = () => {
+      if (window.gapi) {
+        window.gapi.load('picker', () => {
+          if (activo) {
+            setScriptCargado(true)
+          }
+        })
       }
     }
+
+    if (window.gapi) {
+      inicializarPicker()
+    } else {
+      script.addEventListener('load', inicializarPicker)
+    }
+
+    return () => {
+      activo = false
+    }
   }, [])
-  const abrirPicker = () => {
-    if (!gToken) {
-      console.warn('Google Picker: Esperando a que gToken esté disponible en el contexto...')
-      return
-    }
 
-    if (!window.google?.picker) {
-      console.error('La librería Google Picker aún no se ha inicializado por completo.')
-      return
-    }
-
+  const abrirPickerDirecto = useCallback((tokenActual: string) => {
     try {
       let view
 
@@ -67,11 +71,10 @@ export function useGooglePicker({ onSeleccionada, modo = 'carpeta' }: PickerOpti
 
       const picker = new window.google.picker.PickerBuilder()
         .addView(view)
-        .setOAuthToken(gToken) 
+        .setOAuthToken(tokenActual) 
         .setDeveloperKey(apiKey)
         .setCallback((data: any) => {
           if (data.action === window.google.picker.Action.PICKED) {
-            console.log('Picker data:', data)
             const doc = data.docs[0]
             onSeleccionada(doc.id, doc.name)
           }
@@ -80,12 +83,31 @@ export function useGooglePicker({ onSeleccionada, modo = 'carpeta' }: PickerOpti
 
       picker.setVisible(true)
     } catch (err) {
-      console.error('Error en Picker:', err)
+      console.error('Error interno al inicializar Google Picker:', err)
     }
-  }
+  }, [modo, apiKey, onSeleccionada])
 
-  return { 
-    abrirPicker, 
-    isReady: scriptCargado && !!gToken 
+  const abrirPicker = useCallback(() => {
+    const tokenActual = getGoogleToken()
+    
+    if (!tokenActual) {
+      console.error('No hay token de Google disponible en memoria')
+      return
+    }
+
+    if (window.gapi && window.google?.picker) {
+      abrirPickerDirecto(tokenActual)
+      return
+    }
+
+    if (document.getElementById('google-picker-script')) {
+      window.gapi.load('picker', () => abrirPickerDirecto(tokenActual))
+      return
+    }
+  }, [abrirPickerDirecto])
+
+  return {
+    abrirPicker,
+    isReady: scriptCargado && !!getGoogleToken()
   }
 }

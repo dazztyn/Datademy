@@ -7,6 +7,11 @@ import ListarResultados from '../pages/dashboard/secciones/ListarResultados'
 import Cronbach from '../pages/dashboard/secciones/Cronbach'
 import CompletarDatos from '../pages/dashboard/secciones/CompletarDatos'
 import GenerarInforme from '../pages/dashboard/secciones/GenerarInforme'
+import DatosGlobales from '../pages/dashboard/DatosGlobales'
+import ListarInformes from '../pages/dashboard/secciones/ListarInformes'
+
+
+
 import { useAuth } from '../context/AuthContext'
 
 function RutaProtegida({ children }: { children: React.ReactNode }) {
@@ -29,6 +34,7 @@ export default function Router() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<RutaProtegida><Landing /></RutaProtegida>} />
+        <Route path="/datos-globales" element={<RutaProtegida><DatosGlobales /></RutaProtegida>} />
         <Route path="detalles" element={<RutaProtegida><Detalles /></RutaProtegida>}>
           <Route index element={<p className="text-white/70 text-sm">Selecciona una sección del menú</p>} />
           <Route path="listado" element={<ListarResultados />} />
@@ -36,6 +42,7 @@ export default function Router() {
           <Route path="cronbach" element={<Cronbach />} />
           <Route path="completar" element={<CompletarDatos />} />
           <Route path="informe" element={<GenerarInforme />} />
+          <Route path="listar-informes" element={<ListarInformes />} />
         </Route>
       </Routes>
     </BrowserRouter>

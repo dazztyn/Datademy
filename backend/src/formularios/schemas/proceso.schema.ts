@@ -1,6 +1,7 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { InformeGenerado } from '../interfaces/informe-generado.interface';
 
 export type ProcesoDocument = Proceso & Document;
 
@@ -45,6 +46,18 @@ export class Proceso
     total_esperados?: number;
     nombres_constructos?: string[];
   };
+  
+  @Prop({
+    type: [{
+      id_informe_drive: { type: String, required: true },
+      nombre_informe: { type: String, required: true },
+      url_descarga: { type: String, required: true },
+      url_edicion: { type: String, required: false },
+      fecha_generacion: { type: Date, default: Date.now }
+    }],
+    default: []
+  })
+  informes_generados!: InformeGenerado[];
 }
 
 export const ProcesoSchema = SchemaFactory.createForClass(Proceso);

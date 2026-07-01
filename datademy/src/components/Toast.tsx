@@ -1,5 +1,3 @@
-import { useEffect } from 'react'
-//import iconoReloj from '../assets/CLOCK.png'
 interface ToastProps {
   mensaje: string
   tipo: 'exito' | 'error' | 'cargando'
@@ -7,12 +5,6 @@ interface ToastProps {
 }
 
 export default function Toast({ mensaje, tipo, onCerrar }: ToastProps) {
-  useEffect(() => {
-    if (tipo === 'cargando') return
-    const timer = setTimeout(onCerrar, 3000)
-    return () => clearTimeout(timer)
-  }, [tipo, onCerrar])
-
 const estilos = {
     exito: 'bg-emerald-500 border-emerald-600',
     error: 'bg-rose-500 border-rose-600',
@@ -22,14 +14,19 @@ const estilos = {
  const iconos = {
     exito: <span className="w-5 h-5 flex items-center justify-center font-bold text-base">✓</span>,
     error: <span className="w-5 h-5 flex items-center justify-center font-bold text-base">✕</span>,
-    cargando: <span className="w-5 h-5 flex items-center justify-center font-bold text-base animate-spin">🥵</span>,
-    // cargando: (
-    //   <img
-    //     src={iconoReloj}
-    //     alt="Cargando"
-    //     className="w-5 h-5 object-contain flex-shrink-0 brightness-0 invert animate-spin"
-    //   />
-    // ),
+    cargando: (
+  <div className="flex gap-1 items-center">
+    <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce"></div>
+    <div
+      className="w-1.5 h-1.5 bg-white rounded-full animate-bounce"
+      style={{ animationDelay: '0.15s' }}
+    ></div>
+    <div
+      className="w-1.5 h-1.5 bg-white rounded-full animate-bounce"
+      style={{ animationDelay: '0.3s' }}
+    ></div>
+  </div>
+),
   }
 
   return (

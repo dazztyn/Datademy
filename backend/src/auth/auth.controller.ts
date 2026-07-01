@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
 import type { RequestConPerfilGoogle } from './interfaces/request-con-perfil-google.interface';
-import { OAuth2Client } from 'google-auth-library';
+import type { RequestConUsuario } from './interfaces/request-con-usuario.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -19,7 +19,7 @@ export class AuthController {
 
   @Get('google-token')
   @UseGuards(AuthGuard('jwt'))
-  obtenerTokenGoogle(@Req() req: any) 
+  obtenerTokenGoogle(@Req() req: RequestConUsuario) 
   {
     const gToken = req.cookies['googleAccessToken'];
     
@@ -64,7 +64,7 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  verificarSesion(@Req() req: any) {
+  verificarSesion(@Req() req: RequestConUsuario) {
     return {
       estado: 'exito',
       usuario: req.user

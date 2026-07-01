@@ -100,3 +100,50 @@ export async function vincularExistente(
   })
   if (!response.ok) throw new Error('Error al vincular formulario existente')
 }
+export async function eliminarProceso(idProceso: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al eliminar proceso')
+}
+
+export async function desasignarFormulario(
+  idProceso: string,
+  tipoFormulario: 'estudiantes' | 'socios'
+): Promise<void> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/desasignar/${tipoFormulario}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+    credentials: 'include',
+    body: JSON.stringify({ tipoFormulario }),
+  })
+  if (!response.ok) throw new Error('Error al desasignar formulario')
+}
+export interface Informe {
+  id_informe_drive: string
+  nombre_informe: string
+  url_descarga: string
+  fecha_generacion: string
+  url_edicion: string
+}
+
+export async function listarInformes(idProceso: string): Promise<Informe[]> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/informes`, {
+    headers: getHeaders(),
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al listar informes')
+  const data = await response.json()
+  return data.informes
+}
+
+export async function eliminarInforme(idProceso: string, idInformeDrive: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/informes/${idInformeDrive}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al eliminar informe')
+}
