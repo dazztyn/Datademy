@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react'
-
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
+import { obtenerCantidadPaginas } from '../services/estadisticos_service'
 interface ProcesoContextType {
   idProceso: string | null
   setIdProceso: (id: string) => void
@@ -21,24 +21,42 @@ export function ProcesoProvider({ children }: { children: React.ReactNode }) {
   )
   const [metadatosCompletos, setMetadatosCompletosState] = useState<boolean>(false)
   const [verificandoMetadatos, setVerificandoMetadatos] = useState<boolean>(false)
+  const idProcesoRef = useRef<string | null>(null)
 
+  const constructosCoinciden = (
+    meta: { nombres_constructos: string[] } | undefined,
+    paginas: { cantidad_constructos: number } | null
+  ): boolean => {
+    if (!meta) return false
+    if (!paginas) return true
+    return meta.nombres_constructos.length === paginas.cantidad_constructos
+  }
   const verificarMetadatos = async (id: string) => {
+    idProcesoRef.current = id
     setVerificandoMetadatos(true)
     try {
-      const response = await fetch(`${BASE_URL}/formularios/${id}/metadatos`, {
-        headers: getHeaders(),
-        credentials: 'include',
-      })
+      const [response, paginasEst, paginasSoc] = await Promise.all([
+        fetch(`${BASE_URL}/formularios/${id}/metadatos`, {
+          headers: getHeaders(),
+          credentials: 'include',
+        }),
+       obtenerCantidadPaginas(id, 'estudiantes').catch(() => null),
+        obtenerCantidadPaginas(id, 'socios').catch(() => null),
+      ])
       if (!response.ok) throw new Error()
       const data = await response.json()
-      setMetadatosCompletosState(data.estan_completos === true)
+      if (idProcesoRef.current !== id) return
+      const estOk = constructosCoinciden(data.metadatos?.estudiantes, paginasEst)
+      const socOk = constructosCoinciden(data.metadatos?.socios, paginasSoc)
+      setMetadatosCompletosState(data.estan_completos === true && estOk && socOk)
     } catch {
-      setMetadatosCompletosState(false)
+      if (idProcesoRef.current === id) setMetadatosCompletosState(false)
     } finally {
-      setVerificandoMetadatos(false)
+      if (idProcesoRef.current === id) setVerificandoMetadatos(false)
     }
   }
   useEffect(() => {
+    setMetadatosCompletosState(false) 
     if (idProceso) verificarMetadatos(idProceso)
     else setMetadatosCompletosState(false)
   }, [idProceso])
