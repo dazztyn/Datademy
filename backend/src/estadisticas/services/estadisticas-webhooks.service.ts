@@ -34,7 +34,7 @@ export class EstadisticasWebhooksService {
 
   async manejarNuevoWebhookGoogle(idFormulario: string, esSincronizacionManual: boolean = false, usuarioId?: string) {
     let procesosAsociados: ProcesoDocument[];
-
+    
     if (esSincronizacionManual && usuarioId) {
       procesosAsociados = await this.procesosService.buscarProcesosPorUsuarioYFormulario(usuarioId, idFormulario);
     } else {
