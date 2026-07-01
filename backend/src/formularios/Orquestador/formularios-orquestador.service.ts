@@ -8,6 +8,7 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import type { ProcesoDocument } from '../schemas/proceso.schema';
 import { GoogleDriveService } from 'src/google/services/google-drive.service';
 import { GoogleFormsService } from 'src/google/services/google-forms.service';
+import { generarUrlsGoogleForm } from 'src/common/utils/google-urls.util';
 
 
 @Injectable()
@@ -46,8 +47,7 @@ export class FormulariosOrquestadorService {
 
     await this.googleFormsService.activarVigilanciaRespuestas(nuevoFormId);
 
-    const urlEdicionGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/edit`;
-    const urlRespuestaGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/viewform`;
+    const urlsGoogle = generarUrlsGoogleForm(nuevoFormId);
 
     const campoBase = `formulario_${tipoFormulario}`; 
     const datosAActualizar = {
@@ -55,8 +55,8 @@ export class FormulariosOrquestadorService {
         id_google_form: nuevoFormId,
         nombre_formulario: nombreNuevoFormulario, 
         id_carpeta_drive: idCarpetaDestino, 
-        url_edicion: `https://docs.google.com/forms/d/${nuevoFormId}/edit`,
-        url_respuesta: `https://docs.google.com/forms/d/${nuevoFormId}/viewform`,
+        url_edicion:  urlsGoogle.urlEdicion,
+        url_respuesta: urlsGoogle.urlRespuesta,
         nombres_constructos: [],
         total_esperados: 0
       }
@@ -69,8 +69,8 @@ export class FormulariosOrquestadorService {
       idFormulario: nuevoFormId,
       nombreFormulario: nombreNuevoFormulario,
       idCarpetaDrive: idCarpetaDestino,
-      urlEdicion: urlEdicionGenerada,
-      urlRespuesta: urlRespuestaGenerada,
+      urlEdicion: urlsGoogle.urlEdicion,
+      urlRespuesta: urlsGoogle.urlRespuesta,
       datosActualizados: resultadoActualizacion.datos
     };
   }
@@ -116,16 +116,15 @@ export class FormulariosOrquestadorService {
       const diseno = await this.googleFormsService.obtenerDisenoFormulario(idFormularioExistente);
       const nombreFormulario = diseno.info?.title || 'Formulario Importado';
       await this.googleFormsService.activarVigilanciaRespuestas(idFormularioExistente);
-      const urlEdicion = `https://docs.google.com/forms/d/${idFormularioExistente}/edit`;
-      const urlRespuesta = `https://docs.google.com/forms/d/${idFormularioExistente}/viewform`;
+      const urlsGoogle = generarUrlsGoogleForm(idFormularioExistente);
       const campoBase = `formulario_${tipoFormulario}`;
       const datosAActualizar = {
       [campoBase]: {
         id_google_form: idFormularioExistente,
         nombre_formulario: nombreFormulario, 
         id_carpeta_drive: 'exportado_externamente',
-        url_edicion: `https://docs.google.com/forms/d/${idFormularioExistente}/edit`,
-        url_respuesta: `https://docs.google.com/forms/d/${idFormularioExistente}/viewform`,
+        url_edicion: urlsGoogle.urlEdicion,
+        url_respuesta: urlsGoogle.urlRespuesta,
         nombres_constructos: [],
         total_esperados: 0
       }
@@ -138,8 +137,8 @@ export class FormulariosOrquestadorService {
         mensaje: 'Formulario existente vinculado y bajo vigilancia',
         idFormulario: idFormularioExistente,
         nombreFormulario: nombreFormulario,
-        urlEdicion,
-        urlRespuesta,
+        urlEdicion: urlsGoogle.urlEdicion,
+        urlRespuesta: urlsGoogle.urlRespuesta,
         datosActualizados: resultadoActualizacion.datos
       };
     } catch (error) {

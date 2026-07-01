@@ -45,7 +45,7 @@ export class EstadisticasWebhooksService {
     }
 
     const diseno = await this.googleFormsService.obtenerDisenoFormulario(idFormulario);
-    const disenoAdaptado = this.adaptarDisenoGoogle(diseno);
+    const disenoAdaptado = this.parserService.adaptarDisenoGoogle(diseno);
     let totalGuardadasGlobal = 0;
 
     for (const proceso of procesosAsociados) {
@@ -80,7 +80,7 @@ export class EstadisticasWebhooksService {
       for (const respuestaCruda of listaRespuestas) {
         if (setIdsExistentes.has(respuestaCruda.responseId!)) continue;
 
-        const respuestaAdaptada = this.adaptarRespuestaGoogle(respuestaCruda);
+        const respuestaAdaptada = this.parserService.adaptarRespuestaGoogle(respuestaCruda);
         const documentoListo = this.parserService.procesarEncuesta(
           disenoAdaptado, respuestaAdaptada, respuestaCruda.responseId!, usuarioIdReal, procesoIdReal
         );
@@ -132,43 +132,6 @@ export class EstadisticasWebhooksService {
       mensaje: 'Sincronización manual completada.',
       total_nuevas_guardadas: totalGuardadas,
       detalle: mensajes
-    };
-  }
-
-  private adaptarDisenoGoogle(diseno: forms_v1.Schema$Form): GoogleFormDiseno {
-    return {
-      items: (diseno.items || []).map(item => ({
-        title: item.title || undefined,
-        pageBreakItem: item.pageBreakItem ? {} : undefined,
-        questionItem: item.questionItem ? {
-          question: {
-            questionId: item.questionItem.question?.questionId || '',
-            choiceQuestion: item.questionItem.question?.choiceQuestion ? {
-              options: (item.questionItem.question.choiceQuestion.options || []).map(opt => ({
-                value: opt.value || ''
-              }))
-            } : undefined
-          }
-        } : undefined
-      }))
-    };
-  }
-
-  private adaptarRespuestaGoogle(respuesta: forms_v1.Schema$FormResponse): GoogleFormRespuesta {
-    const answersMap: Record<string, any> = {};
-    if (respuesta.answers) {
-      Object.entries(respuesta.answers).forEach(([key, ans]) => {
-        answersMap[key] = {
-          textAnswers: {
-            answers: (ans.textAnswers?.answers || []).map(t => ({ value: t.value || '' }))
-          }
-        };
-      });
-    }
-    return {
-      responseId: respuesta.responseId || '',
-      createTime: respuesta.createTime || undefined,
-      answers: answersMap
     };
   }
 
