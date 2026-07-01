@@ -55,6 +55,12 @@ export class ProcesosService {
   async actualizar(usuario_id: string, id: string, datos: ActualizarProcesoDto | UpdateQuery<ProcesoDocument>) {
     const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, id, datos);
     if (!actualizado) throw new NotFoundException('No se encontró el proceso con ese ID');
+    const cacheSeguro = this.cacheManager as unknown as CustomCache;
+    try {
+      if (typeof cacheSeguro.reset === 'function') await cacheSeguro.reset();
+      else if (typeof cacheSeguro.store.reset === 'function') await cacheSeguro.store.reset();
+      else if (typeof cacheSeguro.store.clear === 'function') await cacheSeguro.store.clear();
+    } catch (e) {}
     return {
       mensaje: '¡Proceso actualizado con éxito!',
       datos: { idProceso: actualizado._id.toString(), nombreProceso: actualizado.nombre_proceso, anio: actualizado.anio }
@@ -100,7 +106,7 @@ export class ProcesosService {
     } catch (error) {
       console.error('No se pudo limpiar la caché:', error);
     }
-    
+
     return await this.actualizar(usuario_id, idProceso, datosAActualizar);
   }
 
@@ -143,6 +149,13 @@ export class ProcesosService {
       procesoId: idProceso, 
       tipoFormulario: tipoFormulario 
     });
+    
+    const cacheSeguro = this.cacheManager as unknown as CustomCache;
+    try {
+      if (typeof cacheSeguro.reset === 'function') await cacheSeguro.reset();
+      else if (typeof cacheSeguro.store.reset === 'function') await cacheSeguro.store.reset();
+      else if (typeof cacheSeguro.store.clear === 'function') await cacheSeguro.store.clear();
+    } catch (e) {}
 
     return {
       estado: 'exito',
