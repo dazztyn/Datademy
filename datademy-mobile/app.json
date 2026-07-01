@@ -20,7 +20,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.dazztyn.datademymobile"
+      "package": "com.dazztyn.datademymobile",
+      "usesCleartextTraffic": true
     },
     "web": {
       "output": "static",

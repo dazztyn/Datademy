@@ -22,17 +22,31 @@ export default function LoginScreen() {
       setCargando(true);
       await GoogleSignin.hasPlayServices();
       
-      // Lanza el popup nativo de Google
       const userInfo = await GoogleSignin.signIn();
       const tokens = await GoogleSignin.getTokens();
 
-      console.log("Token de Google nativo obtenido, enviando a NestJS...");
+      // Dependiendo de la versión de la librería, el token viene en distinto nivel
+      const idToken = (userInfo as any).idToken || (userInfo as any).data?.idToken;
+
+      if (!idToken) throw new Error('No se recibió el token de identidad de Google');
+
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL;
       
-      const rutaInicio = '/' as any;
+      const response = await fetch(`${apiUrl}/auth/mobile-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al autenticar en el backend');
+      }
       
-      await guardarTokens('simulacion_jwt_123', tokens.accessToken);
-      router.replace(rutaInicio);
-      
+      const rutaInicio: Href = '/';
+      await guardarTokens(data.backendJwt, tokens.accessToken);
+      router.replace(rutaInicio); 
       
     } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -40,7 +54,8 @@ export default function LoginScreen() {
       } else if (error.code === statusCodes.IN_PROGRESS) {
         console.log('Login en progreso');
       } else {
-        console.error('Error en Google Sign In:', error);
+        console.error('Error en el flujo de Login:', error);
+        alert(`Error al iniciar sesión: ${error.message}`);
       }
     } finally {
       setCargando(false);
