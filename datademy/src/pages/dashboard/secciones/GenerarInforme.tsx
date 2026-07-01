@@ -67,6 +67,23 @@ function fmt(value: number | null | undefined, decimals = 2): string {
   if (value == null || isNaN(value)) return '—'
   return value.toFixed(decimals)
 }
+function wrapTextParaEtiqueta(texto: string, maxCaracteresPorLinea: number): string[] {
+  const palabras = texto.split(' ')
+  const lineas: string[] = []
+  let lineaActual = ''
+
+  for (const palabra of palabras) {
+    const candidata = lineaActual ? `${lineaActual} ${palabra}` : palabra
+    if (candidata.length > maxCaracteresPorLinea && lineaActual) {
+      lineas.push(lineaActual)
+      lineaActual = palabra
+    } else {
+      lineaActual = candidata
+    }
+  }
+  if (lineaActual) lineas.push(lineaActual)
+  return lineas
+}
 type FiltrosInforme = {
   carrera: string
   asignatura: string
@@ -81,8 +98,8 @@ export default function GenerarInforme() {
   const tema = temasPagina[location.pathname] ?? temaDefault
 
   const pieRef = useRef<ChartJS<'pie'> | null>(null)
-  const barrasRefs = useRef<Record<number, ChartJS<"bar", number[], string> | null | undefined>>({})
-  const barrasSociosRefs = useRef<Record<number, ChartJS<"bar", number[], string> | null | undefined>>({})
+  const barrasRefs = useRef<Record<number, ChartJS<"bar", number[], string[]> | null | undefined>>({})
+  const barrasSociosRefs = useRef<Record<number, ChartJS<"bar", number[], string[]> | null | undefined>>({})
 
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, 'estudiantes')
 
@@ -99,7 +116,12 @@ export default function GenerarInforme() {
   const [carpetaConfigurada, setCarpetaConfigurada] = usePersistedState('carpetaConfigurada', false)
   const [plantillaConfigurada, setPlantillaConfigurada] = usePersistedState('plantillaConfigurada', false)
   const [generando, setGenerando] = usePersistedState('generando', false)
-  const [mostrarPopup, setMostrarPopup] = usePersistedState('informe_popup', false)
+  const [mostrarPopup, setMostrarPopup] = useState(false)
+
+  const cerrarPopup = () => {
+    setMostrarPopup(false)
+    resetear() 
+  }
 
   const [tipoAsignatura, setTipoAsignatura] = useState<'Obligatoria' | 'Electiva'>('Obligatoria')
   const [ciclo, setCiclo] = useState<'Básico' | 'Profesional'>('Básico')
@@ -311,11 +333,11 @@ export default function GenerarInforme() {
   }
 
   const inputClass =
-    'w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400'
-  const labelClass = 'text-xs text-slate-500 dark:text-slate-400 mb-1 block'
+    'w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-md focus:outline-none focus:ring-2 focus:ring-blue-400'
+  const labelClass = 'text-md ml-1 text-slate-600 dark:text-slate-300 mb-1 block'
   const seccionClass =
     'bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 space-y-4'
-  const tituloSeccion = 'text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3'
+  const tituloSeccion = 'text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3'
 
   const Toggle = ({
     valor,
@@ -333,7 +355,7 @@ export default function GenerarInforme() {
         <button
           key={op}
           onClick={() => onChange(op)}
-          className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all duration-200
+          className={`flex-1 py-2 rounded-lg text-md font-medium transition-all duration-200
             ${valor === op
               ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
               : 'text-slate-400 dark:text-slate-500'
@@ -345,39 +367,42 @@ export default function GenerarInforme() {
     </div>
   )
 
-  const barOptions = (maxVal: number, showLabels: boolean): any => ({
-    indexAxis: 'y' as const,
-    maintainAspectRatio: false,
-    animation: false,
-    devicePixelRatio: 2,
-    layout: { padding: { right: showLabels ? 48 : 0 } },
-    scales: {
-      x: {
-        min: 0,
-        max: maxVal,
-        ticks: { color: '#64748b', font: { size: 10 } },
-        grid: { color: 'rgba(0,0,0,0.06)' },
-      },
-      y: {
-        ticks: { color: '#64748b', font: { size: 10 } },
-        grid: { color: 'rgba(0,0,0,0.06)' },
-      },
+const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number): any => ({
+  indexAxis: 'y' as const,
+  maintainAspectRatio: false,
+  animation: false,
+  devicePixelRatio: 2,
+  layout: { padding: { right: showLabels ? 48 : 0 } },
+  scales: {
+    x: {
+      min: 0,
+      max: maxVal,
+      ticks: { color: '#64748b', font: { size: 10 } },
+      grid: { color: 'rgba(0,0,0,0.06)' },
     },
-    plugins: {
-      legend: { display: false },
-      tooltip: { enabled: false },
-      datalabels: showLabels
-        ? {
-            anchor: 'end' as const,
-            align: 'end' as const,
-            clamp: true,
-            color: tema.sidebar,
-            font: { weight: 'bold' as const, size: 11 },
-            formatter: (value: number) => (value != null ? value.toFixed(2) : ''),
-          }
-        : { display: false },
+    y: {
+      afterFit: anchoEtiquetas
+        ? (scale: any) => { scale.width = anchoEtiquetas }
+        : undefined,
+      ticks: { color: '#64748b', font: { size: 10 }, autoSkip: false },
+      grid: { color: 'rgba(0,0,0,0.06)' },
     },
-  })
+  },
+  plugins: {
+    legend: { display: false },
+    tooltip: { enabled: false },
+    datalabels: showLabels
+      ? {
+          anchor: 'end' as const,
+          align: 'end' as const,
+          clamp: true,
+          color: '#02171e',
+          font: { weight: 'bold' as const, size: 15 },
+          formatter: (value: number) => (value != null ? value.toFixed(2) : ''),
+        }
+      : { display: false },
+  },
+})
   useEffect(() => {
   document.title = 'Datademy - Generar Informe'
   return () => { document.title = 'Datademy' }
@@ -386,7 +411,7 @@ export default function GenerarInforme() {
     <div className="space-y-6 w-full">
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Configuración del informe</h3>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">
+        <p className="text-md text-slate-600 dark:text-slate-300 mb-3">
           Selecciona la carpeta donde se guardará el informe y la plantilla a usar.
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -399,8 +424,8 @@ export default function GenerarInforme() {
               }`}
           >
             <div>
-              <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Carpeta destino</p>
-              <p className={`text-xs ${carpetaConfigurada ? 'text-green-500' : 'text-slate-400'}`}>
+              <p className="text-md font-medium text-slate-600 dark:text-slate-300">Carpeta destino</p>
+              <p className={`text-md ${carpetaConfigurada ? 'text-green-500' : 'text-slate-400'}`}>
                 {carpetaConfigurada ? '✓ Configurada' : 'Seleccionar en Drive'}
               </p>
             </div>
@@ -414,8 +439,8 @@ export default function GenerarInforme() {
               }`}
           >
             <div>
-              <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Plantilla del informe</p>
-              <p className={`text-xs ${plantillaConfigurada ? 'text-green-500' : 'text-slate-400'}`}>
+              <p className="text-md font-medium text-slate-600 dark:text-slate-300">Plantilla del informe</p>
+              <p className={`text-md ${plantillaConfigurada ? 'text-green-500' : 'text-slate-400'}`}>
                 {plantillaConfigurada ? '✓ Configurada' : 'Seleccionar en Drive'}
               </p>
             </div>
@@ -438,7 +463,7 @@ export default function GenerarInforme() {
       {(filtrosDisponibles?.asignaturas ?? []).length > 0 && (
         <button
           onClick={() => { setAsignaturaManual(!asignaturaManual); setAsignaturaNombre('') }}
-          className="text-xs text-blue-400 hover:text-blue-500 transition-colors"
+          className="text-sm text-blue-400 hover:text-blue-500 hover:underline transition-colors"
         >
           {asignaturaManual ? 'Usar lista' : 'Ingresar manualmente'}
         </button>
@@ -460,7 +485,7 @@ export default function GenerarInforme() {
       <label className={labelClass}>Carrera</label>
       <button
         onClick={() => { setCarreraManual(!carreraManual); setCarrera('') }}
-        className="text-xs text-blue-400 hover:text-blue-500 transition-colors"
+        className="text-sm text-blue-400 hover:text-blue-500 hover:underline transition-colors"
       >
         {carreraManual ? 'Usar lista' : 'Ingresar manualmente'}
       </button>
@@ -581,21 +606,21 @@ export default function GenerarInforme() {
           <div className="space-y-5">
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-xl bg-slate-50 dark:bg-slate-900 p-3 text-center">
-                <p className="text-xs text-slate-400 mb-1">Total estudiantes</p>
+                <p className="text-sm text-slate-600 mb-1 dark:text-slate-300">Total estudiantes</p>
                 <p className="text-2xl font-bold text-slate-700 dark:text-slate-200">{totalEstudiantes}</p>
               </div>
               <div className="rounded-xl bg-slate-50 dark:bg-slate-900 p-3 text-center">
-                <p className="text-xs text-slate-400 mb-1">Total respuestas</p>
+                <p className="text-sm text-slate-600 mb-1 dark:text-slate-300">Total respuestas</p>
                 <p className="text-2xl font-bold text-slate-700 dark:text-slate-200">{totalRespuestas}</p>
               </div>
               <div className="rounded-xl bg-slate-50 dark:bg-slate-900 p-3 text-center">
-                <p className="text-xs text-slate-400 mb-1">% respuestas</p>
+                <p className="text-sm text-slate-600 mb-1 dark:text-slate-300">% respuestas</p>
                 <p className="text-2xl font-bold" style={{ color: tema.sidebar }}>{porcRespuestas}%</p>
               </div>
             </div>
             {promedios.length > 0 && (
               <div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-medium">
+                <p className="text-md text-slate-600 dark:text-slate-200 mb-2 font-medium">
                   Promedios por constructo
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -604,7 +629,7 @@ export default function GenerarInforme() {
                       key={p.numero_pagina}
                       className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-3 py-2.5 flex items-center justify-between gap-2"
                     >
-                      <span className="text-xs text-slate-400 dark:text-slate-500 truncate">
+                      <span className="text-sm text-slate-500 dark:text-slate-300 truncate">
                         {p.nombre_constructo ?? `Constructo ${i + 1}`}
                       </span>
                       <span
@@ -618,7 +643,7 @@ export default function GenerarInforme() {
                   <div className="rounded-xl px-3 py-2.5 flex items-center justify-between gap-2 border-2"
                     style={{ borderColor: tema.sidebar, background: `${tema.sidebar}10` }}
                   >
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    <span className="text-md font-medium text-slate-600 dark:text-slate-300">
                       Promedio global
                     </span>
                     <span className="text-sm font-bold" style={{ color: tema.sidebar }}>
@@ -629,8 +654,8 @@ export default function GenerarInforme() {
               </div>
             )}
             {datosGenero && (
-              <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">
+              <div className="justify-center items-center">
+                <p className="text-md text-slate-600 dark:text-slate-200 mb-2 font-medium">
                   Gráfico de género (se incluirá en el informe)
                 </p>
 
@@ -711,13 +736,16 @@ export default function GenerarInforme() {
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
+                    const anchoTotal = 1080
+                    const anchoEtiquetas = anchoTotal / 2
+
                     const chartData = {
-                      labels: preguntas.map((_, i) => `Pregunta ${i + 1}`),
+                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, 100)),
                       datasets: [
                         {
                           label: constructo.nombre_constructo,
                           data: preguntas.map(p => p.promedio ?? 0),
-                          backgroundColor: tema.sidebar,
+                          backgroundColor: '#0a7bd7',
                           borderRadius: 5,
                         },
                       ],
@@ -731,11 +759,14 @@ export default function GenerarInforme() {
                         <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
                           {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
-                        <div style={{ height: `${preguntas.length * 18 + 32}px`, width:'720px' }}>
+                        <div
+                          className="mx-auto"
+                          style={{ height: `${preguntas.length * 44 + 32}px`, width: `${anchoTotal}px` }}
+                        >
                           <Bar
                             ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
                             data={chartData}
-                            options={barOptions(4, true)}
+                            options={barOptions(4, true, anchoEtiquetas)}
                           />
                         </div>
                       </div>
@@ -754,12 +785,15 @@ export default function GenerarInforme() {
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
+                    const anchoTotal = 1080
+                    const anchoEtiquetas = anchoTotal / 2
+
                     const chartData = {
-                      labels: preguntas.map((_, i) => `Pregunta ${i + 1}`),
+                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, 100)),
                       datasets: [{
                         label: constructo.nombre_constructo,
                         data: preguntas.map(p => p.promedio ?? 0),
-                        backgroundColor: '#7f458f',
+                        backgroundColor: '#15952f',
                         borderRadius: 5,
                       }],
                     }
@@ -772,11 +806,14 @@ export default function GenerarInforme() {
                         <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
                           {constructo.nombre_constructo ?? `Dimensión ${constructo.numero_pagina}`}
                         </p>
-                        <div style={{ height: `${preguntas.length * 18 + 32}px`, width:'640px' }}>
+                        <div
+                          className="mx-auto"
+                          style={{ height: `${preguntas.length * 44 + 32}px`, width: `${anchoTotal}px` }}
+                        >
                           <Bar
                             ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}
                             data={chartData}
-                            options={barOptions(4, true)}
+                            options={barOptions(4, true, anchoEtiquetas)}
                           />
                         </div>
                       </div>
@@ -814,7 +851,7 @@ export default function GenerarInforme() {
       <button
         onClick={handleGenerar}
         disabled={generando || !carpetaConfigurada || !plantillaConfigurada || !metricas || metricas.total_encuestados === 0}
-        className="w-full py-3 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-3 rounded-xl text-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         style={
           !carpetaConfigurada || !plantillaConfigurada || generando || !metricas || metricas.total_encuestados === 0
             ? { background: '#94a3b8', color: 'white' }
@@ -826,7 +863,7 @@ export default function GenerarInforme() {
       >
         {generando ? (
           <span className="flex items-center justify-center gap-2">
-            <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+            <span className=" animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
             Generando informe...
           </span>
         ) : (
@@ -835,12 +872,12 @@ export default function GenerarInforme() {
       </button>
 
       {(!carpetaConfigurada || !plantillaConfigurada) && (
-        <p className="text-xs text-center text-slate-400 dark:text-slate-500 -mt-3">
+        <p className="text-lg text-center text-slate-50 dark:text-slate-300 -mt-3">
           Configura la carpeta y plantilla del informe para continuar.
         </p>
       )}
       {metricas && metricas.total_encuestados === 0 && (
-        <p className="text-xs text-center text-slate-400 dark:text-slate-500 -mt-3">
+        <p className="text-lg text-center text-slate-50 dark:text-slate-300 -mt-3">
           No hay respuestas para generar el informe con los filtros actuales.
         </p>
       )}
@@ -848,7 +885,7 @@ export default function GenerarInforme() {
       {mostrarPopup && urlInforme && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-          onClick={() => setMostrarPopup(false)}
+          onClick={cerrarPopup}
         >
           <div
             className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center"
@@ -865,7 +902,7 @@ export default function GenerarInforme() {
             </p>
             <div className="flex gap-2">
               <button
-                onClick={() => setMostrarPopup(false)}
+                onClick={cerrarPopup}
                 className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
                 Cerrar
@@ -874,7 +911,7 @@ export default function GenerarInforme() {
                 href={urlInforme}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => setMostrarPopup(false)}
+                onClick={cerrarPopup}
                 className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium text-center shadow-sm hover:opacity-95 transition-opacity flex items-center justify-center"
                 style={{
                   background: `linear-gradient(to right, ${tema.fondoDesde}, ${tema.fondoHasta})`,

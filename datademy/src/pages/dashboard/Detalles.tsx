@@ -4,14 +4,37 @@ import ThemeToggle from '../../components/ThemeToggle'
 import { temasPagina, temaDefault } from '../../utils/temasPagina'
 import { useTheme } from '../../context/ThemeContext'
 import { useProceso } from '../../context/ProcesoContext'
+import { useEffect, useState } from 'react'
+import { sincronizarManual } from '../../services/estadisticos_service'
 
 export default function Detalles() {
   const location = useLocation()
   const { theme } = useTheme()
   const { idProceso, verificarMetadatos } = useProceso()
+  const [sincronizando, setSincronizando] = useState(false)
   const handleSincronizado = () => {
     if (idProceso) verificarMetadatos(idProceso)
   }
+const handleSincronizar = async () => {
+    if (!idProceso || sincronizando) return
+    setSincronizando(true)
+    try {
+      await sincronizarManual(idProceso)
+      handleSincronizado()
+    } catch (err) {
+      console.error('Error al sincronizar', err)
+    } finally {
+      setSincronizando(false)
+    }
+  }
+  useEffect(() => {
+    if (!idProceso) return
+    const key = `proceso_sincronizado_${idProceso}`
+    if (sessionStorage.getItem(key)) return
+    sessionStorage.setItem(key, 'true')
+    handleSincronizar()
+  }, [idProceso])
+
   const titulos: Record<string, string> = {
     '/detalles': 'Inicio',
     '/detalles/listado': 'Lista de respuestas',
@@ -32,7 +55,7 @@ export default function Detalles() {
           : { background: `linear-gradient(135deg, #0f172a, ${tema.sidebar})` }
       }
     >
-      <Sidebar onSincronizado={handleSincronizado} />
+      <Sidebar sync={sincronizando} onSincronizar={handleSincronizar} />
       <main className="flex-1 p-8">
         <h1
           className="text-2xl font-semibold drop-shadow mb-6"

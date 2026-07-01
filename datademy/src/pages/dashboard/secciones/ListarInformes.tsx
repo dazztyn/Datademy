@@ -45,7 +45,7 @@ export default function ListarInformes() {
   if (!idProceso) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-white/70 text-sm">No hay proceso seleccionado. Vuelve al inicio y selecciona uno.</p>
+        <p className="text-white/70 text-md">No hay proceso seleccionado. Vuelve al inicio y selecciona uno.</p>
       </div>
     )
   }
@@ -53,7 +53,7 @@ export default function ListarInformes() {
   if (!metadatosCompletos) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-2">
-        <p className="text-white/70 text-sm">Completa los metadatos del proceso para ver los informes.</p>
+        <p className="text-white/70 text-md">Completa los metadatos del proceso para ver los informes.</p>
         <p className="text-white/40 text-xs">Ve a "Completar datos" en el menú lateral.</p>
       </div>
     )
@@ -62,7 +62,7 @@ export default function ListarInformes() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-white/80">Informes generados</h2>
+        <h2 className="text-md font-medium text-white/80">Informes generados</h2>
         <div className="px-3 mb-2">
         <button
           onClick={cargar}
@@ -84,16 +84,16 @@ export default function ListarInformes() {
       </div>
       
       {cargando && (
-        <p className="text-center text-white/50 text-sm py-8 animate-pulse">Cargando informes...</p>
+        <p className="text-center text-white/50 text-md py-8 animate-pulse">Cargando informes...</p>
       )}
 
       {error && (
-        <p className="text-center text-red-300 text-sm py-8">{error}</p>
+        <p className="text-center text-red-300 text-md py-8">{error}</p>
       )}
 
       {!cargando && !error && informes.length === 0 && (
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 text-center">
-          <p className="text-slate-500 dark:text-slate-400 text-sm mb-1">No hay informes generados aún</p>
+          <p className="text-slate-500 dark:text-slate-400 text-md mb-1">No hay informes generados aún</p>
           <p className="text-slate-400 dark:text-slate-500 text-xs">
             Genera tu primer informe desde la sección "Generar informe"
           </p>
@@ -109,7 +109,7 @@ export default function ListarInformes() {
                 className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
               >
                 <div className="flex-1 min-w-0 mr-3">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
+                  <p className="text-md font-medium text-slate-700 dark:text-slate-200 truncate">
                     {informe.nombre_informe}
                   </p>
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">

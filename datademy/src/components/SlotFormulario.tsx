@@ -54,18 +54,22 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
   return (
     <>
       <div className="rounded-xl p-3 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">{label}</p>
+        <div className="flex items-center gap-2">
+  <p className="text-lg text-slate-600 dark:text-slate-200">
+    {label}
+  </p>
+
+  <p className="text-md text-slate-700 dark:text-slate-500 truncate"> {asignado}
+  </p>
+</div>
         {asignado ? (
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
-              {asignado}
-            </p>
             {idGoogleForm && (
               <a
                 href={`https://docs.google.com/forms/d/${idGoogleForm}/edit`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+                className="text-lg text-blue-500 hover:text-blue-600 dark:text-blue-400 hover:underline transition-colors"
               >
                 Abrir en Google Forms →
               </a>
@@ -74,7 +78,7 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
       <button
         ref={menuRef}
         onClick={abrirMenu}
-        className="text-xs text-green-400 hover:text-green-600 dark:hover:text-green-300 transition-colors"
+        className="text-md hover:underline text-green-400 hover:text-green-600 dark:hover:text-green-300 transition-colors"
       >
         Opciones
             </button>
@@ -91,20 +95,20 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
                     >
                       <button
                         onClick={() => { setMenuAbierto(false); setModalAbierto(true) }}
-                        className="w-full text-left px-3 py-2 text-xs text-amber-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        className="w-full text-left px-3 py-2 text-md text-amber-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                       >
                         ↺ Reasignar con plantilla
                       </button>
                       <button
                         onClick={() => { setMenuAbierto(false); setModalExistenteAbierto(true) }}
-                        className="w-full text-left px-3 py-2 text-xs text-purple-600 dark:text-purple-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        className="w-full text-left px-3 py-2 text-md text-purple-600 dark:text-purple-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                       >
                         ↺ Reasignar con existente
                       </button>
                       <div className="border-t border-slate-100 dark:border-slate-700 my-1" />
                       <button
                         onClick={() => { setMenuAbierto(false); setMostrarDesasignar(true)}}
-                        className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        className="w-full text-left px-3 py-2 text-md text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       >
                         ✕ Desasignar
                       </button>
@@ -118,13 +122,13 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
           <div className="flex flex-col gap-1">
             <button
               onClick={() => setModalAbierto(true)}
-              className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 transition-colors text-left"
+              className="text-md hover:underline text-blue-500 hover:text-blue-600 dark:text-blue-400 transition-colors text-left"
             >
               + Crear nuevo desde plantilla
             </button>
             <button
               onClick={() => setModalExistenteAbierto(true)}
-              className="text-xs text-purple-900 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors text-left"
+              className="text-md hover:underline text-purple-900 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors text-left"
             >
               + Vincular formulario existente
             </button>

@@ -60,14 +60,14 @@ export default function Cronbach() {
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
   <div className="flex items-center justify-between mb-3">
-    <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">Filtros</h3>
+    <h3 className="text-lg ml-1 font-medium text-slate-600 dark:text-slate-300 mb-3">Filtros</h3>
 
 <div className="flex items-center gap-2">
-<h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">Info</h3>
+<h3 className="text-lg font-medium text-slate-600 dark:text-slate-300">Info</h3>
     <button
     
       onClick={() => setMostrarInfo(true)}
-      className="flex items-center justify-center w-5 h-5 rounded-full border border-blue-50 dark:border-blue-100 text-blue-50 dark:text-blue-300 hover:text-blue-500 hover:border-blue-500 dark:hover:text-blue-400 dark:hover:border-blue-400 transition-colors text-xs font-serif font-bold shadow-sm"
+      className="flex items-center justify-center w-5 h-5 rounded-full border border-blue-500 dark:border-blue-100 text-blue-500 dark:text-blue-300 hover:text-blue-500 hover:border-blue-500 dark:hover:text-blue-400 dark:hover:border-blue-400 transition-colors text-xs font-serif font-bold shadow-sm"
       title="Ver interpretación de rangos"
     >
       i
@@ -77,11 +77,11 @@ export default function Cronbach() {
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
     
     <div>
-      <label className="text-xs text-slate-400 mb-1 block">Constructo / Dimensión</label>
+      <label className="text-md ml-1 text-slate-600 mb-1 dark:text-slate-50 block">Constructo / Dimensión</label>
       <select
         value={filtros.pagina ?? ''}
         onChange={e => setFiltros(f => ({ ...f, pagina: e.target.value ? Number(e.target.value) : undefined }))}
-        className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-md focus:outline-none focus:ring-2 focus:ring-blue-400"
       >
         <option value="">Todos los constructos</option>
         {filtrosDisponibles?.nombres_constructos?.map((c: { id: number; nombre: string }) => (
@@ -94,11 +94,11 @@ export default function Cronbach() {
 
     {tipoActivo === 'estudiantes' && filtrosDisponibles?.carreras && (
       <div>
-        <label className="text-xs text-slate-400 mb-1 block">Carrera</label>
+        <label className="text-md ml-1 text-slate-600 mb-1 dark:text-slate-50 block">Carrera</label>
         <select
           value={filtros.carrera ?? ''}
           onChange={e => setFiltros(f => ({ ...f, carrera: e.target.value || undefined }))}
-          className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-md focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           <option value="">Todas las carreras</option>
           {filtrosDisponibles.carreras.map((c: string) => (
@@ -144,12 +144,12 @@ export default function Cronbach() {
             className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 space-y-4"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <h3 className="text-md font-semibold text-slate-700 dark:text-slate-200">
                 {metricas.promedios_por_pagina.find(p => p.numero_pagina === constructo.numero_pagina)?.nombre_constructo
                   ?? `Constructo — ${constructo.numero_pagina}`}
               </h3>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-400">α global</span>
+                <span className="text-sm text-slate-500">α global</span>
                 <span
                   className="text-2xl font-bold"
                   style={{ color: interpretacion.color }}
@@ -157,7 +157,7 @@ export default function Cronbach() {
                   {constructo.alfa_cronbach_global.toFixed(3)}
                 </span>
                 <span
-                  className="text-xs px-2 py-0.5 rounded-full font-medium text-white"
+                  className="text-sm px-2 py-0.5 rounded-full font-medium text-white"
                   style={{ backgroundColor: interpretacion.color }}
                 >
                   {interpretacion.texto}
@@ -165,7 +165,7 @@ export default function Cronbach() {
               </div>
             </div>
 
-            <p className="text-xs text-slate-400 dark:text-slate-500">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               Hacer hover sobre las preguntas muestra cuanto su eliminación aumentaría el alfa del constructo.
             </p>
 

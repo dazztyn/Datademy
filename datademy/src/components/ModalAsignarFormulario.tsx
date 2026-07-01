@@ -60,10 +60,10 @@ export default function ModalAsignarFormulario({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6">
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-1">
+        <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-100 mb-1">
           Asignar formulario
         </h2>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">
+        <p className="text-md text-slate-400 dark:text-slate-500 mb-4">
           Tipo: <span className="font-medium text-slate-500 dark:text-slate-300">{labelTipo}</span>
         </p>
 
@@ -94,7 +94,7 @@ export default function ModalAsignarFormulario({
 
         {!loading && (
           <div className="mb-4">
-            <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
+            <label className="text-md text-slate-600 dark:text-slate-400 mb-1 block ml-1">
               Nombre del formulario
             </label>
             <input
@@ -102,13 +102,13 @@ export default function ModalAsignarFormulario({
               value={nombre}
               onChange={e => setNombre(e.target.value)}
               placeholder="Ej: Encuesta estudiantes 202X"
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-4 py-2.5 text-md focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
         )}
 
         {onVincularExistente && (
-          <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-2">
+          <p className="text-center text-md text-slate-400 dark:text-slate-500 mt-2">
             ¿Ya tienes un formulario creado?{' '}
             <button
               onClick={() => {
@@ -124,14 +124,14 @@ export default function ModalAsignarFormulario({
         <div className="flex gap-2">
           <button
             onClick={onCerrar}
-            className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleVincular}
             disabled={guardando || loading}
-            className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium transition-all disabled:opacity-60 hover:opacity-95 bg-gradient-to-r from-[#5fb7bb] to-[#0d438b] shadow-md shadow-blue-900/10"
+            className="flex-1 py-2.5 rounded-xl text-white text-md font-medium transition-all disabled:opacity-60 hover:opacity-95 bg-gradient-to-r from-[#5fb7bb] to-[#0d438b] shadow-md shadow-blue-900/10"
           >
             {guardando ? 'Asignando...' : 'Asignar'}
           </button>
