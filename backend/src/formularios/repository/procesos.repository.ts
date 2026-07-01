@@ -33,6 +33,16 @@ export class ProcesosRepository {
     }).exec();
   }
 
+  async buscarProcesosPorUsuarioYFormulario(usuarioId: string, idFormulario: string): Promise<ProcesoDocument[]> {
+    return await this.modelo.find({
+      usuario_id: usuarioId,
+      $or: [
+        { 'formulario_estudiantes.id_google_form': idFormulario },
+        { 'formulario_socios.id_google_form': idFormulario }
+      ]
+    }).exec();
+  }
+
   async crearProceso(datos: CrearProcesoDto & { usuario_id: string }): Promise<ProcesoDocument> {
     const nuevoProceso = new this.modelo(datos);
     return await nuevoProceso.save();

@@ -9,6 +9,7 @@ import { ProcesosService } from 'src/formularios/services/procesos.service';
 import { GoogleFormsService } from 'src/google/services/google-forms.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
+import { ProcesoDocument } from 'src/formularios/schemas/proceso.schema';
 
 @Injectable()
 export class EstadisticasWebhooksService {
@@ -31,10 +32,17 @@ export class EstadisticasWebhooksService {
     return ultima ? ultima.fecha_respuesta : null;
   }
 
-  async manejarNuevoWebhookGoogle(idFormulario: string, esSincronizacionManual: boolean = false) {
-    const procesosAsociados = await this.procesosService.buscarTodosPorIdFormularioGoogle(idFormulario);
+  async manejarNuevoWebhookGoogle(idFormulario: string, esSincronizacionManual: boolean = false, usuarioId?: string) {
+    let procesosAsociados: ProcesoDocument[];
+
+    if (esSincronizacionManual && usuarioId) {
+      procesosAsociados = await this.procesosService.buscarProcesosPorUsuarioYFormulario(usuarioId, idFormulario);
+    } else {
+      procesosAsociados = await this.procesosService.buscarTodosPorIdFormularioGoogle(idFormulario);
+    }
+
     if (!procesosAsociados || procesosAsociados.length === 0) { 
-      throw new NotFoundException('Formulario no encontrado en ningún proceso del sistema');
+      throw new NotFoundException('Formulario no encontrado para este contexto');
     }
 
     const diseno = await this.googleFormsService.obtenerDisenoFormulario(idFormulario);
@@ -110,13 +118,13 @@ export class EstadisticasWebhooksService {
     let mensajes: string[] = [];
 
     if (proceso.formulario_estudiantes?.id_google_form) {
-      const resultadoEstudiantes = await this.manejarNuevoWebhookGoogle(proceso.formulario_estudiantes.id_google_form, true);
+      const resultadoEstudiantes = await this.manejarNuevoWebhookGoogle(proceso.formulario_estudiantes.id_google_form, true, usuarioId);
       totalGuardadas += resultadoEstudiantes.guardadas;
       mensajes.push(`Estudiantes: ${resultadoEstudiantes.guardadas} respuestas recuperadas/nuevas.`);
     }
 
     if (proceso.formulario_socios?.id_google_form) {
-      const resultadoSocios = await this.manejarNuevoWebhookGoogle(proceso.formulario_socios.id_google_form, true);
+      const resultadoSocios = await this.manejarNuevoWebhookGoogle(proceso.formulario_socios.id_google_form, true, usuarioId);
       totalGuardadas += resultadoSocios.guardadas;
       mensajes.push(`Socios: ${resultadoSocios.guardadas} respuestas recuperadas/nuevas.`);
     }

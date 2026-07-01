@@ -62,6 +62,10 @@ export class ProcesosService {
     return await this.procesosRepo.buscarTodosPorIdFormularioGoogle(idFormulario);
   }
 
+  async buscarProcesosPorUsuarioYFormulario(usuarioId: string, idFormulario: string): Promise<ProcesoDocument[]> {
+    return await this.procesosRepo.buscarProcesosPorUsuarioYFormulario(usuarioId, idFormulario);
+  }
+
   async guardarMetadatosFormulario(usuario_id: string, idProceso: string, tipoFormulario: 'socios' | 'estudiantes', nombresConstructos: string[], totalEsperados: number) {
     const campoBase = `formulario_${tipoFormulario}`;
     const datosAActualizar: UpdateQuery<ProcesoDocument> = {
