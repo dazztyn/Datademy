@@ -18,6 +18,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { join } from 'path';
+import { CommonModule } from './common/common.module';
 
 const getRedisConfig = () => {
   if (process.env.REDIS_URL) {
@@ -42,6 +43,7 @@ const getRedisConfig = () => {
 @Module({
   imports: 
   [
+    CommonModule,
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(process.env.MONGODB_URI!),
     ThrottlerModule.forRoot([{

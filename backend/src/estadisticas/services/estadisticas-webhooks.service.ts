@@ -7,10 +7,8 @@ import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 import { EstadisticasRepository } from '../estadisticas.repository';
 import { ProcesosService } from 'src/formularios/services/procesos.service';
 import { GoogleFormsService } from 'src/google/services/google-forms.service';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import type { Cache } from 'cache-manager';
 import { ProcesoDocument } from 'src/formularios/schemas/proceso.schema';
-import { SafeCacheType } from 'src/common/interfaces/safe-cache.interface';
+import { CacheHelperService } from 'src/common/services/cache-helper.service';
 
 @Injectable()
 export class EstadisticasWebhooksService {
@@ -19,7 +17,7 @@ export class EstadisticasWebhooksService {
     private readonly googleFormsService: GoogleFormsService,
     private readonly parserService: EstadisticasParserService,
     private readonly repositorio: EstadisticasRepository,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly cacheHelper: CacheHelperService,
   ) {}
 
   private async obtenerFechaUltimaSincronizacion(procesoId: string, tipoFormulario: TipoFormulario): Promise<Date | null> {
@@ -95,22 +93,6 @@ export class EstadisticasWebhooksService {
           const resultado = await this.repositorio.insertarMultiples(nuevasEstadisticas);
           totalGuardadasGlobal += resultado.length;
 
-          const idProceso = String(proceso._id);
-          
-          const cacheSeguro = this.cacheManager as unknown as SafeCacheType;
-          try {
-            if (typeof cacheSeguro.clear === 'function') {
-              await cacheSeguro.clear();
-            } else if (typeof cacheSeguro.reset === 'function') {
-              await cacheSeguro.reset();
-            } else if (cacheSeguro.store && typeof cacheSeguro.store.clear === 'function') {
-              await cacheSeguro.store.clear();
-            } else if (cacheSeguro.store && typeof cacheSeguro.store.reset === 'function') {
-              await cacheSeguro.store.reset();
-            }
-          } catch (e) {
-            console.error('Caché purgada o ignorada de forma segura');
-          }   
           console.log(`Guardadas ${resultado.length} respuestas para el proceso: ${proceso.nombre_proceso}`);
           
         } catch (error: any) {
@@ -122,7 +104,9 @@ export class EstadisticasWebhooksService {
         }
       }
     }
-
+    if (totalGuardadasGlobal > 0) {
+      await this.cacheHelper.limpiarCacheGlobal();
+    }
     return { estado: 'exito', guardadas: totalGuardadasGlobal };
   }
 
