@@ -28,7 +28,7 @@ export class EstadisticasConsultasService {
         }
       });
 
-    const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, '', { fecha_respuesta: -1 });
+    const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, '', { fecha_respuesta: -1 }, 1000);
 
     return {
       estado: 'exito',
