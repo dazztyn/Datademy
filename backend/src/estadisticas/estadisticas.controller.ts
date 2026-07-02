@@ -108,7 +108,7 @@ export class EstadisticasController {
       agruparPor, 
       tipoSeguro,
       valoresArray,
-      filtrosAdicionales // <--- Se lo pasamos al servicio
+      filtrosAdicionales
     );
   }
 }
