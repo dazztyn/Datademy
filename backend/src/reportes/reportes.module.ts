@@ -16,7 +16,8 @@ import { ReportesProcessor } from './reportes.processor';
       name: 'reportes', 
       settings: {
         stalledInterval: 86400000, 
-        guardInterval: 86400000
+        guardInterval: 86400000,
+        drainDelay: 295
       }
     })
   ],
