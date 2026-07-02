@@ -134,7 +134,7 @@ const handleDesasignarTodo = async () => {
   return (
     <>
       <div className="border border-slate-400 dark:border-slate-700 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800">
-        <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
+        <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
           {periodos.map(periodo => {
             const activo = seleccionado === periodo.id
             const completo = periodo.formularioAlumnos !== null && periodo.formularioClientes !== null

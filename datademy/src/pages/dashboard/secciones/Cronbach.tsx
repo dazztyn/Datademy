@@ -123,9 +123,8 @@ export default function Cronbach() {
       {metricas && !cargando && metricas.fiabilidad_constructos.map(constructo => {
         const interpretacion = interpretarAlfa(constructo.alfa_cronbach_global)
 
-        const etiquetas = Object.keys(constructo.alfa_si_se_elimina_pregunta).map(
-            (_, i) => `Pregunta ${i + 1}`
-            )
+        const preguntasCronbach = Object.keys(constructo.alfa_si_se_elimina_pregunta)
+        const etiquetas = preguntasCronbach
         const valores = Object.values(constructo.alfa_si_se_elimina_pregunta)
 
         const datosBarras = {
@@ -137,6 +136,12 @@ export default function Cronbach() {
             borderRadius: 6,
           }]
         }
+         const clampStyle = {
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        } as const
 
         return (
           <div
@@ -169,42 +174,59 @@ export default function Cronbach() {
               Hacer hover sobre las preguntas muestra cuanto su eliminación aumentaría el alfa del constructo.
             </p>
 
-            <div style={{ height: `${etiquetas.length * 40 + 40}px` }}>
-              <Bar
-                key={`cronbach-${constructo.numero_pagina}-${theme}`}
-                data={datosBarras}
-                options={{
-                  indexAxis: 'y',
-                  maintainAspectRatio: false,
-                  scales: {
-                    x: {
-                      min: 0,
-                      max: 1,
-                      ticks: { color: colorTexto },
-                      grid: { color: colorGrid },
+            <div
+              className="flex gap-3"
+              style={{ height: `${etiquetas.length * 44 + 30}px` }}
+            >
+              <div className="w-[40%] flex flex-col pr-2" style={{ paddingBottom: '30px' }}>
+                {preguntasCronbach.map((pregunta, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center text-sm text-slate-600 dark:text-slate-300 leading-tight"
+                    style={{ height: '44px', ...clampStyle }}
+                    title={pregunta}
+                  >
+                    {pregunta}
+                  </div>
+                ))}
+              </div>
+
+              <div className="w-[60%]">
+                <Bar
+                  key={`cronbach-${constructo.numero_pagina}-${theme}`}
+                  data={datosBarras}
+                  options={{
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    layout: { padding: { right: 24 } },
+                    scales: {
+                      x: {
+                        min: 0,
+                        max: 1,
+                        afterFit: (scale: any) => { scale.height = 30 },
+                        ticks: { color: colorTexto, font: { size: 11 } },
+                        grid: { color: colorGrid },
+                      },
+                      y: {
+                        ticks: { display: false },
+                        grid: { display: false },
+                      },
                     },
-                    y: {
-                      ticks: { color: colorTexto, font: { size: 10 } },
-                      grid: { color: colorGrid },
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: {
+                        backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
+                        titleColor: theme === 'dark' ? 'white' : tema.sidebar,
+                        bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
+                        callbacks: {
+                          title: ctx => preguntasCronbach[ctx[0].dataIndex],
+                          label: ctx => `α sin esta pregunta: ${Number(ctx.raw).toFixed(3)}`
+                          }
+                      },
                     },
-                  },
-                  plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                      backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
-                      titleColor: theme === 'dark' ? 'white' : tema.sidebar,
-                      bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
-                      callbacks: {
-                        title: ctx => {
-                            const preguntasCompletas = Object.keys(constructo.alfa_si_se_elimina_pregunta)
-                            return preguntasCompletas[ctx[0].dataIndex]
-                        },
-                        label: ctx => `α sin esta pregunta: ${Number(ctx.raw).toFixed(3)}`
-                        }
-                    },
-                  },
-                }}
-              />
+                  }}
+                />
+              </div>
             </div>
           </div>
         )

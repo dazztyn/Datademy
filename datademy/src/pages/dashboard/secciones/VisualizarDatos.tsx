@@ -46,6 +46,7 @@ export default function Visualizar() {
 }, []) 
   useEffect(() => {
     setFiltros({ tipo: tipoActivo })
+    setConstructoSeleccionado(undefined)
   }, [tipoActivo])
 
   const distribucionGenero = metricas?.distribucion_genero ?? []
@@ -196,6 +197,7 @@ export default function Visualizar() {
         </label>
 
         <select
+          value={constructoSeleccionado ?? ''}
           onChange={e => {
             const val = e.target.value
               ? Number(e.target.value)
@@ -339,7 +341,6 @@ export default function Visualizar() {
             .map(constructo => {
               const preguntas = constructo.preguntas ?? []
 
-              // Skip constructos with no questions for the current filter
               if (preguntas.length === 0) return null
 
               const etiquetas = preguntas.map((_, i) => `Pregunta ${i + 1}`)
@@ -398,13 +399,7 @@ export default function Visualizar() {
                       </strong>
                     </span>
                   </div>
-                   <div className="grid grid-cols-3 gap-2 mb-4">
-                    <div className="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-3 flex flex-col justify-center">
-                      <p className="text-xs text-slate-400 mb-0.5">Promedio general</p>
-                      <p className="text-lg font-bold" style={{ color: tema.sidebar }}>
-                        {fmt(promedio_constructo, 2)}
-                      </p>
-                    </div>
+                   <div className="grid grid-cols-2 gap-2 mb-4">
 
                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3">
                       <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-1">
@@ -441,9 +436,9 @@ export default function Visualizar() {
                   
                  <div
           className="flex gap-3"
-          style={{ height: `${preguntas.length * 44 + 40}px` }}
+          style={{ height: `${preguntas.length * 44 + 30}px` }}
         >
-          <div className="w-1/2 flex flex-col pr-2" style={{ paddingBottom: '40px' }}>
+          <div className="w-1/2 flex flex-col pr-2" style={{ paddingBottom: '30px' }}>
             {preguntas.map((p, i) => (
               <div
                 key={i}
@@ -463,10 +458,12 @@ export default function Visualizar() {
               options={{
                 indexAxis: 'y',
                 maintainAspectRatio: false,
+                layout: { padding: { right: 32 } },
                 scales: {
                   x: {
                     min: 0,
                     max: 4,
+                    afterFit: (scale: any) => { scale.height = 30 },
                     ticks: { color: colorTexto },
                     grid: { color: colorGrid },
                   },

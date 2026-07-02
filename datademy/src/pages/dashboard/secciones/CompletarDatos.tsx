@@ -78,21 +78,23 @@ export default function CompletarDatos() {
 }, [idProceso])
   useEffect(() => {
     if (!metricasEstudiantes) return
-    const num = metricasEstudiantes.promedios_por_pagina.length
+    const num = paginasEstudiantes?.cantidad_constructos ?? metricasEstudiantes?.promedios_por_pagina.length
+    if (num == null) return
     setConstructosEstudiantes(prev => {
       if (prev.length === num) return prev
       return Array.from({ length: num }, (_, i) => prev[i] ?? '')
     })
-  }, [metricasEstudiantes])
+  }, [paginasEstudiantes, metricasEstudiantes])
 
   useEffect(() => {
     if (!metricasSocios) return
-    const num = metricasSocios.promedios_por_pagina.length
+    const num = paginasSocios?.cantidad_constructos ?? metricasSocios?.promedios_por_pagina.length
+    if (num == null) return
     setConstructosSocios(prev => {
       if (prev.length === num) return prev
       return Array.from({ length: num }, (_, i) => prev[i] ?? '')
     })
-  }, [metricasSocios])
+  }, [paginasSocios, metricasSocios])
 
   const handleGuardar = async () => {
     if (!idProceso) return
@@ -204,11 +206,11 @@ export default function CompletarDatos() {
                   ))}
                 </div>
               </div>
-            ) : !metricasEstudiantes && (
-              <p className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">
-                Cargando estructura de estudiantes...
-              </p>
-            )}
+            ) : !paginasEstudiantes && !metricasEstudiantes && (
+               <p className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">
+                 Cargando estructura de estudiantes...
+               </p>
+             )}
           </div>
         </div>
         <div className={cardClass}>
@@ -253,11 +255,11 @@ export default function CompletarDatos() {
                   ))}
                 </div>
               </div>
-            ) : !metricasSocios && (
-              <p className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">
-                Cargando estructura de socios...
-              </p>
-            )}
+            ) : !paginasSocios && !metricasSocios && (
+               <p className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">
+                 Cargando estructura de socios...
+               </p>
+             )}
           </div>
         </div>
 
@@ -266,7 +268,7 @@ export default function CompletarDatos() {
       <div className="w-full bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
         <button
           onClick={handleGuardar}
-          disabled={guardando || !metricasEstudiantes || !metricasSocios}
+          disabled={guardando || !paginasEstudiantes || !paginasSocios}
           className="w-full py-3.5 rounded-xl text-white text-2xl font-semibold transition-all disabled:opacity-60 shadow-md hover:opacity-95"
           style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
         >
