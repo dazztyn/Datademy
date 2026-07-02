@@ -9,7 +9,7 @@ import CompletarDatos from '../pages/dashboard/secciones/CompletarDatos'
 import GenerarInforme from '../pages/dashboard/secciones/GenerarInforme'
 import DatosGlobales from '../pages/dashboard/DatosGlobales'
 import ListarInformes from '../pages/dashboard/secciones/ListarInformes'
-
+import ModalSesionExpirada from '../components/ModalSesionExpirada'
 
 
 import { useAuth } from '../context/AuthContext'
@@ -30,6 +30,7 @@ function RutaProtegida({ children }: { children: React.ReactNode }) {
 export default function Router() {
   return (
     <BrowserRouter>
+    <ModalSesionExpirada />
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
