@@ -196,31 +196,88 @@ export async function obtenerCantidadPaginas(
   return response.json()
 }
 
+export interface NpsSatisfaccion {
+  score_nps: number
+  distribucion_porcentajes: {
+    promotores_pct: number
+    pasivos_pct: number
+    detractores_pct: number
+  }
+  cantidades_reales: {
+    promotores: number
+    pasivos: number
+    detractores: number
+    total: number
+  }
+}
+
 export interface ComparativaGlobal {
   id_proceso: string
   nombre_proceso: string
   anio: number
   metricas: {
+    total_esperados: number
     total_encuestados: number
-    promedio_satisfaccion_general: number
+    tasa_respuesta_porcentaje: number
     promedios_por_pagina: {
       numero_pagina: number
       nombre_constructo: string
       promedio_constructo: number
     }[]
+    promedio_satisfaccion_general: number
+    nps_satisfaccion: NpsSatisfaccion
   }
   variacion_satisfaccion_respecto_anterior: number | null
   variaciones_constructos: {
     nombre_constructo: string
     promedio_actual: number
-    variacion_respecto_anterior: number
+    variacion_respecto_anterior: number | null
   }[]
+}
+
+export interface DetalleProcesoAlfa {
+  nombre_proceso: string
+  alfa: number
+}
+
+export interface ComparativaAlfaPregunta {
+  pregunta: string
+  promedio_alfa_pregunta: number
+  detalle_procesos: DetalleProcesoAlfa[]
+}
+
+export interface ComparativaAlfa {
+  nombre_constructo: string
+  promedio_alfa_constructo: number
+  detalle_procesos: DetalleProcesoAlfa[]
+  preguntas: ComparativaAlfaPregunta[]
+}
+
+export interface DetalleProcesoPromedio {
+  nombre_proceso: string
+  promedio: number
+}
+
+export interface ComparativaPromedioPregunta {
+  pregunta: string
+  promedio_general_pregunta: number
+  detalle_procesos: DetalleProcesoPromedio[]
+}
+
+export interface ComparativaPromedio {
+  nombre_constructo: string
+  promedio_general_constructo: number
+  detalle_procesos: DetalleProcesoPromedio[]
+  preguntas: ComparativaPromedioPregunta[]
 }
 
 export interface ComparativaResponse {
   estado: string
+  agrupado_por: string
   cantidad_procesos_comparados: number
   comparativa_global: ComparativaGlobal[]
+  comparativa_alfas: ComparativaAlfa[]
+  comparativa_promedios: ComparativaPromedio[]
 }
 
 export async function obtenerComparativaGlobal(
