@@ -75,10 +75,10 @@ function mapearExtremosPorConstructo(
     const idx = i + 1
 
     if (!constructo || !constructo.preguntas || constructo.preguntas.length === 0) {
-      variables[`Mayor${prefijo}Nombre_${idx}`] = ''
-      variables[`Mayor${prefijo}Promedio_${idx}`] = ''
-      variables[`Menor${prefijo}Nombre_${idx}`] = ''
-      variables[`Menor${prefijo}Promedio_${idx}`] = ''
+      variables[`MayorNombre${prefijo}_${idx}`] = ''
+      variables[`MayorPromedio${prefijo}_${idx}`] = ''
+      variables[`MenorNombre${prefijo}_${idx}`] = ''
+      variables[`MenorPromedio${prefijo}_${idx}`] = ''
       continue
     }
 
@@ -86,10 +86,10 @@ function mapearExtremosPorConstructo(
     const mayor = preguntas[0]
     const menor = preguntas[preguntas.length - 1]
 
-    variables[`Mayor${prefijo}Nombre_${idx}`] = mayor.pregunta ?? ''
-    variables[`Mayor${prefijo}Promedio_${idx}`] = mayor.promedio != null ? Number(mayor.promedio).toFixed(1) : ''
-    variables[`Menor${prefijo}Nombre_${idx}`] = menor.pregunta ?? ''
-    variables[`Menor${prefijo}Promedio_${idx}`] = menor.promedio != null ? Number(menor.promedio).toFixed(1) : ''
+    variables[`MayorNombre${prefijo}_${idx}`] = mayor.pregunta ?? ''
+    variables[`MayorPromedio${prefijo}_${idx}`] = mayor.promedio != null ? Number(mayor.promedio).toFixed(1) : ''
+    variables[`MenorNombre${prefijo}_${idx}`] = menor.pregunta ?? ''
+    variables[`MenorPromedio${prefijo}_${idx}`] = menor.promedio != null ? Number(menor.promedio).toFixed(1) : ''
   }
 
   return variables
@@ -334,7 +334,6 @@ export default function GenerarInforme() {
         NumSemestre: numSemestre,
         TogglePronombre: pronombre,
         ToggleAsignatura: tipoAsignatura,
-        ...tablaPromedios,
         ...tablaPromedios,
         ...extremosEstudiantes,
         ...extremosSocios,
