@@ -42,7 +42,7 @@ export class FormulariosOrquestadorService {
       throw new InternalServerErrorException('Error crítico: Google Drive no retornó un ID válido al clonar el formulario.');
     }
 
-    //await this.googleService.activarVigilanciaRespuestas(nuevoFormId);
+    await this.googleService.activarVigilanciaRespuestas(nuevoFormId);
 
     const urlEdicionGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/edit`;
     const urlRespuestaGenerada = `https://docs.google.com/forms/d/${nuevoFormId}/viewform`;
@@ -113,7 +113,7 @@ export class FormulariosOrquestadorService {
     try {
       const diseno = await this.googleService.obtenerDisenoFormulario(idFormularioExistente);
       const nombreFormulario = diseno.info?.title || 'Formulario Importado';
-      //await this.googleService.activarVigilanciaRespuestas(idFormularioExistente);
+      await this.googleService.activarVigilanciaRespuestas(idFormularioExistente);
       const urlEdicion = `https://docs.google.com/forms/d/${idFormularioExistente}/edit`;
       const urlRespuesta = `https://docs.google.com/forms/d/${idFormularioExistente}/viewform`;
       const campoBase = `formulario_${tipoFormulario}`;
