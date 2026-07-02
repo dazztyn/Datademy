@@ -66,7 +66,7 @@ const PaginaConstructoSchema = SchemaFactory.createForClass(PaginaConstructo);
 @Schema({ timestamps: true })
 export class Estadistica {
   
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   id_respuesta_google!: string;
 
   @Prop({ required: true })
