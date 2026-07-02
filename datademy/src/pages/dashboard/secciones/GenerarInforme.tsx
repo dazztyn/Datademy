@@ -69,31 +69,35 @@ function mapearExtremosPorConstructo(
 ): Record<string, string> {
   const variables: Record<string, string> = {}
   const LIMITE = 10
-
   for (let i = 0; i < LIMITE; i++) {
     const constructo = detalleDimension[i]
     const idx = i + 1
-
     if (!constructo || !constructo.preguntas || constructo.preguntas.length === 0) {
       variables[`MayorNombre${prefijo}_${idx}`] = ''
       variables[`MayorPromedio${prefijo}_${idx}`] = ''
-      variables[`MenorNombre${prefijo}_${idx}`] = ''
-      variables[`MenorPromedio${prefijo}_${idx}`] = ''
+      variables[`ParrafoSec${prefijo}_${idx}`] = ''
       continue
     }
-
     const preguntas = [...constructo.preguntas].sort((a: any, b: any) => b.promedio - a.promedio)
     const mayor = preguntas[0]
     const menor = preguntas[preguntas.length - 1]
 
     variables[`MayorNombre${prefijo}_${idx}`] = mayor.pregunta ?? ''
     variables[`MayorPromedio${prefijo}_${idx}`] = mayor.promedio != null ? Number(mayor.promedio).toFixed(1) : ''
-    variables[`MenorNombre${prefijo}_${idx}`] = menor.pregunta ?? ''
-    variables[`MenorPromedio${prefijo}_${idx}`] = menor.promedio != null ? Number(menor.promedio).toFixed(1) : ''
-  }
 
+    let parrafo = ''
+    if (menor.promedio != null) {
+      if (menor.promedio <= 2.9) {
+        parrafo = `a diferencia de la pregunta n° ${menor.pregunta ?? ''}, con la menor valoración, de ${Number(menor.promedio).toFixed(1)}`
+      } else {
+        parrafo = 'Esta dimensión nos ha otorgado resultados satisfactorios.'
+      }
+    }
+    variables[`ParrafoSec${prefijo}_${idx}`] = parrafo
+  }
   return variables
 }
+
 function fmt(value: number | null | undefined, decimals = 2): string {
   if (value == null || isNaN(value)) return '—'
   return value.toFixed(decimals)
