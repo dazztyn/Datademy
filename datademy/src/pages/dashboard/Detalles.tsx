@@ -29,9 +29,6 @@ const handleSincronizar = async () => {
   }
   useEffect(() => {
     if (!idProceso) return
-    const key = `proceso_sincronizado_${idProceso}`
-    if (sessionStorage.getItem(key)) return
-    sessionStorage.setItem(key, 'true')
     handleSincronizar()
   }, [idProceso])
 
