@@ -35,7 +35,7 @@ export class GoogleFormsService {
     try {
       const parametros: forms_v1.Params$Resource$Forms$Responses$List = { formId: idFormulario };
       if (ultimaSincronizacion) {
-        parametros.filter = `timestamp > "${ultimaSincronizacion.toISOString()}"`;
+        parametros.filter = `timestamp > ${ultimaSincronizacion.toISOString()}`;
       }
       const respuesta = await this.forms.forms.responses.list(parametros);
       return (respuesta.data.responses as forms_v1.Schema$FormResponse[]) || [];
