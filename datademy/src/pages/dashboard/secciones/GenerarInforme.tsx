@@ -63,6 +63,37 @@ function mapearTablaPromediosParaWord(
 
   return variablesWord
 }
+function mapearExtremosPorConstructo(
+  detalleDimension: any[],
+  prefijo: string = ''
+): Record<string, string> {
+  const variables: Record<string, string> = {}
+  const LIMITE = 10
+
+  for (let i = 0; i < LIMITE; i++) {
+    const constructo = detalleDimension[i]
+    const idx = i + 1
+
+    if (!constructo || !constructo.preguntas || constructo.preguntas.length === 0) {
+      variables[`Mayor${prefijo}Nombre_${idx}`] = ''
+      variables[`Mayor${prefijo}Promedio_${idx}`] = ''
+      variables[`Menor${prefijo}Nombre_${idx}`] = ''
+      variables[`Menor${prefijo}Promedio_${idx}`] = ''
+      continue
+    }
+
+    const preguntas = [...constructo.preguntas].sort((a: any, b: any) => b.promedio - a.promedio)
+    const mayor = preguntas[0]
+    const menor = preguntas[preguntas.length - 1]
+
+    variables[`Mayor${prefijo}Nombre_${idx}`] = mayor.pregunta ?? ''
+    variables[`Mayor${prefijo}Promedio_${idx}`] = mayor.promedio != null ? Number(mayor.promedio).toFixed(1) : ''
+    variables[`Menor${prefijo}Nombre_${idx}`] = menor.pregunta ?? ''
+    variables[`Menor${prefijo}Promedio_${idx}`] = menor.promedio != null ? Number(menor.promedio).toFixed(1) : ''
+  }
+
+  return variables
+}
 function fmt(value: number | null | undefined, decimals = 2): string {
   if (value == null || isNaN(value)) return '—'
   return value.toFixed(decimals)
@@ -278,7 +309,15 @@ export default function GenerarInforme() {
         nombresConstructosSoc,
         metricasSocios?.promedio_satisfaccion_constructos ?? 0
       )
+            const extremosEstudiantes = mapearExtremosPorConstructo(
+        (metricas.detalle_por_dimension ?? []).filter((_, i) => i < (metricas.detalle_por_dimension.length) - 1),
+        ''
+      )
 
+      const extremosSocios = mapearExtremosPorConstructo(
+        (metricasSocios?.detalle_por_dimension ?? []).filter((_, i) => i < ((metricasSocios?.detalle_por_dimension.length ?? 0)) - 1),
+        'S'
+      )
       const datosTexto: Record<string, string> = {
         AsignaturaModulo: asignaturaNombre,
         TipoClase: tipoClase,
@@ -296,7 +335,11 @@ export default function GenerarInforme() {
         TogglePronombre: pronombre,
         ToggleAsignatura: tipoAsignatura,
         ...tablaPromedios,
+        ...tablaPromedios,
+        ...extremosEstudiantes,
+        ...extremosSocios,
       }
+
       const filtros: FiltrosInforme = {
         carrera,
         asignatura: asignaturaNombre,
