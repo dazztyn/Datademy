@@ -12,9 +12,16 @@ export class EstadisticasRepository {
   async buscarPorQuery(
     queryMongo: Record<string, unknown>, 
     selectCampos: string = '', 
-    sortOptions: Record<string, 1 | -1 | 'asc' | 'desc'> = {}
+    sortOptions: Record<string, 1 | -1 | 'asc' | 'desc'> = {},
+    limite: number = 0
   ) {
-    return await this.modelo.find(queryMongo).select(selectCampos).sort(sortOptions as any).lean().exec();
+    let query = this.modelo.find(queryMongo).select(selectCampos).sort(sortOptions as any).lean();
+    
+    if (limite > 0) {
+      query = query.limit(limite);
+    }
+    
+    return await query.exec();
   }
 
   async obtenerOpcionesDistintas(campo: string, queryMongo: Record<string, unknown>) {
