@@ -9,7 +9,7 @@ export class EstadisticasWebhooksController {
   @Post('respuestas')
   @HttpCode(200)
   async recibirNotificacionGoogle(
-    @Body() cuerpoWebhook: RecibirWebhookDto,
+    @Body() cuerpoWebhook: any,
     @Query('token') token: string) 
   {
     if (!token || token !== process.env.WEBHOOK_SECRET) 
