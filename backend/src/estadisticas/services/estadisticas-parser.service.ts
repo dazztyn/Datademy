@@ -5,6 +5,7 @@ import { GoogleFormRespuesta, AnswerItem } from '../interfaces/respuesta-google.
 import { MapaPregunta } from '../interfaces/mapa-pregunta.interface';
 import { PaginaTemp } from '../interfaces/pagina-temp.interface';
 import { forms_v1 } from 'googleapis';
+import { DatosRespondente } from '../schemas/estadisticas.schema';
 
 @Injectable()
 export class EstadisticasParserService {
@@ -57,7 +58,7 @@ export class EstadisticasParserService {
         }
       });
 
-    return datos;
+    return datos as unknown as DatosRespondente;;
   }
 
   private construirMapaPreguntas(disenoCrudo: GoogleFormDiseno): Record<string, MapaPregunta> {

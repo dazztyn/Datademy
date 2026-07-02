@@ -74,7 +74,7 @@ export class EstadisticasWebhooksService {
       );
       const setIdsExistentes = new Set(encuestasExistentes.map(e => e.id_respuesta_google));
       
-      type NuevaEstadistica = ReturnType<typeof this.parserService.procesarEncuesta> & { tipo_formulario: string };
+      type NuevaEstadistica = ReturnType<typeof this.parserService.procesarEncuesta> & { tipo_formulario: TipoFormulario };
       const nuevasEstadisticas: NuevaEstadistica[] = [];
 
       for (const respuestaCruda of listaRespuestas) {
