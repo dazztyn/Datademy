@@ -19,12 +19,22 @@ export class AuthController {
 
   @Get('google-token')
   @UseGuards(AuthGuard('jwt'))
-  obtenerTokenGoogle(@Req() req: RequestConUsuario) 
+  async obtenerTokenGoogle(@Req() req: RequestConUsuario) 
   {
     const gToken = req.cookies['googleAccessToken'];
     
     if (!gToken) {
       return { estado: 'error', mensaje: 'No hay token de Google o ha expirado' };
+    }
+
+    try {
+      const googleResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${gToken}`);
+      
+      if (!googleResponse.ok) {
+        return { estado: 'error', mensaje: 'El token expiró en los servidores de Google' };
+      }
+    } catch (error) {
+      return { estado: 'error', mensaje: 'No se pudo validar el token con Google' };
     }
 
     return {
@@ -43,6 +53,8 @@ export class AuthController {
     const gToken = resultadoLogin.tokens.googleAccessToken;
 
     const tiempoVida8Horas = 8 * 60 * 60 * 1000; 
+    const tiempoVida1Hora = 60 * 60 * 1000;
+
 
     res.cookie('backendJwt', jwt, {
       httpOnly: true, 
@@ -55,7 +67,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: tiempoVida8Horas,
+      maxAge: tiempoVida1Hora,
     });
     return res.redirect('/dashboard');
   }
