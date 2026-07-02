@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useEstadisticas } from '../hooks/useEstadisticas';
+import GraficoCronbach from './GraficoCronbach';
+import GraficoGenero from './GraficoGenero';
 
 const CAMPOS_BASE = ['nombre', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'organizacion', 'asignatura'];
 
@@ -100,6 +102,24 @@ export default function PanelRespuestas({
           </View>
         </>
       )}
+
+    {!!metricas?.distribucion_genero?.length && (
+    <>
+        <Text className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">
+        Distribución por género
+        </Text>
+        <GraficoGenero datos={metricas.distribucion_genero} />
+    </>
+    )}
+
+        {tipo === 'estudiantes' && !!(metricas as any)?.fiabilidad_constructos?.length && (
+        <>
+            <Text className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">
+            Fiabilidad (Alfa de Cronbach)
+            </Text>
+            <GraficoCronbach datos={(metricas as any).fiabilidad_constructos} />
+        </>
+        )}
 
       {/* Listado de respuestas */}
       <Text className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">

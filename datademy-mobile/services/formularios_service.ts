@@ -112,6 +112,7 @@ export interface Metricas {
     score_nps: number;
     distribucion_porcentajes: { promotores_pct: number; pasivos_pct: number; detractores_pct: number };
   } | null;
+  fiabilidad_constructos?: { numero_pagina: number; nombre_constructo: string; alfa_cronbach_global: number }[];
 }
 
 export async function obtenerMetricas(idProceso: string, tipo: 'estudiantes' | 'socios'): Promise<Metricas> {
