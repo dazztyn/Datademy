@@ -6,6 +6,8 @@ import { EstadisticasAnaliticasService } from './estadisticas-analiticas.service
 import { ProcesoComparativa, VariacionConstructo } from '../interfaces/proceso-comparativo.interface';
 import { MetricaConstructo } from '../interfaces/metrica-constructo.interface';
 import { ResultadoCronbach } from '../interfaces/resultado-cronbach.interface';
+import { BadRequestException } from '@nestjs/common';
+import { MAPA_FILTROS_MONGO } from '../constantes/filtros-mongo.constant';
 
 @Injectable()
 export class EstadisticasComparativasService {
@@ -24,12 +26,14 @@ export class EstadisticasComparativasService {
     
     const comparativaFinal = this.calcularVariacionesHistoricas(comparativaCruda);
     const comparativaAlfas = this.calcularPromediosAlfasComparativos(comparativaCruda);
+    const comparativaPromedios = this.calcularPromediosPreguntasComparativos(comparativaCruda);
 
     return {
       estado: 'exito',
       cantidad_procesos_comparados: comparativaFinal.length,
       comparativa_global: comparativaFinal,
-      comparativa_alfas: comparativaAlfas
+      comparativa_alfas: comparativaAlfas,
+      comparativa_promedios: comparativaPromedios
     };
   }
 
@@ -134,4 +138,146 @@ export class EstadisticasComparativasService {
       return { nombre_constructo: c.nombre_constructo, detalle_procesos: c.alfas_globales, promedio_alfa_constructo: promedioGlobal, preguntas: preguntasFinales };
     });
   }
+
+  private calcularPromediosPreguntasComparativos(comparativaOrdenada: any[]) {
+    type DetallePromedio = { nombre_proceso: string; promedio: number };
+    type ConstructoAgrupado = {
+      nombre_constructo: string;
+      promedios_globales: DetallePromedio[];
+      mapa_preguntas: Map<string, DetallePromedio[]>;
+    };
+
+    const mapaConstructos = new Map<string, ConstructoAgrupado>();
+
+    comparativaOrdenada.forEach(proceso => {
+      const nombreProc = proceso.nombre_proceso;
+      const metricas = proceso.metricas;
+
+      const promediosPagina = metricas.promedios_por_pagina || [];
+      promediosPagina.forEach((p: any) => {
+        const nombreConst = p.nombre_constructo;
+        if (!mapaConstructos.has(nombreConst)) {
+          mapaConstructos.set(nombreConst, { nombre_constructo: nombreConst, promedios_globales: [], mapa_preguntas: new Map() });
+        }
+        mapaConstructos.get(nombreConst)!.promedios_globales.push({ nombre_proceso: nombreProc, promedio: p.promedio_constructo });
+      });
+
+      const detalleDimension = metricas.detalle_por_dimension || [];
+      detalleDimension.forEach((dim: any) => {
+        const nombreConst = dim.nombre_constructo;
+        if (!mapaConstructos.has(nombreConst)) {
+          mapaConstructos.set(nombreConst, { nombre_constructo: nombreConst, promedios_globales: [], mapa_preguntas: new Map() });
+        }
+        const constructoData = mapaConstructos.get(nombreConst)!;
+
+        (dim.preguntas || []).forEach((preg: any) => {
+          if (!constructoData.mapa_preguntas.has(preg.pregunta)) {
+            constructoData.mapa_preguntas.set(preg.pregunta, []);
+          }
+          constructoData.mapa_preguntas.get(preg.pregunta)!.push({ nombre_proceso: nombreProc, promedio: preg.promedio });
+        });
+      });
+    });
+
+    return Array.from(mapaConstructos.values()).map(c => {
+      const promedioGeneralConstructo = c.promedios_globales.length > 0 
+        ? Number((c.promedios_globales.reduce((sum, item) => sum + item.promedio, 0) / c.promedios_globales.length).toFixed(1)) : 0;
+
+      const preguntasFinales = Array.from(c.mapa_preguntas.entries()).map(([pregunta, promediosArray]) => ({
+        pregunta,
+        detalle_procesos: promediosArray,
+        promedio_general_pregunta: promediosArray.length > 0 
+          ? Number((promediosArray.reduce((sum, item) => sum + item.promedio, 0) / promediosArray.length).toFixed(1)) : 0
+      }));
+
+      return { 
+        nombre_constructo: c.nombre_constructo, 
+        promedio_general_constructo: promedioGeneralConstructo, 
+        detalle_procesos: c.promedios_globales, 
+        preguntas: preguntasFinales 
+      };
+    });
+  }
+
+  async obtenerComparativaInterna(
+    usuarioId: string, 
+    procesoId: string, 
+    agruparPor: string, 
+    tipoFormulario: TipoFormulario = TipoFormulario.ESTUDIANTES,
+    valoresFiltro?: string[],
+    filtrosAdicionales: Record<string, string> = {}
+  ) {
+    const campoMapeadoMongo = MAPA_FILTROS_MONGO[agruparPor];
+    if (!campoMapeadoMongo) {
+      throw new BadRequestException(`No se puede agrupar por el campo: ${agruparPor}`);
+    }
+
+    const proceso = await this.procesosService.obtenerProcesoInterno(usuarioId, procesoId);
+    const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
+    const nombresConstructos = configFormulario?.nombres_constructos || [];
+
+    const queryBase: Record<string, unknown> = { proceso_id: procesoId, usuario_id: usuarioId, tipo_formulario: tipoFormulario };
+
+    Object.entries(filtrosAdicionales)
+      .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '')
+      .forEach(([llaveFrontend, valor]) => {
+        const campoMongo = MAPA_FILTROS_MONGO[llaveFrontend];
+        if (campoMongo) {
+          queryBase[campoMongo] = valor;
+        }
+      });
+
+    const opcionesCrudas = await this.repositorio.obtenerOpcionesDistintas(campoMapeadoMongo, queryBase);
+    
+    let gruposValidos = opcionesCrudas.filter(o => o && o !== 'No especificada' && o !== 'No especificado');
+
+    if (valoresFiltro && valoresFiltro.length > 0) {
+      gruposValidos = gruposValidos.filter(g => valoresFiltro.includes(String(g)));
+    }
+
+    if (gruposValidos.length === 0) {
+      return { estado: 'exito', agrupado_por: agruparPor, cantidad_procesos_comparados: 0, comparativa_global: [], comparativa_alfas: [], comparativa_promedios: [] };
+    }
+
+    const comparativaCruda: ProcesoComparativa[] = await Promise.all(
+      gruposValidos.map(async (nombreGrupo, index) => {
+        const queryGrupo = { ...queryBase, [campoMapeadoMongo]: nombreGrupo }; 
+        
+        const estadisticasGrupo = await this.repositorio.buscarPorQuery(queryGrupo, 'constructos_paginas datos_respondente -_id');
+        
+        const metricas = this.analiticasService.calcularMetricasAnaliticas(estadisticasGrupo, nombresConstructos, 0);
+
+        return {
+          id_proceso: `${procesoId}-grupo-${index}`,
+          nombre_proceso: String(nombreGrupo), 
+          anio: proceso.anio,
+          metricas: metricas as any
+        };
+      })
+    );
+
+    comparativaCruda.sort((a, b) => b.metricas.promedio_satisfaccion_general - a.metricas.promedio_satisfaccion_general);
+
+    const comparativaFinal = comparativaCruda.map(item => ({
+      ...item,
+      variacion_satisfaccion_respecto_anterior: null,
+      variaciones_constructos: item.metricas.promedios_por_pagina.map((c: MetricaConstructo) => ({
+         nombre_constructo: c.nombre_constructo,
+         promedio_actual: c.promedio_constructo,
+         variacion_respecto_anterior: null
+      }))
+    }));
+    const comparativaAlfas = this.calcularPromediosAlfasComparativos(comparativaCruda);
+    const comparativaPromedios = this.calcularPromediosPreguntasComparativos(comparativaCruda);
+
+    return {
+      estado: 'exito',
+      agrupado_por: agruparPor,
+      cantidad_procesos_comparados: comparativaFinal.length,
+      comparativa_global: comparativaFinal, 
+      comparativa_alfas: comparativaAlfas,
+      comparativa_promedios: comparativaPromedios
+    };
+  }
+
 }

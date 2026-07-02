@@ -84,4 +84,31 @@ export class EstadisticasController {
     const tipoSeguro = (tipo as TipoFormulario) || TipoFormulario.ESTUDIANTES;
     return await this.consultasService.obtenerOpcionesFiltrosDisponibles(idProceso, req.user.userId, tipoSeguro);
   }
+
+  @Get(':idProceso/comparativa-interna')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(86400000)
+  async obtenerComparativaInterna(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string,
+    @Query() queryParams: Record<string, string>
+  ) {
+    const { agruparPor, valores, tipo, ...filtrosAdicionales } = queryParams;
+
+    if (!agruparPor) {
+      throw new BadRequestException('Debes especificar por qué campo agrupar (ej. ?agruparPor=carrera o ?agruparPor=sede)');
+    }
+    
+    const tipoSeguro = (tipo as TipoFormulario) || TipoFormulario.ESTUDIANTES;
+    const valoresArray = valores ? valores.split(',') : undefined;
+    
+    return await this.comparativasService.obtenerComparativaInterna(
+      req.user.userId, 
+      idProceso, 
+      agruparPor, 
+      tipoSeguro,
+      valoresArray,
+      filtrosAdicionales // <--- Se lo pasamos al servicio
+    );
+  }
 }
