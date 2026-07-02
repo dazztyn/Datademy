@@ -78,3 +78,64 @@ export async function configurarCarpetaDestino(idCarpeta: string): Promise<void>
   })
   if (!response.ok) throw new Error('Error al configurar carpeta destino')
 }
+
+export interface InformeGenerado {
+  id_informe_drive: string;
+  nombre_informe: string;
+  url_descarga: string;
+  url_edicion: string;
+  fecha_generacion: string;
+}
+
+export async function obtenerInformes(idProceso: string): Promise<InformeGenerado[]> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/informes`, {
+    headers: await getHeaders(),
+  });
+  if (!response.ok) throw new Error('Error al obtener los informes generados');
+  const data = await response.json();
+  return data.informes || [];
+}
+
+export interface PromedioPagina {
+  nombre_constructo: string;
+  promedio_constructo: number;
+}
+
+export interface Metricas {
+  total_esperados: number;
+  total_encuestados: number;
+  tasa_respuesta_porcentaje: number;
+  distribucion_genero: { genero: string; cantidad: number }[];
+  promedios_por_pagina: PromedioPagina[];
+  promedio_satisfaccion_general: number;
+  nps_satisfaccion: {
+    score_nps: number;
+    distribucion_porcentajes: { promotores_pct: number; pasivos_pct: number; detractores_pct: number };
+  } | null;
+}
+
+export async function obtenerMetricas(idProceso: string, tipo: 'estudiantes' | 'socios'): Promise<Metricas> {
+  const response = await fetch(`${BASE_URL}/estadisticas/${idProceso}/metricas?tipo=${tipo}`, {
+    headers: await getHeaders(),
+  });
+  if (!response.ok) throw new Error('Error al obtener las métricas');
+  const data = await response.json();
+  return data.metricas;
+}
+
+export async function obtenerResultados(idProceso: string, tipo: 'estudiantes' | 'socios'): Promise<Record<string, any>[]> {
+  const response = await fetch(`${BASE_URL}/estadisticas/${idProceso}/resultados?tipo=${tipo}`, {
+    headers: await getHeaders(),
+  });
+  if (!response.ok) throw new Error('Error al obtener las respuestas');
+  const data = await response.json();
+  return data.datos || [];
+}
+
+export async function sincronizarManual(idProceso: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/estadisticas/${idProceso}/sincronizar-manual`, {
+    method: 'POST',
+    headers: await getHeaders(),
+  });
+  if (!response.ok) throw new Error('Error al sincronizar');
+}
