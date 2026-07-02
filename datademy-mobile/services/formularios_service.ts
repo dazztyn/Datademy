@@ -101,6 +101,12 @@ export interface PromedioPagina {
   promedio_constructo: number;
 }
 
+export interface DetalleDimension {
+  numero_pagina: number;
+  nombre_constructo: string;
+  preguntas: { pregunta: string; promedio: number; total_respuestas: number }[];
+}
+
 export interface Metricas {
   total_esperados: number;
   total_encuestados: number;
@@ -113,6 +119,7 @@ export interface Metricas {
     distribucion_porcentajes: { promotores_pct: number; pasivos_pct: number; detractores_pct: number };
   } | null;
   fiabilidad_constructos?: { numero_pagina: number; nombre_constructo: string; alfa_cronbach_global: number }[];
+  detalle_por_dimension?: DetalleDimension[];
 }
 
 export async function obtenerMetricas(idProceso: string, tipo: 'estudiantes' | 'socios'): Promise<Metricas> {

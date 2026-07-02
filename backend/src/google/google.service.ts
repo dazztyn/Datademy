@@ -115,7 +115,7 @@ export class GoogleService
     }
   }
 
-  async activarVigilanciaRespuestas(idFormulario: string): Promise<any> {
+  /*async activarVigilanciaRespuestas(idFormulario: string): Promise<any> {
     try 
     {
       const nombreTema = `projects/${process.env.GOOGLE_PROJECT_ID}/topics/respuestas-datademy`;
@@ -152,6 +152,7 @@ export class GoogleService
       throw new Error('No se pudo vincular el formulario con Pub/Sub.');
     }
   }
+  */
 
   async eliminarArchivoDrive(idArchivo: string): Promise<void> {
     try 

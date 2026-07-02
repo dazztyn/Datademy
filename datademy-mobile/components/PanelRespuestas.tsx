@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshCon
 import { useEstadisticas } from '../hooks/useEstadisticas';
 import GraficoCronbach from './GraficoCronbach';
 import GraficoGenero from './GraficoGenero';
+import DetalleConstructo from './DetalleConstructo';
 
 const CAMPOS_BASE = ['nombre', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'organizacion', 'asignatura'];
 
@@ -112,12 +113,35 @@ export default function PanelRespuestas({
     </>
     )}
 
-        {tipo === 'estudiantes' && !!(metricas as any)?.fiabilidad_constructos?.length && (
-        <>
-            <Text className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">
-            Fiabilidad (Alfa de Cronbach)
-            </Text>
-            <GraficoCronbach datos={(metricas as any).fiabilidad_constructos} />
+    {tipo === 'estudiantes' && !!(metricas as any)?.fiabilidad_constructos?.length && (
+    <>
+        <Text className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">
+        Fiabilidad (Alfa de Cronbach)
+        </Text>
+        <GraficoCronbach datos={(metricas as any).fiabilidad_constructos} />
+    </>
+    )}
+
+    {!!metricas?.detalle_por_dimension?.length && (
+    <>
+        <Text className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">
+        Detalle por pregunta
+        </Text>
+        {metricas.detalle_por_dimension
+        .slice(0, -1) // igual que en la web: se excluye la última página (es la de NPS, no un constructo real)
+        .map((c) => {
+            const promedioDelConstructo =
+            metricas.promedios_por_pagina.find((p) => p.nombre_constructo === c.nombre_constructo)
+                ?.promedio_constructo ?? 0;
+            return (
+            <DetalleConstructo
+                key={c.numero_pagina}
+                constructo={c}
+                promedioGeneral={promedioDelConstructo}
+                colorAcento={colorAcento}
+                />
+             );
+            })}
         </>
         )}
 
