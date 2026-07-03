@@ -36,8 +36,8 @@ export default function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<RutaProtegida><Landing /></RutaProtegida>} />
         <Route path="/datos-globales" element={<RutaProtegida><DatosGlobales /></RutaProtegida>} />
-        <Route path="detalles" element={<RutaProtegida><Detalles /></RutaProtegida>}>
         <Route path="/comparativa-interna" element={<RutaProtegida><ComparativaInterna /></RutaProtegida>} />
+        <Route path="detalles" element={<RutaProtegida><Detalles /></RutaProtegida>}>
           <Route index element={<p className="text-white/70 text-sm">Selecciona una sección del menú</p>} />
           <Route path="listado" element={<ListarResultados />} />
           <Route path="graficos" element={<Visualizar />} />
