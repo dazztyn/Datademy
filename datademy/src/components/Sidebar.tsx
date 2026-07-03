@@ -59,7 +59,7 @@ const handleCerrarSesion = async () => {
   }
 }
   const requiereMetadatos = (ruta: string) =>
-    ['/detalles/alumnos', '/detalles/socios', '/detalles/graficos', '/detalles/cronbach', '/detalles/informe'].includes(ruta)
+    ['/detalles/alumnos', '/detalles/socios', '/detalles/graficos', '/detalles/cronbach', '/detalles/informe', '/comparativa-interna'].includes(ruta)
 
   const handleRefresh = async () => {
     if (!idProceso || sync) return
@@ -67,6 +67,7 @@ const handleCerrarSesion = async () => {
       }
 
   const informeBloqueado = requiereMetadatos('/detalles/informe') && !metadatosCompletos
+  const comparativaBloqueada = requiereMetadatos('/comparativa-interna') && !metadatosCompletos
 
   return (
     <div
@@ -146,24 +147,31 @@ const handleCerrarSesion = async () => {
             </button>
           )
         })}
-        <button
-          disabled={!idProceso}
-          onClick={() => setMostrarConfirmacionComparativa(true)}
-          title={!idProceso ? 'Selecciona un proceso primero' : undefined}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left w-full mt-1
-            ${!idProceso ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10'}`}
-        >
-          <span className="relative flex-shrink-0 w-6 h-6 flex items-center justify-center">
-            <img
-              src={iconoComparativaInterna}
-              alt="Comparativa interna"
-              className="w-5 h-5 object-contain brightness-0 invert"
-            />
-          </span>
-          <span className={`text-md font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 flex items-center gap-1 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
-            Comparativa interna
-          </span>
-        </button>
+<button
+  disabled={!idProceso || comparativaBloqueada}
+  onClick={() => setMostrarConfirmacionComparativa(true)}
+  title={
+    !idProceso
+      ? 'Selecciona un proceso primero'
+      : comparativaBloqueada
+      ? 'Completa los metadatos primero'
+      : undefined
+  }
+  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left w-full mt-1
+    ${!idProceso || comparativaBloqueada ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10'}`}
+>
+  <span className="relative flex-shrink-0 w-5 h-5 flex items-center justify-center">
+    <img
+      src={comparativaBloqueada ? iconoLock : iconoComparativaInterna}
+      alt="Comparativa interna"
+      className="w-5 h-5 object-contain brightness-0 invert"
+    />
+  </span>
+  <span className={`text-sm font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 flex items-center gap-1 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+    Comparativa interna
+    {!comparativaBloqueada && <span className="text-xs opacity-70">↗</span>}
+  </span>
+</button>
       </div>
 
       <div className="px-3 flex flex-col gap-2 mt-4">

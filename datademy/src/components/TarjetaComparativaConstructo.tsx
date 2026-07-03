@@ -68,7 +68,7 @@ export default function TarjetaComparativaConstructo({
                     className="text-sm font-semibold mb-1.5"
                     style={{ color: colorPorValor(p.valorGeneral) }}
                   >
-                    Promedio entre los {item.detalleProcesos.length} procesos: {formatearValor(p.valorGeneral)}
+                    Promedio entre los {item.detalleProcesos.length} campos: {formatearValor(p.valorGeneral)}
                   </p>
                   <div className="space-y-1">
                     {p.detalleProcesos.map(d => (
