@@ -465,7 +465,7 @@ export default function ComparativaInterna() {
                       <TarjetaComparativaConstructo
                         key={item.nombreConstructo}
                         item={item}
-                        colorPorValor={() => tema.sidebar}
+                        colorPorValor={() => tema.colorInforme}
                         formatearValor={valor => valor.toFixed(2)}
                         maxEscala={4}
                       />

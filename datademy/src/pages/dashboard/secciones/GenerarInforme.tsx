@@ -430,7 +430,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
       afterFit: anchoEtiquetas
         ? (scale: any) => { scale.width = anchoEtiquetas }
         : undefined,
-      ticks: { color: '#64748b', font: { size: 12 }, autoSkip: false },
+      ticks: { color: '#64748b', font: { size: 10 }, autoSkip: false },
       grid: { color: 'rgba(0,0,0,0.06)' },
     },
   },
@@ -868,26 +868,26 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                 </div>
 
                 {promediosSocios.length > 0 && (
-                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      ...promediosSocios.slice(0, 3).map((p, i) => ({
-                        label: nombresConstructosSoc[i] ?? p.nombre_constructo ?? `Constructo ${i + 1}`,
-                        valor: p.promedio_constructo,
-                      })),
-                      { label: 'Promedio general', valor: metricasSocios?.promedio_satisfaccion_constructos },
-                    ].map(({ label, valor }, i) => (
-                      <div
-                        key={`${label}-${i}`}
-                        className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-3 py-2.5 flex items-center justify-between gap-2"
-                      >
-                        <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{label}</span>
-                        <span className="text-sm font-bold flex-shrink-0" style={{ color: '#7f458f' }}>
-                          {fmt(valor)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    ...promediosSocios.slice(0, 3).map((p, i) => ({
+                      label: nombresConstructosSoc[i] ?? p.nombre_constructo ?? `Constructo ${i + 1}`,
+                      valor: p.promedio_constructo,
+                    })),
+                    { label: 'Promedio general', valor: metricasSocios?.promedio_satisfaccion_constructos },
+                  ].map(({ label, valor }, i) => (
+                    <div
+                      key={`${label}-${i}`}
+                      className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-3 py-2.5 flex items-center justify-between gap-2"
+                    >
+                      <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{label}</span>
+                      <span className="text-sm font-bold flex-shrink-0" style={{ color: '#7f458f' }}>
+                        {fmt(valor)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               </div>
             )}
           </div>
