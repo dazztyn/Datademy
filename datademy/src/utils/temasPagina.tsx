@@ -48,6 +48,12 @@ export const temasPagina: Record<string, TemaPagina> = {
     fondoHasta: '#059669',
     colorInforme: '#065f46',
   },
+  '/comparativa-interna': {
+  sidebar: '#7c2d12',
+  fondoDesde: '#fb923c',
+  fondoHasta: '#c2410c',
+  colorInforme: '#7c2d12',
+},
 }
 
 export const temaDefault = temasPagina['/detalles']

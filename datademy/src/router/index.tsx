@@ -10,7 +10,7 @@ import GenerarInforme from '../pages/dashboard/secciones/GenerarInforme'
 import DatosGlobales from '../pages/dashboard/DatosGlobales'
 import ListarInformes from '../pages/dashboard/secciones/ListarInformes'
 import ModalSesionExpirada from '../components/ModalSesionExpirada'
-
+import ComparativaInterna from '../pages/dashboard/ComparativaInterna'
 
 import { useAuth } from '../context/AuthContext'
 
@@ -37,6 +37,7 @@ export default function Router() {
         <Route path="/dashboard" element={<RutaProtegida><Landing /></RutaProtegida>} />
         <Route path="/datos-globales" element={<RutaProtegida><DatosGlobales /></RutaProtegida>} />
         <Route path="detalles" element={<RutaProtegida><Detalles /></RutaProtegida>}>
+        <Route path="/comparativa-interna" element={<RutaProtegida><ComparativaInterna /></RutaProtegida>} />
           <Route index element={<p className="text-white/70 text-sm">Selecciona una sección del menú</p>} />
           <Route path="listado" element={<ListarResultados />} />
           <Route path="graficos" element={<Visualizar />} />
