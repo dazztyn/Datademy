@@ -147,3 +147,31 @@ export async function sincronizarManual(idProceso: string): Promise<void> {
   });
   if (!response.ok) throw new Error('Error al sincronizar');
 }
+
+export interface VariacionConstructo {
+  nombre_constructo: string;
+  promedio_actual: number;
+  variacion_respecto_anterior: number | null;
+}
+
+export interface ProcesoComparativo {
+  id_proceso: string;
+  nombre_proceso: string;
+  anio: number;
+  metricas: Metricas;
+  variacion_satisfaccion_respecto_anterior: number | null;
+  variaciones_constructos: VariacionConstructo[];
+}
+
+export async function obtenerComparativaGlobal(
+  tipo: 'estudiantes' | 'socios',
+  procesosIds: string[]
+): Promise<ProcesoComparativo[]> {
+  const response = await fetch(
+    `${BASE_URL}/estadisticas/comparativa-global?procesos=${procesosIds.join(',')}&tipo=${tipo}`,
+    { headers: await getHeaders() }
+  );
+  if (!response.ok) throw new Error('Error al obtener la comparativa global');
+  const data = await response.json();
+  return data.comparativa_global || [];
+}
