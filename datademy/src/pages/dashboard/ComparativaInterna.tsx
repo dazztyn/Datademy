@@ -24,6 +24,7 @@ import {
   normalizarAlfas,
   normalizarPromedios,
 } from '../../utils/comparativas'
+import iconoVolver from '../../assets/HOME.png'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
@@ -202,18 +203,19 @@ export default function ComparativaInterna() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/detalles')}
-            className="text-white/80 hover:text-white text-md transition-colors flex items-center gap-1"
+            className="text-white/80 text-bold hover:text-white text-md flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors"
           >
-            ← Volver
+            <img src={iconoVolver} alt="Volver al dashboard" className="w-6 h-6 object-contain flex-shrink-0 brightness-0 invert" />
+            Volver
           </button>
           <h1 className="text-white font-semibold text-md">Comparativa interna</h1>
-          <span className="text-sm text-white/80 bg-white/15 px-2.5 py-1 rounded-full">
-            Agrupando por {AGRUPACIONES.find(a => a.valor === agruparPor)?.etiqueta}
+          <span className="text-md font-medium text-white/80 bg-white/15 px-2.5 py-1 rounded-full">
+            Agrupando por: {AGRUPACIONES.find(a => a.valor === agruparPor)?.etiqueta}
           </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-white/70 mr-1">Filtros:</span>
+          <span className="text-sm text-white mr-1 font-semibold">Filtros:</span>
           {filtros.map(f => {
             const inutil = f.clave === agruparPor
             return (
