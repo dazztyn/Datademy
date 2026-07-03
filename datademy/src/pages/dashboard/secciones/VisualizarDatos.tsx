@@ -248,7 +248,6 @@ export default function Visualizar() {
 
       {metricas && !cargando && metricas.total_encuestados === 0 && (
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 border border-slate-200 dark:border-slate-700 text-center">
-          <p className="text-2xl mb-2">🔍</p>
           <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
             Sin resultados para este filtro
           </p>
@@ -329,8 +328,6 @@ export default function Visualizar() {
               </div>
             )}
           </div>
-
-          {/* Bar charts per constructo */}
           {(metricas.detalle_por_dimension ?? [])
             .filter((_, i) => i < metricas.detalle_por_dimension.length - 1)
             .filter(

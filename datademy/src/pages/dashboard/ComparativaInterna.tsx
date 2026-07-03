@@ -118,16 +118,6 @@ export default function ComparativaInterna() {
   const alfasNormalizadas = useMemo(() => normalizarAlfas(comparativaAlfas), [comparativaAlfas])
   const promediosNormalizados = useMemo(() => normalizarPromedios(comparativaPromedios), [comparativaPromedios])
 
-  const maxEscalaPromedios = useMemo(() => {
-    const valores = promediosNormalizados.flatMap(item => [
-      item.valorGeneral,
-      ...item.detalleProcesos.map(d => d.valor),
-      ...item.preguntas.flatMap(p => [p.valorGeneral, ...p.detalleProcesos.map(d => d.valor)]),
-    ])
-    if (valores.length === 0) return 4
-    return Math.ceil(Math.max(4, ...valores))
-  }, [promediosNormalizados])
-
   const datosGrafico = useMemo(() => {
     if (comparativa.length === 0) return null
 
@@ -477,7 +467,7 @@ export default function ComparativaInterna() {
                         item={item}
                         colorPorValor={() => tema.sidebar}
                         formatearValor={valor => valor.toFixed(2)}
-                        maxEscala={maxEscalaPromedios}
+                        maxEscala={4}
                       />
                     ))}
                   </div>
