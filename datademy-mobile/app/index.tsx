@@ -34,8 +34,15 @@ export default function HomeScreen() {
             <TouchableOpacity
               onPress={recargar}
               className="bg-slate-700 px-3 py-1.5 rounded-full"
-            >
+              >
               <Text className="text-slate-200 text-xs font-medium">Recargar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/datos-globales')}
+                className="bg-emerald-500/20 px-3 py-1.5 rounded-full border border-emerald-500/50"
+              >
+              <Text className="text-emerald-400 text-xs font-medium">Comparar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
