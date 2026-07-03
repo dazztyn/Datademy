@@ -160,16 +160,15 @@ const handleCerrarSesion = async () => {
   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left w-full mt-1
     ${!idProceso || comparativaBloqueada ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10'}`}
 >
-  <span className="relative flex-shrink-0 w-5 h-5 flex items-center justify-center">
+  <span className="relative flex-shrink-0 w-6 h-6 flex items-center justify-center">
     <img
       src={comparativaBloqueada ? iconoLock : iconoComparativaInterna}
       alt="Comparativa interna"
       className="w-5 h-5 object-contain brightness-0 invert"
     />
   </span>
-  <span className={`text-sm font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 flex items-center gap-1 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+  <span className={`text-md font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 flex items-center gap-1 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
     Comparativa interna
-    {!comparativaBloqueada && <span className="text-xs opacity-70">↗</span>}
   </span>
 </button>
       </div>
