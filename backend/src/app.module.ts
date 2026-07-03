@@ -19,6 +19,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { join } from 'path';
 import { CommonModule } from './common/common.module';
+import { AdminModule } from './admin/admin.module';
 
 const getRedisConfig = () => {
   if (process.env.REDIS_URL) {
@@ -53,6 +54,7 @@ const getRedisConfig = () => {
     EventEmitterModule.forRoot(),
     UsuariosModule, 
     DatabaseModule,
+    AdminModule,
     FormulariosModule, 
     GoogleModule, 
     AuthModule, 
