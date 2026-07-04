@@ -804,23 +804,25 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
 
                     return (
                       <div
-                        key={`preview-${constructo.numero_pagina}`}
-                        className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3"
-                      >
-                        <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
-                          {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
-                        </p>
-                        <div
-                          className="mx-auto"
-                          style={{ height: `${preguntas.length * 60 + 40}px`, width: `${anchoTotal}px` }}
+                          key={`preview-${constructo.numero_pagina}`}
+                          className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3"
                         >
-                          <Bar
-                            ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
-                            data={chartData}
-                            options={barOptions(4, true, anchoEtiquetas)}
-                          />
+                          <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
+                            {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
+                          </p>
+                          <div className="w-full overflow-x-auto flex justify-center">
+                            <div
+                              className="flex-shrink-0"
+                              style={{ height: `${preguntas.length * 60 + 40}px`, width: `${anchoTotal}px` }}
+                            >
+                              <Bar
+                                ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
+                                data={chartData}
+                                options={barOptions(4, true, anchoEtiquetas)}
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
                     )
                   })}
                 </div>
@@ -851,21 +853,23 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
 
                     return (
                       <div
-                        key={`socio-preview-${constructo.numero_pagina}`}
+                        key={`preview-${constructo.numero_pagina}`}
                         className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3"
                       >
                         <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
-                          {constructo.nombre_constructo ?? `Dimensión ${constructo.numero_pagina}`}
+                          {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
-                        <div
-                          className="mx-auto"
-                          style={{ height: `${preguntas.length * 60 + 40}px`, width: `${anchoTotal}px` }}
-                        >
-                          <Bar
-                            ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}
-                            data={chartData}
-                            options={barOptions(4, true, anchoEtiquetas)}
-                          />
+                        <div className="w-full overflow-x-auto flex justify-center">
+                          <div
+                            className="flex-shrink-0"
+                            style={{ height: `${preguntas.length * 60 + 40}px`, width: `${anchoTotal}px` }}
+                          >
+                            <Bar
+                              ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}
+                              data={chartData}
+                              options={barOptions(4, true, anchoEtiquetas)}
+                            />
+                          </div>
                         </div>
                       </div>
                     )

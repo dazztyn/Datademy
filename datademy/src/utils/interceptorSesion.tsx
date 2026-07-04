@@ -1,7 +1,8 @@
 const BASE_URL = import.meta.env.VITE_API_URL
  
 const STATUS_SESION_EXPIRADA = 401
- 
+const STATUS_PROCESO_NO_ENCONTRADO = 404
+
 const RUTAS_EXCLUIDAS = ['/auth/google-token', '/auth/logout']
  
 let interceptorInstalado = false
@@ -23,6 +24,16 @@ export function instalarInterceptorSesion() {
  
     if (esLlamadaAlBackend && !esRutaExcluida && response.status === STATUS_SESION_EXPIRADA) {
       window.dispatchEvent(new Event('google-session-expired'))
+    }
+
+    const idProcesoActivo = sessionStorage.getItem('idProceso')
+    if (
+      esLlamadaAlBackend &&
+      idProcesoActivo &&
+      url.includes(`/${idProcesoActivo}`) &&
+      response.status === STATUS_PROCESO_NO_ENCONTRADO
+    ) {
+      window.dispatchEvent(new Event('proceso-eliminado'))
     }
  
     return response

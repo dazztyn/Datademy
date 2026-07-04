@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
 import ThemeToggle from '../../components/ThemeToggle'
 import { temasPagina, temaDefault } from '../../utils/temasPagina'
@@ -6,12 +6,15 @@ import { useTheme } from '../../context/ThemeContext'
 import { useProceso } from '../../context/ProcesoContext'
 import { useEffect, useState } from 'react'
 import { sincronizarManual } from '../../services/estadisticos_service'
+import ModalFormularioNoDisponible from '../../components/ModalFormularioNoDisponible'
 
 export default function Detalles() {
+  const navigate = useNavigate()
   const location = useLocation()
   const { theme } = useTheme()
   const { idProceso, verificarMetadatos } = useProceso()
   const [sincronizando, setSincronizando] = useState(false)
+  const [formularioNoDisponible, setFormularioNoDisponible] = useState(false)
   const handleSincronizado = () => {
     if (idProceso) verificarMetadatos(idProceso)
   }
@@ -23,9 +26,14 @@ const handleSincronizar = async () => {
       handleSincronizado()
     } catch (err) {
       console.error('Error al sincronizar', err)
+      setFormularioNoDisponible(true)
     } finally {
       setSincronizando(false)
     }
+  }
+  const volverAlLanding = () => {
+    setFormularioNoDisponible(false)
+    navigate('/dashboard', { replace: true })
   }
   useEffect(() => {
     if (!idProceso) return
@@ -53,7 +61,7 @@ const handleSincronizar = async () => {
       }
     >
       <Sidebar sync={sincronizando} onSincronizar={handleSincronizar} />
-      <main className="flex-1 p-8">
+      <main className="flex-1 min-w-0 p-8">
         <h1
           className="text-2xl font-semibold drop-shadow mb-6"
           style={{ color: theme === 'dark' ? 'white' : tema.sidebar }}
@@ -62,8 +70,10 @@ const handleSincronizar = async () => {
         </h1>
         <Outlet />
       </main>
-
       <ThemeToggle />
+      {formularioNoDisponible && (
+        <ModalFormularioNoDisponible onVolver={volverAlLanding} />
+      )}
     </div>
   )
 }
