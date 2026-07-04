@@ -418,19 +418,23 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
   maintainAspectRatio: false,
   animation: false,
   devicePixelRatio: 2,
-  layout: { padding: { right: showLabels ? 48 : 0 } },
+  layout: { padding: { right: showLabels ? 60 : 0, left: 10 } },
   scales: {
     x: {
-      min: 0,
+      min: 1,
       max: maxVal,
-      ticks: { color: '#64748b', font: { size: 10 } },
+      ticks: { color: '#64748b', font: { size: 13 } },
       grid: { color: 'rgba(0,0,0,0.06)' },
     },
     y: {
       afterFit: anchoEtiquetas
         ? (scale: any) => { scale.width = anchoEtiquetas }
         : undefined,
-      ticks: { color: '#64748b', font: { size: 10 }, autoSkip: false },
+      ticks: {
+        color: '#1e293b',
+        font: { size: 13 },
+        autoSkip: false,
+      },
       grid: { color: 'rgba(0,0,0,0.06)' },
     },
   },
@@ -442,8 +446,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
           anchor: 'end' as const,
           align: 'end' as const,
           clamp: true,
-          color: '#02171e',
-          font: { weight: 'bold' as const, size: 12 },
+          color: '#0f172a',
+          font: { weight: 'bold' as const, size: 14 },
           formatter: (value: number) => (value != null ? value.toFixed(2) : ''),
         }
       : { display: false },
@@ -709,6 +713,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                   <Pie
                     data={datosGenero}
                     options={{
+                      devicePixelRatio: 2,
                       maintainAspectRatio: false,
                       plugins: {
                         legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 10 } },
@@ -732,7 +737,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
     data={datosGenero}
     options={{
       maintainAspectRatio: false,
-      devicePixelRatio: 1,
+      devicePixelRatio: 2,
       plugins: {
         legend: {
           position: 'right',
@@ -782,11 +787,11 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
-                    const anchoTotal = 1200
-                    const anchoEtiquetas = anchoTotal / 2
+                    const anchoTotal = 1400
+                    const anchoEtiquetas = Math.floor(anchoTotal * 0.55)
 
                     const chartData = {
-                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, 100)),
+                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, 70)),
                       datasets: [
                         {
                           label: constructo.nombre_constructo,
@@ -807,7 +812,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         </p>
                         <div
                           className="mx-auto"
-                          style={{ height: `${preguntas.length * 44 + 32}px`, width: `${anchoTotal}px` }}
+                          style={{ height: `${preguntas.length * 60 + 40}px`, width: `${anchoTotal}px` }}
                         >
                           <Bar
                             ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
@@ -831,11 +836,11 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
-                    const anchoTotal = 1200
-                    const anchoEtiquetas = anchoTotal / 2
+                    const anchoTotal = 1400
+                    const anchoEtiquetas = Math.floor(anchoTotal * 0.55)
 
                     const chartData = {
-                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, 100)),
+                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, 70)),
                       datasets: [{
                         label: constructo.nombre_constructo,
                         data: preguntas.map(p => p.promedio ?? 0),
@@ -854,7 +859,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         </p>
                         <div
                           className="mx-auto"
-                          style={{ height: `${preguntas.length * 44 + 32}px`, width: `${anchoTotal}px` }}
+                          style={{ height: `${preguntas.length * 60 + 40}px`, width: `${anchoTotal}px` }}
                         >
                           <Bar
                             ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}

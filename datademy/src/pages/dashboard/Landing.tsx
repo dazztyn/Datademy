@@ -10,6 +10,7 @@ import { sincronizarPlantillas, configurarCarpetaDestino } from '../../services/
 import { useGooglePicker } from '../../hooks/useGooglePicker'
 import Toast from '../../components/Toast'
 import { useToast } from '../../hooks/useToast'
+import { useAuth } from '../../context/AuthContext'
 import { useProceso } from '../../context/ProcesoContext'
 import iconoCarpeta from '../../assets/FOLDER.png'
 import ModalBienvenida from '../../components/ModalBienvenidainfo'
@@ -20,6 +21,7 @@ export default function Landing() {
   const [modalAbierto, setModalAbierto] = useState(false)
   const navigate = useNavigate()
   const { setIdProceso } = useProceso()
+  const { esAdmin } = useAuth()
   const { toast, mostrar, cerrar } = useToast()
   const { formularios, cargando, error, recargar } = useFormularios()
   const [mostrarBienvenida, setMostrarBienvenida] = useState(() => {
@@ -63,9 +65,7 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
       <HeroBanner nombre="a Datademy" />
-
-      <div className="max-w-3xl mx-auto px-6 pb-24">
-        
+      <div className="max-w-3xl mx-auto px-6 pb-24">    
         <div className="flex md:flex-row items-center justify-between gap-4 mb-6">
            <div className="flex items-center gap-3">
             <button
@@ -168,6 +168,14 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
             >
               Ver datos globales
             </button>
+            {esAdmin && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="w-full mt-4 py-3.5 rounded-2xl font-medium text-xl transition-all duration-300 flex items-center justify-center gap-3 bg-black text-white shadow-lg shadow-black/30 opacity-100 cursor-pointer hover:scale-[1.02] hover:shadow-xl hover:bg-slate-900"
+              >
+                Panel de administración
+              </button>
+            )}
           </>
         )}
       </div>

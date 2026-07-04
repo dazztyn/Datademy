@@ -1,25 +1,54 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { setGoogleToken, clearGoogleToken } from '../services/googleToken.ts'
 
+export type RolUsuario = 'admin' | 'profesor'
+
+export interface UsuarioSesion {
+  userId: string
+  correo: string
+  rol: RolUsuario
+}
+
 interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
+  usuario: UsuarioSesion | null
+  esAdmin: boolean
   cerrarSesion: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 const BASE_URL = import.meta.env.VITE_API_URL
-const INTERVALO_CHEQUEO_GOOGLE_MS = 5 * 60 * 1000 // el token de Google dura 1h, chequeamos cada 5 min
+const INTERVALO_CHEQUEO_GOOGLE_MS = 5 * 60 * 1000 // el token de Google dura 1h, check cada 5 min
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [usuario, setUsuario] = useState<UsuarioSesion | null>(null)
   const yaAutenticadoRef = useRef(false)
 
   const limpiarAutenticacionLocal = useCallback(() => {
     setIsAuthenticated(false)
+    setUsuario(null)
     clearGoogleToken()
   }, [])
+
+  const cargarUsuario = useCallback(async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/auth/me`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+      if (!response.ok) return
+      const data = await response.json()
+      if (data.estado === 'exito' && data.usuario) {
+        setUsuario(data.usuario)
+      }
+    } catch (error) {
+      console.error('Error al cargar el usuario:', error)
+    }
+  }, [])
+
 
   const cerrarSesion = useCallback(async () => {
     try {
@@ -53,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsAuthenticated(true)
             setGoogleToken(data.googleAccessToken)
             yaAutenticadoRef.current = true
+            cargarUsuario()
             return
           }
         }
@@ -83,10 +113,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       activo = false
       clearInterval(intervalo)
     }
-  }, [limpiarAutenticacionLocal])
+  }, [limpiarAutenticacionLocal, cargarUsuario])
+
+  const esAdmin = usuario?.rol === 'admin'
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, cerrarSesion }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, usuario, esAdmin, cerrarSesion }}>
       {children}
     </AuthContext.Provider>
   )
