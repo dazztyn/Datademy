@@ -34,6 +34,7 @@ export class Proceso
     url_respuesta?: string;
     total_esperados?: number;
     nombres_constructos?: string[];
+    escala_satisfaccion?: number;
   };
 
   @Prop({ type: Object })
@@ -45,6 +46,7 @@ export class Proceso
     url_respuesta?: string;
     total_esperados?: number;
     nombres_constructos?: string[];
+    escala_satisfaccion?: number;
   };
   
   @Prop({

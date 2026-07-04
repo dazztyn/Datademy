@@ -56,6 +56,7 @@ export class EstadisticasConsultasService {
     
     const nombresConstructos = configFormulario?.nombres_constructos || [];
     const totalEsperados = configFormulario?.total_esperados || 0;
+    const escalaSatisfaccion = configFormulario?.escala_satisfaccion || 7;
     const ultimaPagina = nombresConstructos.length + 2;
 
     const [
@@ -79,7 +80,8 @@ export class EstadisticasConsultasService {
         paginaFiltro, 
         promediosCrudosMongo,
         demograficosMongo, 
-        npsMongo
+        npsMongo,
+        escalaSatisfaccion
       )
     };
   }

@@ -26,11 +26,12 @@ export class EstadisticasAnaliticasService
     paginaFiltro?: number, 
     promediosMongoOptimizados?: PromedioMongoRaw[],
     demograficosOptimizados?: ConteoDemograficoRaw[],
-    npsOptimizado?: NpsMongoRaw[]
+    npsOptimizado?: NpsMongoRaw[],
+    escalaSatisfaccion: number = 7
   ) 
   {
     if (!estadisticasBD || estadisticasBD.length === 0) {
-      return this.generarMetricasVacias(totalEsperados);
+      return this.generarMetricasVacias(totalEsperados, escalaSatisfaccion);
     }
 
     const todasLasPreguntas = this.extraerPreguntasConPagina(estadisticasBD);
@@ -84,8 +85,9 @@ export class EstadisticasAnaliticasService
       distribucion_genero: distribucionGeneroFinal,
       promedios_por_pagina: promediosPorPagina,
       promedio_satisfaccion_constructos: promedioSatisfaccionConstructos,
+      escala_maxima_satisfaccion: escalaSatisfaccion,
 
-      promedio_satisfaccion_general: this.satisfaccionCalculator.calcularSatisfaccionGeneral(todasLasPreguntas),
+      promedio_satisfaccion_general: this.satisfaccionCalculator.calcularSatisfaccionGeneral(todasLasPreguntas, escalaSatisfaccion),
       satisfaccion_por_carrera: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'carrera'),
       satisfaccion_por_sede: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'sede'),
       satisfaccion_por_organizacion: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'organizacion'),
@@ -124,7 +126,7 @@ export class EstadisticasAnaliticasService
       : `Constructo Página ${numeroPagina}`;
   }
 
-  private generarMetricasVacias(totalEsperados: number) {
+  private generarMetricasVacias(totalEsperados: number, escalaSatisfaccion: number = 7) {
     return {
       total_esperados: totalEsperados,
       total_encuestados: 0,
@@ -132,6 +134,7 @@ export class EstadisticasAnaliticasService
       distribucion_genero: [],
       promedios_por_pagina: [],
       promedio_satisfaccion_general: 0,
+      escala_maxima_satisfaccion: escalaSatisfaccion,
       fiabilidad_constructos: []
     };
   }

@@ -29,7 +29,7 @@ export class SatisfaccionCalculator {
     });
   }
 
-  calcularSatisfaccionGeneral(todasLasPreguntas: PreguntaAplanada[]) {
+  calcularSatisfaccionGeneral(todasLasPreguntas: PreguntaAplanada[], escalaSatisfaccion: number = 7) {
     const paginasNumeros = todasLasPreguntas.map(p => p.numero_pagina);
     if (paginasNumeros.length === 0) return 0;
     
@@ -43,7 +43,7 @@ export class SatisfaccionCalculator {
     
     if (preguntasSatisfaccion.length === 0) {
       preguntasSatisfaccion = todasLasPreguntas.filter(p => 
-        p.numero_pagina === ultimaPagina && p.valor_numerico >= 1 && p.valor_numerico <= 7
+        p.numero_pagina === ultimaPagina && p.valor_numerico >= 1 && p.valor_numerico <= escalaSatisfaccion
       );
     }
 

@@ -84,4 +84,32 @@ export class GoogleFormsService {
       throw new Error('No se pudo vincular el formulario con Pub/Sub.');
     }
   }
+
+  extraerEscalaMax(diseno: forms_v1.Schema$Form): number 
+  {
+    let escalaMax = 7;
+    if (diseno.items) {
+      const preguntaSatisfaccion = diseno.items.find(item => 
+        item.title && item.title.toLowerCase().includes('satisfacción general') &&
+        item.questionItem?.question?.choiceQuestion?.options
+      );
+
+      if (preguntaSatisfaccion && preguntaSatisfaccion.questionItem?.question?.choiceQuestion?.options) {
+        const opciones = preguntaSatisfaccion.questionItem.question.choiceQuestion.options;
+        let valorMasAlto = -1;
+        
+        opciones.forEach(opt => {
+          const match = (opt.value || '').trim().match(/^(\d+)/); 
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > valorMasAlto) valorMasAlto = num;
+          }
+        });
+
+        escalaMax = valorMasAlto > 0 ? valorMasAlto : opciones.length;
+      }
+    }
+    return escalaMax;
+  }
+
 }
