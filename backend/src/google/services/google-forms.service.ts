@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google, forms_v1 } from 'googleapis';
 
@@ -25,9 +25,15 @@ export class GoogleFormsService {
     try {
       const respuesta = await this.forms.forms.get({ formId: idFormulario });
       return respuesta.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error al obtener el diseño del formulario:', error);
-      throw new Error('No se pudo conectar con la estructura de Google Forms.');
+      if (typeof error === 'object' && error !== null) {
+        const errObj = error as Record<string, unknown>;
+        if (errObj.code === 404 || errObj.status === 404) {
+          throw new NotFoundException('El formulario no existe en Google Drive. Es posible que haya sido eliminado manualmente.');
+        }
+      }
+      throw new NotFoundException('El formulario no existe en Google Drive. Es posible que haya sido eliminado manualmente.');
     }
   }
 
@@ -39,8 +45,17 @@ export class GoogleFormsService {
       }
       const respuesta = await this.forms.forms.responses.list(parametros);
       return (respuesta.data.responses as forms_v1.Schema$FormResponse[]) || [];
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error al obtener las respuestas de Google Forms:', error);
+
+      if (typeof error === 'object' && error !== null) {
+        
+        const errObj = error as Record<string, unknown>;
+        if (errObj.code === 404 || errObj.status === 404) {
+           throw new NotFoundException('El formulario no existe en Google Drive. Es posible que haya sido eliminado manualmente.');
+        }
+      }
+
       throw new Error('No se pudieron recuperar las respuestas desde Google.');
     }
   }
