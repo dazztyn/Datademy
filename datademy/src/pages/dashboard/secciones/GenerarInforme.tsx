@@ -418,7 +418,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
   maintainAspectRatio: false,
   animation: false,
   devicePixelRatio: 2,
-  layout: { padding: { right: showLabels ? 60 : 0, left: 10 } },
+  layout: { padding: { right: showLabels ? 60 : 0} },
   scales: {
     x: {
       min: 1,
@@ -807,7 +807,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                           key={`preview-${constructo.numero_pagina}`}
                           className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3"
                         >
-                          <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
+                          <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                             {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                           </p>
                           <div className="w-full overflow-x-auto flex justify-center">
@@ -856,7 +856,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         key={`preview-${constructo.numero_pagina}`}
                         className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3"
                       >
-                        <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                           {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
                         <div className="w-full overflow-x-auto flex justify-center">
