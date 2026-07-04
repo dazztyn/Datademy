@@ -418,10 +418,10 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
   maintainAspectRatio: false,
   animation: false,
   devicePixelRatio: 2,
-  layout: { padding: { right: showLabels ? 60 : 0} },
+  layout: { padding: { right: showLabels ? 100 : 0} },
   scales: {
     x: {
-      min: 1,
+      min: 0,
       max: maxVal,
       ticks: { color: '#64748b', font: { size: 13 } },
       grid: { color: 'rgba(0,0,0,0.06)' },
