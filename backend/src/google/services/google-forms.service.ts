@@ -33,7 +33,7 @@ export class GoogleFormsService {
           throw new NotFoundException('El formulario no existe en Google Drive. Es posible que haya sido eliminado manualmente.');
         }
       }
-      throw new NotFoundException('El formulario no existe en Google Drive. Es posible que haya sido eliminado manualmente.');
+      throw new Error('No se pudo conectar con la estructura del formulario en Google Forms.');
     }
   }
 
