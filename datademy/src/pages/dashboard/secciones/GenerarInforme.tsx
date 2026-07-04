@@ -418,7 +418,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
   maintainAspectRatio: false,
   animation: false,
   devicePixelRatio: 2,
-  layout: { padding: { right: showLabels ? 160 : 0} },
+  layout: { padding: { right: showLabels ? 200 : 0} },
   scales: {
     x: {
       min: 0,
