@@ -57,11 +57,11 @@ export function useGooglePicker({ onSeleccionada, modo = 'carpeta' }: PickerOpti
       if (modo === 'formulario') {
         view = new window.google.picker.DocsView()
           .setMimeTypes('application/vnd.google-apps.form')
-          .setIncludeFolders(false)
+          .setIncludeFolders(true)
       } else if (modo === 'documento') {
         view = new window.google.picker.DocsView()
           .setMimeTypes('application/vnd.google-apps.document')
-          .setIncludeFolders(false)
+          .setIncludeFolders(true)
       } else {
         view = new window.google.picker.DocsView()
           .setIncludeFolders(true)

@@ -273,7 +273,7 @@ export interface ComparativaPromedio {
 
 export interface ComparativaResponse {
   estado: string
-  agrupado_por: string
+  agrupado_por?: string
   cantidad_procesos_comparados: number
   comparativa_global: ComparativaGlobal[]
   comparativa_alfas: ComparativaAlfa[]
@@ -293,5 +293,37 @@ export async function obtenerComparativaGlobal(
     credentials: 'include',
   })
   if (!response.ok) throw new Error('Error al obtener comparativa global')
+  return response.json()
+}
+export type AgrupacionInterna = 'carrera' | 'sede' | 'asignatura' | 'nivel_formativo'
+
+export interface FiltrosComparativaInterna {
+  sede?: string
+  genero?: string
+  carrera?: string
+  asignatura?: string
+  nivel_formativo?: string
+}
+
+export async function obtenerComparativaInterna(
+  idProceso: string,
+  agruparPor: AgrupacionInterna,
+  valores: string[],
+  filtros: FiltrosComparativaInterna = {}
+): Promise<ComparativaResponse> {
+  const params = new URLSearchParams({
+    agruparPor,
+    valores: valores.join(','),
+  })
+
+  Object.entries(filtros).forEach(([clave, valor]) => {
+    if (valor) params.set(clave, valor)
+  })
+
+  const response = await fetch(`${BASE_URL}/estadisticas/${idProceso}/comparativa-interna?${params}`, {
+    headers: getHeaders(),
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al obtener comparativa interna')
   return response.json()
 }

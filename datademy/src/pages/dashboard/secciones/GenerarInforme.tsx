@@ -443,7 +443,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
           align: 'end' as const,
           clamp: true,
           color: '#02171e',
-          font: { weight: 'bold' as const, size: 15 },
+          font: { weight: 'bold' as const, size: 12 },
           formatter: (value: number) => (value != null ? value.toFixed(2) : ''),
         }
       : { display: false },
@@ -782,7 +782,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
-                    const anchoTotal = 1080
+                    const anchoTotal = 1200
                     const anchoEtiquetas = anchoTotal / 2
 
                     const chartData = {
@@ -831,7 +831,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
-                    const anchoTotal = 1080
+                    const anchoTotal = 1200
                     const anchoEtiquetas = anchoTotal / 2
 
                     const chartData = {
@@ -868,25 +868,26 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                 </div>
 
                 {promediosSocios.length > 0 && (
-                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { label: 'Vinculación', valor: promediosSocios[0]?.promedio_constructo },
-                      { label: 'Contribución', valor: promediosSocios[1]?.promedio_constructo },
-                      { label: 'Satisfacción', valor: promediosSocios[2]?.promedio_constructo },
-                      { label: 'Promedio general', valor: metricasSocios?.promedio_satisfaccion_constructos },
-                    ].map(({ label, valor }) => (
-                      <div
-                        key={label}
-                        className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-3 py-2.5 flex items-center justify-between gap-2"
-                      >
-                        <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{label}</span>
-                        <span className="text-sm font-bold flex-shrink-0" style={{ color: '#7f458f' }}>
-                          {fmt(valor)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    ...promediosSocios.slice(0, 3).map((p, i) => ({
+                      label: nombresConstructosSoc[i] ?? p.nombre_constructo ?? `Constructo ${i + 1}`,
+                      valor: p.promedio_constructo,
+                    })),
+                    { label: 'Promedio general', valor: metricasSocios?.promedio_satisfaccion_constructos },
+                  ].map(({ label, valor }, i) => (
+                    <div
+                      key={`${label}-${i}`}
+                      className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-3 py-2.5 flex items-center justify-between gap-2"
+                    >
+                      <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{label}</span>
+                      <span className="text-sm font-bold flex-shrink-0" style={{ color: '#7f458f' }}>
+                        {fmt(valor)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               </div>
             )}
           </div>
