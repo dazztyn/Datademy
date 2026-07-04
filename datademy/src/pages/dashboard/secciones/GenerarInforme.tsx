@@ -443,7 +443,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
           align: 'end' as const,
           clamp: true,
           color: '#02171e',
-          font: { weight: 'bold' as const, size: 15 },
+          font: { weight: 'bold' as const, size: 12 },
           formatter: (value: number) => (value != null ? value.toFixed(2) : ''),
         }
       : { display: false },
@@ -782,7 +782,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
-                    const anchoTotal = 1080
+                    const anchoTotal = 1200
                     const anchoEtiquetas = anchoTotal / 2
 
                     const chartData = {
@@ -831,7 +831,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
-                    const anchoTotal = 1080
+                    const anchoTotal = 1200
                     const anchoEtiquetas = anchoTotal / 2
 
                     const chartData = {
