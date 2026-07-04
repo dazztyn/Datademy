@@ -48,29 +48,42 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req: RequestConPerfilGoogle, @Res() res: Response) 
   {
-    const resultadoLogin = await this.authService.validarUsuarioGoogle(req.user);
+    try
+    {
+      const resultadoLogin = await this.authService.validarUsuarioGoogle(req.user);
 
-    const jwt = resultadoLogin.tokens.backendJwt;
-    const gToken = resultadoLogin.tokens.googleAccessToken;
+      const jwt = resultadoLogin.tokens.backendJwt;
+      const gToken = resultadoLogin.tokens.googleAccessToken;
 
-    const tiempoVida8Horas = 8 * 60 * 60 * 1000; 
-    const tiempoVida1Hora = 60 * 60 * 1000;
+      const tiempoVida8Horas = 8 * 60 * 60 * 1000; 
+      const tiempoVida1Hora = 60 * 60 * 1000;
 
 
-    res.cookie('backendJwt', jwt, {
-      httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production', 
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: tiempoVida8Horas,
-    });
+      res.cookie('backendJwt', jwt, {
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === 'production', 
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: tiempoVida8Horas,
+      });
 
-    res.cookie('googleAccessToken', gToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: tiempoVida1Hora,
-    });
-    return res.redirect('/dashboard');
+      res.cookie('googleAccessToken', gToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: tiempoVida1Hora,
+      });
+      return res.redirect('/dashboard');
+    }
+    catch (error: unknown) 
+    {
+      let mensajeError = 'acceso_denegado';
+      
+      if (error instanceof Error) {
+        mensajeError = error.message;
+      }
+      
+      return res.redirect(`/login?error=${encodeURIComponent(mensajeError)}`);
+    }
   }
 
   @Get('me')
@@ -114,10 +127,9 @@ export class AuthController {
         nombre: payload!.name!,
         googleId: payload!.sub,
         avatarUrl: payload!.picture || '',
-        accessToken: 'token_gestionado_en_movil' // El móvil guarda su propio token
+        accessToken: 'token_gestionado_en_movil'
       };
 
-      // 3. Pasamos por tu lógica de seguridad (bloqueo de correos, creación de BD, etc)
       const resultado = await this.authService.validarUsuarioGoogle(perfilGoogle);
 
       return { backendJwt: resultado.tokens.backendJwt };
@@ -127,4 +139,5 @@ export class AuthController {
       throw new UnauthorizedException('Token de Google inválido o expirado');
     }
   }
+  
 }
