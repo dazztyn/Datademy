@@ -458,7 +458,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
   return () => { document.title = 'Datademy' }
 }, []) 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6">
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Configuración del informe</h3>
         <p className="text-md text-slate-600 dark:text-slate-300 mb-3">
