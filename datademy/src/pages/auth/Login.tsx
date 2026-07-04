@@ -7,7 +7,7 @@ import logoDIDEC from '../../assets/LOGODIDEC.png'
 import Google from '../../assets/GOOGLEICON.svg'
 
 const MENSAJES_CONOCIDOS: Record<string, string> = {
-  acceso_denegado: 'No tienes acceso a Datademy. Contacta al profesor/administrador para que te habilite una cuenta.',
+  acceso_denegado: 'No tiene acceso a Datademy. Por favor, contacte al profesor/administrador para habilitar una cuenta.',
 }
 
 export default function Login() {
