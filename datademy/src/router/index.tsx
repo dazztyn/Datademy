@@ -11,6 +11,7 @@ import DatosGlobales from '../pages/dashboard/DatosGlobales'
 import ListarInformes from '../pages/dashboard/secciones/ListarInformes'
 import ModalSesionExpirada from '../components/ModalSesionExpirada'
 import ComparativaInterna from '../pages/dashboard/ComparativaInterna'
+import PanelAdmin from '../pages/dashboard/PanelAdmin'
 
 import { useAuth } from '../context/AuthContext'
 
@@ -27,6 +28,22 @@ function RutaProtegida({ children }: { children: React.ReactNode }) {
 
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
 }
+function RutaAdmin({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, esAdmin } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-slate-900">
+        <p className="text-white/60 text-sm animate-pulse">Verificando credenciales...</p>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (!esAdmin) return <Navigate to="/dashboard" replace />
+
+  return <>{children}</>
+}
 export default function Router() {
   return (
     <BrowserRouter>
@@ -36,6 +53,7 @@ export default function Router() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<RutaProtegida><Landing /></RutaProtegida>} />
         <Route path="/datos-globales" element={<RutaProtegida><DatosGlobales /></RutaProtegida>} />
+        <Route path="/admin" element={<RutaAdmin><PanelAdmin /></RutaAdmin>} />
         <Route path="/comparativa-interna" element={<RutaProtegida><ComparativaInterna /></RutaProtegida>} />
         <Route path="detalles" element={<RutaProtegida><Detalles /></RutaProtegida>}>
           <Route index element={<p className="text-white/70 text-sm">Selecciona una sección del menú</p>} />
