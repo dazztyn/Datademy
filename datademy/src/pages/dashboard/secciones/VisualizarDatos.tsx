@@ -274,7 +274,7 @@ export default function Visualizar() {
               <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
                 {fmt(metricas.promedio_satisfaccion_general)}
               </p>
-              <p className="text-xs text-slate-400 mt-1">sobre {metricas.escala_maxima_likert}</p>
+              <p className="text-xs text-slate-400 mt-1">sobre {metricas.escala_maxima_satisfaccion}</p>
             </div>
 
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
