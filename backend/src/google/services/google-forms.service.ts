@@ -112,4 +112,42 @@ export class GoogleFormsService {
     return escalaMax;
   }
 
+  public extraerEscalaLikert(diseno: forms_v1.Schema$Form): number 
+  {
+    let escalaMax = 5;
+    let paginaActual = 1;
+
+    if (!diseno.items) return escalaMax;
+
+    for (const item of diseno.items) {
+      if (item.pageBreakItem) {
+        paginaActual++;
+        continue;
+      }
+
+      if (
+        paginaActual >= 2 && 
+        item.questionItem?.question?.choiceQuestion?.options &&
+        (!item.title || !item.title.toLowerCase().includes('satisfacción general'))
+      ) {
+        const opciones = item.questionItem.question.choiceQuestion.options;
+        let valorMasAlto = -1;
+
+        opciones.forEach(opt => {
+          const match = (opt.value || '').trim().match(/^(\d+)/); 
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > valorMasAlto) valorMasAlto = num;
+          }
+        });
+
+        escalaMax = valorMasAlto > 0 ? valorMasAlto : opciones.length;
+        
+        break; 
+      }
+    }
+
+    return escalaMax;
+  }
+
 }

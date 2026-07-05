@@ -12,7 +12,7 @@ export class EstadisticasFormatterService {
 
       const preguntasAplanadas = (constructos_paginas || []).reduce((acc: Record<string, number | string>, pagina: PaginaConstructo) => {
         (pagina.preguntas_pagina || []).forEach((preg: RespuestaPregunta) => {
-          acc[preg.pregunta] = preg.valor_numerico > 0 ? preg.valor_numerico : preg.respuesta_texto;         
+          acc[preg.pregunta] = preg.respuesta_texto;         
         });
         return acc;
       }, {});

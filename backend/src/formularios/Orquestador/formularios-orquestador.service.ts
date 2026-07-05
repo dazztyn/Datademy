@@ -50,6 +50,7 @@ export class FormulariosOrquestadorService {
     const urlsGoogle = generarUrlsGoogleForm(nuevoFormId);
     const diseno = await this.googleFormsService.obtenerDisenoFormulario(nuevoFormId);
     const escalaSatisfaccion = this.googleFormsService.extraerEscalaMax(diseno);
+    const escalaLikert = this.googleFormsService.extraerEscalaLikert(diseno);
 
     const campoBase = `formulario_${tipoFormulario}`; 
     const datosAActualizar = {
@@ -61,7 +62,8 @@ export class FormulariosOrquestadorService {
         url_respuesta: urlsGoogle.urlRespuesta,
         nombres_constructos: [],
         total_esperados: 0,
-        escala_satisfaccion: escalaSatisfaccion
+        escala_satisfaccion: escalaSatisfaccion,
+        escala_likert: escalaLikert
       }
     };
 
@@ -121,7 +123,9 @@ export class FormulariosOrquestadorService {
       await this.googleFormsService.activarVigilanciaRespuestas(idFormularioExistente);
       const urlsGoogle = generarUrlsGoogleForm(idFormularioExistente);
       const escalaSatisfaccion = this.googleFormsService.extraerEscalaMax(diseno);
+      const escalaLikert = this.googleFormsService.extraerEscalaLikert(diseno);
       const campoBase = `formulario_${tipoFormulario}`;
+
       const datosAActualizar = {
       [campoBase]: {
         id_google_form: idFormularioExistente,
@@ -131,7 +135,8 @@ export class FormulariosOrquestadorService {
         url_respuesta: urlsGoogle.urlRespuesta,
         nombres_constructos: [],
         total_esperados: 0,
-        escala_satisfaccion: escalaSatisfaccion
+        escala_satisfaccion: escalaSatisfaccion,
+        escala_likert: escalaLikert
       }
     };
 
