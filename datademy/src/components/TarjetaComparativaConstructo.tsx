@@ -26,7 +26,7 @@ export default function TarjetaComparativaConstructo({
       <div className="space-y-1.5">
         {item.detalleProcesos.map(d => (
           <div key={d.nombre_proceso} className="flex items-center gap-2">
-            <span className="text-sm text-slate-400 dark:text-slate-500 w-32 truncate flex-shrink-0">
+            <span className="text-sm text-slate-700 dark:text-slate-200 w-32 truncate flex-shrink-0">
               {d.nombre_proceso}
             </span>
             <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
@@ -38,7 +38,7 @@ export default function TarjetaComparativaConstructo({
                 }}
               />
             </div>
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-300 w-10 text-right flex-shrink-0">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200 w-10 text-right flex-shrink-0">
               {formatearValor(d.valor)}
             </span>
           </div>
@@ -59,7 +59,7 @@ export default function TarjetaComparativaConstructo({
               {item.preguntas.map((p, i) => (
                 <div key={i}>
                   <p
-                    className="text-sm text-slate-500 dark:text-slate-400 mb-1"
+                    className="text-sm text-slate-700 dark:text-slate-200 mb-1"
                     title={p.texto}
                   >
                     {p.texto}
@@ -73,7 +73,7 @@ export default function TarjetaComparativaConstructo({
                   <div className="space-y-1">
                     {p.detalleProcesos.map(d => (
                       <div key={d.nombre_proceso} className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400 dark:text-slate-500 w-32 truncate flex-shrink-0">
+                        <span className="text-sm text-slate-700 dark:text-slate-200 w-32 truncate flex-shrink-0">
                           {d.nombre_proceso}
                         </span>
                         <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
@@ -85,7 +85,7 @@ export default function TarjetaComparativaConstructo({
                             }}
                           />
                         </div>
-                        <span className="text-sm text-slate-500 dark:text-slate-400 w-10 text-right flex-shrink-0">
+                        <span className="text-sm text-slate-700 dark:text-slate-200 w-10 text-right flex-shrink-0">
                           {formatearValor(d.valor)}
                         </span>
                       </div>

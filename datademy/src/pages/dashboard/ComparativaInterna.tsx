@@ -223,7 +223,7 @@ export default function ComparativaInterna() {
       <div className="flex h-[calc(100vh-88px)]">
         <div className="w-72 flex-shrink-0 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col">
           <div className="p-4 border-b border-slate-100 dark:border-slate-700">
-            <label className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5 block">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5 block">
               Agrupar por
             </label>
             <select
@@ -235,16 +235,16 @@ export default function ComparativaInterna() {
                 <option key={a.valor} value={a.valor}>{a.etiqueta}</option>
               ))}
             </select>
-            <p className="text-sm text-slate-400 dark:text-slate-200 mt-2">
+            <p className="text-sm text-slate-700 dark:text-slate-200 mt-2">
               {seleccionados.size} seleccionado{seleccionados.size !== 1 ? 's' : ''}
             </p>
           </div>
 
           <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
             {cargandoFiltros ? (
-              <p className="text-sm text-slate-400 text-center py-8 animate-pulse">Cargando opciones...</p>
+              <p className="text-sm text-slate-700 dark:text-slate-200 text-center py-8 animate-pulse">Cargando opciones...</p>
             ) : valoresDisponibles.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-8 px-4">
+              <p className="text-sm text-slate-700 dark:text-slate-200 text-center py-8 px-4">
                 No hay valores de {AGRUPACIONES.find(a => a.valor === agruparPor)?.etiqueta.toLowerCase()} disponibles para este proceso.
               </p>
             ) : (
