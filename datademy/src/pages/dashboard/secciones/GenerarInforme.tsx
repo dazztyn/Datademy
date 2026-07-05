@@ -818,7 +818,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                               <Bar
                                 ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
                                 data={chartData}
-                                options={barOptions(4, true, anchoEtiquetas)}
+                                options={barOptions(metricas.escala_maxima_likert, true, anchoEtiquetas)}
                               />
                             </div>
                           </div>
@@ -867,7 +867,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                             <Bar
                               ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}
                               data={chartData}
-                              options={barOptions(4, true, anchoEtiquetas)}
+                              options={barOptions(metricas.escala_maxima_likert, true, anchoEtiquetas)}
                             />
                           </div>
                         </div>

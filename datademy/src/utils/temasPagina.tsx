@@ -52,7 +52,7 @@ export const temasPagina: Record<string, TemaPagina> = {
   sidebar: '#7c2d12',
   fondoDesde: '#fb923c',
   fondoHasta: '#c2410c',
-  colorInforme: '#12227c',
+  colorInforme: '#2e82e8',
 },
 }
 

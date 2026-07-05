@@ -4,7 +4,7 @@ import { useResultados } from '../../../hooks/useResultados'
 import type { FiltrosResultados, Respuesta } from '../../../services/estadisticos_service'
 import ModalRespuestas from '../../../components/ModalRespuestas'
 import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
-
+import { useMetricas } from '../../../hooks/useMetricas'
 
 const CAMPOS_FIJOS = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'nombre', 'organizacion', 'asignatura']
 
@@ -15,7 +15,7 @@ export default function ListarResultados() {
   const [respuestaSeleccionada, setRespuestaSeleccionada] = useState<Respuesta | null>(null)
   const { resultados, cargando, error } = useResultados(idProceso, filtros)
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, tipoActivo)
-
+  const { metricas } = useMetricas(idProceso, { tipo: tipoActivo })
   useEffect(() => {
   document.title = 'Datademy - Lista Resultados'
   return () => { document.title = 'Datademy' }
@@ -228,6 +228,7 @@ export default function ListarResultados() {
           respuesta={Object.fromEntries(
             Object.entries(respuestaSeleccionada).filter(([k]) => !CAMPOS_FIJOS.includes(k))
           )}
+          escalaSatisfaccion={metricas?.escala_maxima_satisfaccion ?? 7} //el 7 es un fallback por si no se cargan las métricas
           onCerrar={() => setRespuestaSeleccionada(null)}
         />
       )}

@@ -18,6 +18,9 @@ export interface Metricas {
   }[]
   promedio_satisfaccion_general: number
   promedio_satisfaccion_constructos: number
+  escala_maxima_satisfaccion: number
+  escala_maxima_likert: number
+  porcentaje_volveria_participar: number
   detalle_por_dimension: {
     numero_pagina: number
     nombre_constructo: string
@@ -225,6 +228,7 @@ export interface ComparativaGlobal {
       promedio_constructo: number
     }[]
     promedio_satisfaccion_general: number
+    escala_maxima_likert: number
     nps_satisfaccion: NpsSatisfaccion
   }
   variacion_satisfaccion_respecto_anterior: number | null

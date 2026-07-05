@@ -114,7 +114,7 @@ export default function ComparativaInterna() {
   const comparativa = respuesta?.comparativa_global ?? []
   const comparativaAlfas = respuesta?.comparativa_alfas ?? []
   const comparativaPromedios = respuesta?.comparativa_promedios ?? []
-
+  const escalaLikert = comparativa[0]?.metricas.escala_maxima_likert ?? 4
   const alfasNormalizadas = useMemo(() => normalizarAlfas(comparativaAlfas), [comparativaAlfas])
   const promediosNormalizados = useMemo(() => normalizarPromedios(comparativaPromedios), [comparativaPromedios])
 
@@ -142,13 +142,6 @@ export default function ComparativaInterna() {
       })),
     }
   }, [comparativa])
-
-  const maxEscalaGrafico = useMemo(() => {
-    if (!datosGrafico) return 4
-    const valores = datosGrafico.datasets.flatMap(d => d.data)
-    if (valores.length === 0) return 4
-    return Math.ceil(Math.max(4, ...valores))
-  }, [datosGrafico])
 
   useEffect(() => {
     document.title = 'Datademy - Comparativa interna'
@@ -404,7 +397,7 @@ export default function ComparativaInterna() {
                         scales: {
                           x: {
                             min: 0,
-                            max: maxEscalaGrafico,
+                            max: escalaLikert,
                             ticks: { color: colorTexto },
                             grid: { color: colorGrid },
                           },
@@ -467,7 +460,7 @@ export default function ComparativaInterna() {
                         item={item}
                         colorPorValor={() => tema.colorInforme}
                         formatearValor={valor => valor.toFixed(2)}
-                        maxEscala={4}
+                        maxEscala={escalaLikert}
                       />
                     ))}
                   </div>
