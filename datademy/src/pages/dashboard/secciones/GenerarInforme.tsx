@@ -22,7 +22,7 @@ const BASE_URL = import.meta.env.VITE_API_URL
 function getHeaders(): HeadersInit {
   return { 'Content-Type': 'application/json' }
 }
-function mapearTablaPromediosParaWord(
+export function mapearTablaPromediosParaWord(
   promediosEstudiantes: any[],
   nombresConstructosEst: string[],
   promedioGeneralEst: number,
@@ -63,7 +63,7 @@ function mapearTablaPromediosParaWord(
 
   return variablesWord
 }
-function mapearExtremosPorConstructo(
+export function mapearExtremosPorConstructo(
   detalleDimension: any[],
   prefijo: string = ''
 ): Record<string, string> {
@@ -98,11 +98,11 @@ function mapearExtremosPorConstructo(
   return variables
 }
 
-function fmt(value: number | null | undefined, decimals = 2): string {
+export function fmt(value: number | null | undefined, decimals = 2): string {
   if (value == null || isNaN(value)) return '—'
   return value.toFixed(decimals)
 }
-function wrapTextParaEtiqueta(texto: string, maxCaracteresPorLinea: number): string[] {
+export function wrapTextParaEtiqueta(texto: string, maxCaracteresPorLinea: number): string[] {
   const palabras = texto.split(' ')
   const lineas: string[] = []
   let lineaActual = ''
