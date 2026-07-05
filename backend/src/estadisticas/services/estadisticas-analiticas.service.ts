@@ -66,6 +66,30 @@ export class EstadisticasAnaliticasService
       promediosPorPagina = this.satisfaccionCalculator.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos);
     }
 
+    let totalVolveria = 0;
+    let cantidadSi = 0;
+
+    estadisticasBD.forEach(est => {
+      (est.constructos_paginas || []).forEach(pagina => {
+        (pagina.preguntas_pagina || []).forEach(preg => {
+          
+          const tituloPregunta = preg.pregunta.toLowerCase();
+          
+          if (tituloPregunta.includes('volvería a participar') || tituloPregunta.includes('volveria a participar')) {
+            totalVolveria++;
+            const respuesta = (preg.respuesta_texto || '').toLowerCase().trim();
+            if (respuesta === 'sí' || respuesta === 'si' || preg.valor_numerico === 1) {
+              cantidadSi++;
+            }
+          }
+        });
+      });
+    });
+
+    const porcentajeVolveriaParticipar = totalVolveria > 0 
+      ? Math.round((cantidadSi / totalVolveria) * 100) 
+      : null;
+
     const promedioSatisfaccionConstructos = promediosPorPagina.length > 0 
       ? Number((promediosPorPagina.reduce((acc, p) => acc + p.promedio_constructo, 0) / promediosPorPagina.length).toFixed(1)) 
       : 0;
@@ -88,6 +112,7 @@ export class EstadisticasAnaliticasService
       promedio_satisfaccion_constructos: promedioSatisfaccionConstructos,
       escala_maxima_satisfaccion: escalaSatisfaccion,
       escala_maxima_likert: escalaLikert,
+      porcentaje_volveria_participar: porcentajeVolveriaParticipar,
 
       promedio_satisfaccion_general: this.satisfaccionCalculator.calcularSatisfaccionGeneral(todasLasPreguntas, escalaSatisfaccion),
       satisfaccion_por_carrera: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'carrera'),
@@ -138,7 +163,8 @@ export class EstadisticasAnaliticasService
       promedio_satisfaccion_general: 0,
       fiabilidad_constructos: [],
       escala_maxima_satisfaccion: escalaSatisfaccion,
-      escala_maxima_likert: escalaLikert
+      escala_maxima_likert: escalaLikert,
+      porcentaje_volveria_participar: null,
     };
   }
 }
