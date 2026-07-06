@@ -7,11 +7,13 @@ import { MAPA_FILTROS_MONGO } from '../constantes/filtros-mongo.constant';
 @Injectable()
 export class EstadisticasExportacionService {
 
+  /* istanbul ignore next */
   constructor(private readonly repositorio: EstadisticasRepository) {}
 
   @OnEvent('estadisticas.solicitar_feedback')
   async extraerFeedbackAgrupadoParaInforme(payload: { idProceso: string, filtros?: Record<string, string> }): Promise<Record<string, string>> {
     
+    if (!payload || !payload.idProceso) return {};
     const queryBusqueda: ConsultaEstadisticas = { proceso_id: payload.idProceso };
 
     if (payload.filtros && Object.keys(payload.filtros).length > 0) {
