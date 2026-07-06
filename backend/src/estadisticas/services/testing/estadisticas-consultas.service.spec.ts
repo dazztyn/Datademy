@@ -144,11 +144,15 @@ describe('EstadisticasConsultasService', () => {
       mockProcesos.obtenerProcesoInterno.mockResolvedValue({}); 
       mockRepositorio.obtenerOpcionesDistintas
         .mockResolvedValueOnce(['Empresa X', 'No especificada']) 
-        .mockResolvedValueOnce(['Femenino', 'No especificado']); 
+        .mockResolvedValueOnce(['Femenino', 'No especificado']) 
+        .mockResolvedValueOnce(['Ingeniería', 'No especificada']) 
+        .mockResolvedValueOnce(['Matemáticas', 'No especificada']); 
 
       const resultado = await service.obtenerOpcionesFiltrosDisponibles('p1', 'u1', TipoFormulario.SOCIOS);
 
       expect(resultado!.filtros_disponibles.organizaciones).toEqual(['Empresa X']);
+      expect(resultado!.filtros_disponibles.carreras).toEqual(['Ingeniería']);
+      expect(resultado!.filtros_disponibles.asignaturas).toEqual(['Matemáticas']);
     });
 
     it('debería usar estudiantes por defecto en el parámetro tipoFormulario', async () => {

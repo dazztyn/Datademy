@@ -12,13 +12,26 @@ import { CacheHelperService } from 'src/common/services/cache-helper.service';
 
 @Injectable()
 export class EstadisticasWebhooksService {
+  
+  private readonly procesosService: ProcesosService;
+  private readonly googleFormsService: GoogleFormsService;
+  private readonly parserService: EstadisticasParserService;
+  private readonly repositorio: EstadisticasRepository;
+  private readonly cacheHelper: CacheHelperService;
+
   constructor(
-    private readonly procesosService: ProcesosService,
-    private readonly googleFormsService: GoogleFormsService,
-    private readonly parserService: EstadisticasParserService,
-    private readonly repositorio: EstadisticasRepository,
-    private readonly cacheHelper: CacheHelperService,
-  ) {}
+    procesosService: ProcesosService,
+    googleFormsService: GoogleFormsService,
+    parserService: EstadisticasParserService,
+    repositorio: EstadisticasRepository,
+    cacheHelper: CacheHelperService,
+  ) {
+    this.procesosService = procesosService;
+    this.googleFormsService = googleFormsService;
+    this.parserService = parserService;
+    this.repositorio = repositorio;
+    this.cacheHelper = cacheHelper;
+  }
 
   private async obtenerFechaUltimaSincronizacion(procesoId: string, tipoFormulario: TipoFormulario): Promise<Date | null> {
     const resultados = await this.repositorio.buscarPorQuery(
