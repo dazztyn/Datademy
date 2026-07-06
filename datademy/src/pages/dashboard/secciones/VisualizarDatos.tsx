@@ -38,7 +38,7 @@ export default function Visualizar() {
   const tema = temasPagina[location.pathname] ?? temaDefault
   const [constructoSeleccionado, setConstructoSeleccionado] = useState<number | undefined>(undefined)
 
-  const colorTexto = theme === 'dark' ? 'white' : tema.sidebar
+  const colorTexto = 'white'
   const colorGrid = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
   useEffect(() => {
   document.title = 'Datademy - Gráficos Generales'
