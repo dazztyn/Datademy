@@ -259,75 +259,88 @@ export default function Visualizar() {
 
       {metricas && !cargando && metricas.total_encuestados > 0 && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">Total encuestados</p>
-              <p className="text-4xl font-bold text-slate-800 dark:text-slate-100">
-                {metricas.total_encuestados}
-              </p>
-            </div>
+          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${
+      tipoActivo === 'socios' ? 'lg:grid-cols-6' : 'lg:grid-cols-5'
+    }`}>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+        <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">Total encuestados</p>
+        <p className="text-4xl font-bold text-slate-800 dark:text-slate-100">
+          {metricas.total_encuestados}
+        </p>
+      </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
-                Satisfacción general
-              </p>
-              <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
-                {fmt(metricas.promedio_satisfaccion_general)}
-              </p>
-              <p className="text-xs text-slate-400 mt-1">sobre {metricas.escala_maxima_satisfaccion}</p>
-            </div>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+        <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
+          Satisfacción general
+        </p>
+        <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+          {fmt(metricas.promedio_satisfaccion_general)}
+        </p>
+        <p className="text-xs text-slate-400 mt-1">sobre {metricas.escala_maxima_satisfaccion}</p>
+      </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
-                Promedio preguntas
-              </p>
-              <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
-                {fmt(metricas.promedio_satisfaccion_constructos)}
-              </p>
-            </div>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+        <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
+          Promedio preguntas
+        </p>
+        <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+          {fmt(metricas.promedio_satisfaccion_constructos)}
+        </p>
+      </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">Tasa de respuesta</p>
-              <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
-                {fmt(metricas.tasa_respuesta_porcentaje, 0)}%
-              </p>
-            </div>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+        <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">Tasa de respuesta</p>
+        <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+          {fmt(metricas.tasa_respuesta_porcentaje, 0)}%
+        </p>
+      </div>
 
-            {datosGenero && (
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-                <p className="text-sm text-slate-600 dark:text-slate-50 mb-2">
-                  Distribución por género
-                </p>
-                <div className="w-full h-24">
-                  <Pie
-                    key={`pie-${theme}`}
-                    data={datosGenero}
-                    options={{
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: {
-                          position: 'right',
-                          labels: {
-                            color: colorTexto,
-                            font: { size: 9 },
-                            boxWidth: 10,
-                          },
-                        },
-                        tooltip: {
-                          backgroundColor:
-                            theme === 'dark' ? tema.sidebar : 'white',
-                          titleColor:
-                            theme === 'dark' ? 'white' : tema.sidebar,
-                          bodyColor:
-                            theme === 'dark' ? 'white' : tema.sidebar,
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              </div>
-            )}
+      {tipoActivo === 'socios' && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+          <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
+            Volvería a participar
+          </p>
+          <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+            {fmt(metricas.porcentaje_volveria_participar, 0)}%
+          </p>
+          <p className="text-xs text-slate-400 mt-1">
+            {fmt(metricas.porcentaje_volveria_participar, 0)}% volvería a participar
+          </p>
+        </div>
+      )}
+
+      {datosGenero && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+          <p className="text-sm text-slate-600 dark:text-slate-50 mb-2">
+            Distribución por género
+          </p>
+          <div className="w-full h-24">
+            <Pie
+              key={`pie-${theme}`}
+              data={datosGenero}
+              options={{
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'right',
+                    labels: {
+                      color: 'white',
+                      font: { size: 9 },
+                      boxWidth: 10,
+                    },
+                  },
+                  tooltip: {
+                    backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
+                    titleColor: theme === 'dark' ? 'white' : tema.sidebar,
+                    bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
+                  },
+                },
+              }}
+            />
           </div>
+        </div>
+      )}
+    </div>
           {(metricas.detalle_por_dimension ?? [])
             .filter((_, i) => i < metricas.detalle_por_dimension.length - 1)
             .filter(
