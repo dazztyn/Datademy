@@ -78,7 +78,7 @@ export class Estadistica {
   @Prop({ required: true })
   usuario_id!: string;
 
-  @Prop({ required: true, enum: Object.values(TipoFormulario) })
+  @Prop({ type: String, required: true, enum: Object.values(TipoFormulario) })
   tipo_formulario!: TipoFormulario;
 
   @Prop({ type: DatosRespondenteSchema, required: true })
