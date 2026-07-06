@@ -124,35 +124,29 @@ describe('EstadisticasConsultasService', () => {
   });
 
   describe('obtenerOpcionesFiltrosDisponibles', () => {
-    it('debería retornar filtros para ESTUDIANTES', async () => {
+    it('debería retornar filtros dinámicos usando MAPA_FILTROS_MONGO y omitir los vacíos', async () => {
       mockProcesos.obtenerProcesoInterno.mockResolvedValue({
         formulario_estudiantes: { nombres_constructos: ['Liderazgo'] }
       });
       mockRepositorio.obtenerOpcionesDistintas
-        .mockResolvedValueOnce(['Medicina', 'No especificada']) 
-        .mockResolvedValueOnce(['Sede Central']) 
-        .mockResolvedValueOnce(['Femenino', 'No especificado']) 
-        .mockResolvedValueOnce(['N1']) 
-        .mockResolvedValueOnce(['Biología', 'No especificada']); 
+        .mockResolvedValueOnce(['Medicina', 'No especificada'])  
+        .mockResolvedValueOnce(['Femenino', 'No especificado'])
+        .mockResolvedValueOnce(['Sede Central'])               
+        .mockResolvedValueOnce([])                            
+        .mockResolvedValueOnce(['Empresa X'])                   
+        .mockResolvedValueOnce(['Biología']);                  
 
       const resultado = await service.obtenerOpcionesFiltrosDisponibles('p1', 'u1', TipoFormulario.ESTUDIANTES);
+      
+      const filtros = resultado!.filtros_disponibles as Record<string, string[]>;
 
-      expect(resultado!.filtros_disponibles.carreras).toEqual(['Medicina']);
-    });
-
-    it('debería retornar filtros para SOCIOS', async () => {
-      mockProcesos.obtenerProcesoInterno.mockResolvedValue({}); 
-      mockRepositorio.obtenerOpcionesDistintas
-        .mockResolvedValueOnce(['Empresa X', 'No especificada']) 
-        .mockResolvedValueOnce(['Femenino', 'No especificado']) 
-        .mockResolvedValueOnce(['Ingeniería', 'No especificada']) 
-        .mockResolvedValueOnce(['Matemáticas', 'No especificada']); 
-
-      const resultado = await service.obtenerOpcionesFiltrosDisponibles('p1', 'u1', TipoFormulario.SOCIOS);
-
-      expect(resultado!.filtros_disponibles.organizaciones).toEqual(['Empresa X']);
-      expect(resultado!.filtros_disponibles.carreras).toEqual(['Ingeniería']);
-      expect(resultado!.filtros_disponibles.asignaturas).toEqual(['Matemáticas']);
+      expect(filtros.carreras).toEqual(['Medicina']);
+      expect(filtros.generos).toEqual(['Femenino']);
+      expect(filtros.sedes).toEqual(['Sede Central']);
+      expect(filtros.organizaciones).toEqual(['Empresa X']);
+      expect(filtros.asignaturas).toEqual(['Biología']);
+      
+      expect(filtros.niveles_formativos).toBeUndefined();
     });
 
     it('debería usar estudiantes por defecto en el parámetro tipoFormulario', async () => {
@@ -162,6 +156,17 @@ describe('EstadisticasConsultasService', () => {
       await service.obtenerOpcionesFiltrosDisponibles('p1', 'u1');
       
       expect(mockProcesos.obtenerProcesoInterno).toHaveBeenCalledWith('u1', 'p1');
+    });
+    
+    it('debería ejecutar la rama de SOCIOS para la configuración del formulario (Línea 153)', async () => {
+      mockProcesos.obtenerProcesoInterno.mockResolvedValue({
+        formulario_socios: { nombres_constructos: ['ConstructoSocio'] }
+      });
+      
+      mockRepositorio.obtenerOpcionesDistintas.mockResolvedValue(['Dato']);
+      const resultado = await service.obtenerOpcionesFiltrosDisponibles('p1', 'u1', TipoFormulario.SOCIOS);
+      const filtros = resultado!.filtros_disponibles as Record<string, unknown>;
+      expect(filtros.nombres_constructos).toEqual([{ id: 2, nombre: 'ConstructoSocio' }]);
     });
   });
 });

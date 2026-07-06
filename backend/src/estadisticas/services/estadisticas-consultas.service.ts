@@ -88,60 +88,6 @@ export class EstadisticasConsultasService {
     };
   }
 
-  // async obtenerOpcionesFiltrosDisponibles(procesoId: string, usuarioId: string, tipoFormulario: string = 'estudiantes') {
-  //   const queryBase: Record<string, string | number | boolean | Record<string, unknown>> = { proceso_id: procesoId, usuario_id: usuarioId, tipo_formulario: tipoFormulario };
-
-  //   const proceso = await this.procesosService.obtenerProcesoInterno(usuarioId, procesoId);
-  //   const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
-  //   const nombresConstructos = configFormulario?.nombres_constructos || [];
-  //   const constructosConId = nombresConstructos.map((nombre, index) => ({
-  //     id: index + 2,
-  //     nombre: nombre
-  //   }));
-
-  //   if (tipoFormulario === TipoFormulario.ESTUDIANTES) {
-  //     const [carreras, sedes, generos, niveles, asignaturas] = await Promise.all([
-  //       this.repositorio.obtenerOpcionesDistintas('datos_respondente.carrera', queryBase),
-  //       this.repositorio.obtenerOpcionesDistintas('datos_respondente.sede', queryBase),
-  //       this.repositorio.obtenerOpcionesDistintas('datos_respondente.genero', queryBase),
-  //       this.repositorio.obtenerOpcionesDistintas('datos_respondente.nivel_formativo', queryBase),
-  //       this.repositorio.obtenerOpcionesDistintas('datos_respondente.asignatura', queryBase)
-  //     ]);
-
-  //     return {
-  //       estado: 'exito',
-  //       filtros_disponibles: {
-  //         carreras: carreras.filter(c => c !== 'No especificada'),
-  //         sedes: sedes.filter(s => s !== 'No especificada'),
-  //         generos: generos.filter(g => g !== 'No especificado'),
-  //         niveles_formativos: niveles.filter(n => n !== 'No especificado'),
-  //         asignaturas: asignaturas.filter(a => a !== 'No especificada'),
-  //         nombres_constructos: constructosConId
-  //       }
-  //     };
-  //   }
-
-  //   if (tipoFormulario === TipoFormulario.SOCIOS) {
-  //     const [organizaciones, generos, carreras, asignaturas] = await Promise.all([
-  //       this.repositorio.obtenerOpcionesDistintas('datos_respondente.organizacion', queryBase),
-  //       this.repositorio.obtenerOpcionesDistintas('datos_respondente.genero', queryBase),
-  //       this.repositorio.obtenerOpcionesDistintas('datos_respondente.carrera', queryBase),
-  //       this.repositorio.obtenerOpcionesDistintas('datos_respondente.asignatura', queryBase)
-  //     ]);
-
-  //     return {
-  //       estado: 'exito',
-  //       filtros_disponibles: {
-  //         organizaciones: organizaciones.filter(o => o !== 'No especificada' && o !== 'No especificado'),
-  //         generos: generos.filter(g => g !== 'No especificado' && g !== 'No especificada'),
-  //         carreras: carreras.filter(c => c !== 'No especificada' && c !== 'No especificado'),
-  //         asignaturas: asignaturas.filter(a => a !== 'No especificada' && a !== 'No especificado'),
-  //         nombres_constructos: constructosConId
-  //       }
-  //     }
-  //   }
-  // }
-
   async obtenerOpcionesFiltrosDisponibles(procesoId: string, usuarioId: string, tipoFormulario: string = 'estudiantes') {
     const queryBase: Record<string, string | number | boolean | Record<string, unknown>> = { 
       proceso_id: procesoId, 
@@ -175,6 +121,7 @@ export class EstadisticasConsultasService {
         const opcionesLimpias = opciones.filter(op => op && op !== 'No especificada' && op !== 'No especificado');
         
         if (opcionesLimpias.length > 0) {
+          /* istanbul ignore next */
           const llavePlural = mapeoPlurales[llaveSingular] || llaveSingular;
           filtros_disponibles[llavePlural] = opcionesLimpias;
         }

@@ -12,6 +12,7 @@ import { forms_v1 } from 'googleapis';
 import { GoogleFormDiseno } from '../../interfaces/diseno-google.interface';
 
 describe('EstadisticasWebhooksService', () => {
+    
   let service: EstadisticasWebhooksService;
   
   let mockProcesos: { buscarProcesosPorUsuarioYFormulario: jest.Mock; buscarTodosPorIdFormularioGoogle: jest.Mock; obtenerProcesoInterno: jest.Mock };
@@ -21,23 +22,31 @@ describe('EstadisticasWebhooksService', () => {
   let mockCache: { limpiarCacheGlobal: jest.Mock };
 
   beforeEach(async () => {
-    mockProcesos = { buscarProcesosPorUsuarioYFormulario: jest.mock, buscarTodosPorIdFormularioGoogle: jest.mock, obtenerProcesoInterno: jest.mock };
-    mockGoogleForms = { obtenerDisenoFormulario: jest.mock, obtenerTodasLasRespuestas: jest.mock };
-    mockParser = { adaptarDisenoGoogle: jest.mock, adaptarRespuestaGoogle: jest.mock, procesarEncuesta: jest.mock };
-    mockRepo = { buscarPorQuery: jest.Mock, insertarMultiples: jest.mock };
-    mockCache = { limpiarCacheGlobal: jest.Mock };
-
-    mockProcesos.buscarProcesosPorUsuarioYFormulario = jest.fn();
-    mockProcesos.buscarTodosPorIdFormularioGoogle = jest.fn();
-    mockProcesos.obtenerProcesoInterno = jest.fn();
-    mockGoogleForms.obtenerDisenoFormulario = jest.fn();
-    mockGoogleForms.obtenerTodasLasRespuestas = jest.fn();
-    mockParser.adaptarDisenoGoogle = jest.fn();
-    mockParser.adaptarRespuestaGoogle = jest.fn();
-    mockParser.procesarEncuesta = jest.fn();
-    mockRepo.buscarPorQuery = jest.fn();
-    mockRepo.insertarMultiples = jest.fn();
-    mockCache.limpiarCacheGlobal = jest.fn();
+    mockProcesos = { 
+      buscarProcesosPorUsuarioYFormulario: jest.fn(), 
+      buscarTodosPorIdFormularioGoogle: jest.fn(), 
+      obtenerProcesoInterno: jest.fn() 
+    };
+    
+    mockGoogleForms = { 
+      obtenerDisenoFormulario: jest.fn(), 
+      obtenerTodasLasRespuestas: jest.fn() 
+    };
+    
+    mockParser = { 
+      adaptarDisenoGoogle: jest.fn(), 
+      adaptarRespuestaGoogle: jest.fn(), 
+      procesarEncuesta: jest.fn() 
+    };
+    
+    mockRepo = { 
+      buscarPorQuery: jest.fn(), 
+      insertarMultiples: jest.fn() 
+    };
+    
+    mockCache = { 
+      limpiarCacheGlobal: jest.fn() 
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

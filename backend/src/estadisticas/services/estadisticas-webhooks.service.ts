@@ -1,8 +1,5 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { forms_v1 } from 'googleapis';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { EstadisticasParserService } from './estadisticas-parser.service';
-import { GoogleFormDiseno } from '../interfaces/diseno-google.interface';
-import { GoogleFormRespuesta } from '../interfaces/respuesta-google.interface';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 import { EstadisticasRepository } from '../estadisticas.repository';
 import { ProcesosService } from 'src/formularios/services/procesos.service';
@@ -12,26 +9,14 @@ import { CacheHelperService } from 'src/common/services/cache-helper.service';
 
 @Injectable()
 export class EstadisticasWebhooksService {
-  
-  private readonly procesosService: ProcesosService;
-  private readonly googleFormsService: GoogleFormsService;
-  private readonly parserService: EstadisticasParserService;
-  private readonly repositorio: EstadisticasRepository;
-  private readonly cacheHelper: CacheHelperService;
 
   constructor(
-    procesosService: ProcesosService,
-    googleFormsService: GoogleFormsService,
-    parserService: EstadisticasParserService,
-    repositorio: EstadisticasRepository,
-    cacheHelper: CacheHelperService,
-  ) {
-    this.procesosService = procesosService;
-    this.googleFormsService = googleFormsService;
-    this.parserService = parserService;
-    this.repositorio = repositorio;
-    this.cacheHelper = cacheHelper;
-  }
+    private readonly procesosService: ProcesosService,
+    private readonly googleFormsService: GoogleFormsService,
+    private readonly parserService: EstadisticasParserService,
+    private readonly repositorio: EstadisticasRepository,
+    private readonly cacheHelper: CacheHelperService,
+  ) {}
 
   private async obtenerFechaUltimaSincronizacion(procesoId: string, tipoFormulario: TipoFormulario): Promise<Date | null> {
     const resultados = await this.repositorio.buscarPorQuery(
