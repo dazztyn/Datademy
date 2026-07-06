@@ -114,7 +114,7 @@ export default function ComparativaInterna() {
   const comparativa = respuesta?.comparativa_global ?? []
   const comparativaAlfas = respuesta?.comparativa_alfas ?? []
   const comparativaPromedios = respuesta?.comparativa_promedios ?? []
-
+  const escalaLikert = comparativa[0]?.metricas.escala_maxima_likert ?? 4
   const alfasNormalizadas = useMemo(() => normalizarAlfas(comparativaAlfas), [comparativaAlfas])
   const promediosNormalizados = useMemo(() => normalizarPromedios(comparativaPromedios), [comparativaPromedios])
 
@@ -143,13 +143,6 @@ export default function ComparativaInterna() {
     }
   }, [comparativa])
 
-  const maxEscalaGrafico = useMemo(() => {
-    if (!datosGrafico) return 4
-    const valores = datosGrafico.datasets.flatMap(d => d.data)
-    if (valores.length === 0) return 4
-    return Math.ceil(Math.max(4, ...valores))
-  }, [datosGrafico])
-
   useEffect(() => {
     document.title = 'Datademy - Comparativa interna'
     return () => { document.title = 'Datademy' }
@@ -159,7 +152,7 @@ export default function ComparativaInterna() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="text-center">
-          <p className="text-slate-500 dark:text-slate-400 text-md mb-3">
+          <p className="text-slate-700 dark:text-slate-200 text-md mb-3">
             No hay proceso seleccionado.
           </p>
           <button
@@ -230,7 +223,7 @@ export default function ComparativaInterna() {
       <div className="flex h-[calc(100vh-88px)]">
         <div className="w-72 flex-shrink-0 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col">
           <div className="p-4 border-b border-slate-100 dark:border-slate-700">
-            <label className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5 block">
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5 block">
               Agrupar por
             </label>
             <select
@@ -242,16 +235,16 @@ export default function ComparativaInterna() {
                 <option key={a.valor} value={a.valor}>{a.etiqueta}</option>
               ))}
             </select>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">
+            <p className="text-sm text-slate-700 dark:text-slate-200 mt-2">
               {seleccionados.size} seleccionado{seleccionados.size !== 1 ? 's' : ''}
             </p>
           </div>
 
           <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
             {cargandoFiltros ? (
-              <p className="text-sm text-slate-400 text-center py-8 animate-pulse">Cargando opciones...</p>
+              <p className="text-sm text-slate-700 dark:text-slate-200 text-center py-8 animate-pulse">Cargando opciones...</p>
             ) : valoresDisponibles.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-8 px-4">
+              <p className="text-sm text-slate-700 dark:text-slate-200 text-center py-8 px-4">
                 No hay valores de {AGRUPACIONES.find(a => a.valor === agruparPor)?.etiqueta.toLowerCase()} disponibles para este proceso.
               </p>
             ) : (
@@ -288,7 +281,7 @@ export default function ComparativaInterna() {
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {!comparativa.length && !cargando && !error && (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <p className="text-slate-400 dark:text-slate-500 text-md mb-1">
+              <p className="text-slate-700 dark:text-slate-200 text-md mb-1">
                 Elige una agrupación, selecciona valores a comparar y presiona Comparar
               </p>
               <p className="text-slate-300 dark:text-slate-600 text-sm">
@@ -299,7 +292,7 @@ export default function ComparativaInterna() {
 
           {cargando && (
             <div className="flex items-center justify-center h-full">
-              <p className="text-slate-400 animate-pulse text-md">Cargando comparativa...</p>
+              <p className="text-slate-700 animate-pulse text-md">Cargando comparativa...</p>
             </div>
           )}
 
@@ -330,22 +323,22 @@ export default function ComparativaInterna() {
                       <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">
                         {grupo.metricas.promedio_satisfaccion_general.toFixed(1)}
                       </p>
-                      <p className="text-sm text-slate-400 mt-0.5">satisfacción general</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-200 mt-0.5">satisfacción general</p>
 
                       <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                         <div>
-                          <p className="text-sm text-slate-400">Encuestados</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-200">Encuestados</p>
                           <p className="text-md font-semibold text-slate-700 dark:text-slate-200">
                             {grupo.metricas.total_encuestados}
                             {grupo.metricas.total_esperados > 0 && (
-                              <span className="text-sm font-normal text-slate-400">
+                              <span className="text-sm font-normal text-slate-700 dark:text-slate-200">
                                 {' '}/ {grupo.metricas.total_esperados}
                               </span>
                             )}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-slate-400">Tasa respuesta</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-200">Tasa respuesta</p>
                           <p className="text-md font-semibold text-slate-700 dark:text-slate-200">
                             {grupo.metricas.tasa_respuesta_porcentaje > 0
                               ? `${grupo.metricas.tasa_respuesta_porcentaje.toFixed(0)}%`
@@ -357,7 +350,7 @@ export default function ComparativaInterna() {
                       {nps && (
                         <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                           <div className="flex items-center justify-between mb-1.5">
-                            <p className="text-sm text-slate-400">NPS</p>
+                            <p className="text-sm text-slate-700 dark:text-slate-200">NPS</p>
                             <span
                               className="text-md font-bold"
                               title={interpretarNps(nps.score_nps).texto}
@@ -404,7 +397,7 @@ export default function ComparativaInterna() {
                         scales: {
                           x: {
                             min: 0,
-                            max: maxEscalaGrafico,
+                            max: escalaLikert,
                             ticks: { color: colorTexto },
                             grid: { color: colorGrid },
                           },
@@ -435,7 +428,7 @@ export default function ComparativaInterna() {
                   <h3 className="text-md font-semibold text-slate-700 dark:text-slate-200 mb-1">
                     Fiabilidad entre grupos (alfa de Cronbach)
                   </h3>
-                  <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">
+                  <p className="text-sm text-slate-700 dark:text-slate-200 mb-4">
                     Comparación del alfa de Cronbach por constructo entre los valores de {AGRUPACIONES.find(a => a.valor === agruparPor)?.etiqueta.toLowerCase()} seleccionados.
                   </p>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -457,7 +450,7 @@ export default function ComparativaInterna() {
                   <h3 className="text-md font-semibold text-slate-700 dark:text-slate-200 mb-1">
                     Promedios entre grupos
                   </h3>
-                  <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">
+                  <p className="text-sm text-slate-700 dark:text-slate-200 mb-4">
                     Promedio general por constructo entre los valores de {AGRUPACIONES.find(a => a.valor === agruparPor)?.etiqueta.toLowerCase()} seleccionados.
                   </p>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -467,7 +460,7 @@ export default function ComparativaInterna() {
                         item={item}
                         colorPorValor={() => tema.colorInforme}
                         formatearValor={valor => valor.toFixed(2)}
-                        maxEscala={4}
+                        maxEscala={escalaLikert}
                       />
                     ))}
                   </div>

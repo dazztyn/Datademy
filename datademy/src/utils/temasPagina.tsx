@@ -46,13 +46,13 @@ export const temasPagina: Record<string, TemaPagina> = {
     sidebar: '#065f46',
     fondoDesde: '#22c55e',
     fondoHasta: '#059669',
-    colorInforme: '#065f46',
+    colorInforme: '#0753ce',
   },
   '/comparativa-interna': {
   sidebar: '#7c2d12',
   fondoDesde: '#fb923c',
   fondoHasta: '#c2410c',
-  colorInforme: '#12227c',
+  colorInforme: '#2e82e8',
 },
 }
 

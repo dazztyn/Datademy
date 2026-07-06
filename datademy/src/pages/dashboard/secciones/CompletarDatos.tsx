@@ -77,7 +77,6 @@ export default function CompletarDatos() {
     .catch(() => {})
 }, [idProceso])
   useEffect(() => {
-    if (!metricasEstudiantes) return
     const num = paginasEstudiantes?.cantidad_constructos ?? metricasEstudiantes?.promedios_por_pagina.length
     if (num == null) return
     setConstructosEstudiantes(prev => {
@@ -87,7 +86,6 @@ export default function CompletarDatos() {
   }, [paginasEstudiantes, metricasEstudiantes])
 
   useEffect(() => {
-    if (!metricasSocios) return
     const num = paginasSocios?.cantidad_constructos ?? metricasSocios?.promedios_por_pagina.length
     if (num == null) return
     setConstructosSocios(prev => {

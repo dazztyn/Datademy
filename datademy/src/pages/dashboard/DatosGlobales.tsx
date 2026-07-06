@@ -106,7 +106,7 @@ function TarjetaComparativaConstructo({
       <div className="space-y-1.5">
         {item.detalleProcesos.map(d => (
           <div key={d.nombre_proceso} className="flex items-center gap-2">
-            <span className="text-sm text-slate-400 dark:text-slate-500 w-32 truncate flex-shrink-0">
+            <span className="text-sm text-slate-700 dark:text-slate-200 w-32 truncate flex-shrink-0">
               {d.nombre_proceso}
             </span>
             <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
@@ -139,7 +139,7 @@ function TarjetaComparativaConstructo({
               {item.preguntas.map((p, i) => (
                 <div key={i}>
                   <p
-                    className="text-sm text-slate-500 dark:text-slate-400 mb-1"
+                    className="text-sm text-slate-700 dark:text-slate-200 mb-1"
                     title={p.texto}
                   >
                     {p.texto}
@@ -153,7 +153,7 @@ function TarjetaComparativaConstructo({
                   <div className="space-y-1">
                     {p.detalleProcesos.map(d => (
                       <div key={d.nombre_proceso} className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400 dark:text-slate-500 w-32 truncate flex-shrink-0">
+                        <span className="text-sm text-slate-700 dark:text-slate-200 w-32 truncate flex-shrink-0">
                           {d.nombre_proceso}
                         </span>
                         <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
@@ -165,7 +165,7 @@ function TarjetaComparativaConstructo({
                             }}
                           />
                         </div>
-                        <span className="text-sm text-slate-500 dark:text-slate-400 w-10 text-right flex-shrink-0">
+                        <span className="text-sm text-slate-700 dark:text-slate-200 w-10 text-right flex-shrink-0">
                           {formatearValor(d.valor)}
                         </span>
                       </div>
@@ -198,6 +198,7 @@ export default function DatosGlobales() {
   const comparativa = respuesta?.comparativa_global ?? []
   const comparativaAlfas = respuesta?.comparativa_alfas ?? []
   const comparativaPromedios = respuesta?.comparativa_promedios ?? []
+  const escalaLikert = comparativa[0]?.metricas.escala_maxima_likert ?? 4
 
   const alfasNormalizadas = useMemo(() => normalizarAlfas(comparativaAlfas), [comparativaAlfas])
   const promediosNormalizados = useMemo(() => normalizarPromedios(comparativaPromedios), [comparativaPromedios])
@@ -250,13 +251,6 @@ export default function DatosGlobales() {
     }
   }, [comparativa])
 
-  const maxEscalaGrafico = useMemo(() => {
-    if (!datosGrafico) return 4
-    const valores = datosGrafico.datasets.flatMap(d => d.data)
-    if (valores.length === 0) return 4
-    return Math.ceil(Math.max(4, ...valores))
-  }, [datosGrafico])
-
   useEffect(() => {
     document.title = 'Datademy - Datos Globales'
     return () => { document.title = 'Datademy' }
@@ -301,19 +295,19 @@ export default function DatosGlobales() {
       <div className="flex h-[calc(100vh-48px)]">
         <div className="w-72 flex-shrink-0 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col">
           <div className="p-4 border-b border-slate-100 dark:border-slate-700">
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
               Selecciona procesos a comparar
             </p>
-            <p className="text-sm text-slate-400 dark:text-slate-500">
+            <p className="text-sm text-slate-700 dark:text-slate-200">
               {seleccionados.size} seleccionado{seleccionados.size !== 1 ? 's' : ''}
             </p>
           </div>
 
           <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
             {cargandoFormularios ? (
-              <p className="text-sm text-slate-400 text-center py-8 animate-pulse">Cargando...</p>
+              <p className="text-sm text-slate-700 dark:text-slate-200 text-center py-8 animate-pulse">Cargando...</p>
             ) : formularios.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-8">No hay procesos disponibles</p>
+              <p className="text-sm text-slate-700 dark:text-slate-200 text-center py-8">No hay procesos disponibles</p>
             ) : (
               formularios.map(f => (
                 <label
@@ -331,7 +325,7 @@ export default function DatosGlobales() {
                     <p className="text-md font-medium text-slate-700 dark:text-slate-200">
                       {f.nombreProceso}
                     </p>
-                    <p className="text-sm text-slate-400 dark:text-slate-500">{f.anio}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-200">{f.anio}</p>
                   </div>
                 </label>
               ))
@@ -352,7 +346,7 @@ export default function DatosGlobales() {
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {!comparativa.length && !cargando && !error && (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <p className="text-slate-400 dark:text-slate-500 text-md mb-1">
+              <p className="text-slate-700 dark:text-slate-200 text-md mb-1">
                 Selecciona procesos y haz clic en Comparar
               </p>
               <p className="text-slate-300 dark:text-slate-600 text-sm">
@@ -363,7 +357,7 @@ export default function DatosGlobales() {
 
           {cargando && (
             <div className="flex items-center justify-center h-full">
-              <p className="text-slate-400 animate-pulse text-md">Cargando comparativa...</p>
+              <p className="text-slate-700 animate-pulse text-md">Cargando comparativa...</p>
             </div>
           )}
 
@@ -394,7 +388,7 @@ export default function DatosGlobales() {
                       <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">
                         {proceso.metricas.promedio_satisfaccion_general.toFixed(1)}
                       </p>
-                      <p className="text-sm text-slate-400 mt-0.5">satisfacción general</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-200 mt-0.5">satisfacción general</p>
                       {proceso.variacion_satisfaccion_respecto_anterior !== null && (
                         <p
                           className={`text-sm mt-1 font-medium ${
@@ -408,18 +402,18 @@ export default function DatosGlobales() {
 
                       <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                         <div>
-                          <p className="text-sm text-slate-400">Encuestados</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-200">Encuestados</p>
                           <p className="text-md font-semibold text-slate-700 dark:text-slate-200">
                             {proceso.metricas.total_encuestados}
                             {proceso.metricas.total_esperados > 0 && (
-                              <span className="text-sm font-normal text-slate-400">
+                              <span className="text-sm font-normal text-slate-700 dark:text-slate-200">
                                 {' '}/ {proceso.metricas.total_esperados}
                               </span>
                             )}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-slate-400">Tasa respuesta</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-200">Tasa respuesta</p>
                           <p className="text-md font-semibold text-slate-700 dark:text-slate-200">
                             {proceso.metricas.tasa_respuesta_porcentaje > 0
                               ? `${proceso.metricas.tasa_respuesta_porcentaje.toFixed(0)}%`
@@ -431,7 +425,7 @@ export default function DatosGlobales() {
                       {nps && (
                         <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                           <div className="flex items-center justify-between mb-1.5">
-                            <p className="text-sm text-slate-400">NPS</p>
+                            <p className="text-sm text-slate-700 dark:text-slate-200">NPS</p>
                             <span
                               className="text-md font-bold"
                               title={interpretarNps(nps.score_nps).texto}
@@ -478,7 +472,7 @@ export default function DatosGlobales() {
                         scales: {
                           x: {
                             min: 0,
-                            max: maxEscalaGrafico,
+                            max: escalaLikert,
                             ticks: { color: colorTexto },
                             grid: { color: colorGrid },
                           },
@@ -514,7 +508,7 @@ export default function DatosGlobales() {
                       .filter(p => p.variaciones_constructos.some(v => v.variacion_respecto_anterior !== null))
                       .map((proceso, i) => (
                         <div key={proceso.id_proceso}>
-                          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-2">
+                          <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-2">
                             <span
                               className="w-2 h-2 rounded-full inline-block"
                               style={{ backgroundColor: COLORES_PROCESO[i % COLORES_PROCESO.length] }}
@@ -529,7 +523,7 @@ export default function DatosGlobales() {
                                   key={v.nombre_constructo}
                                   className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-3 py-2 flex items-center justify-between gap-2"
                                 >
-                                  <span className="text-sm text-slate-400 dark:text-slate-500 truncate">
+                                  <span className="text-sm text-slate-700 dark:text-slate-200 truncate">
                                     {v.nombre_constructo}
                                   </span>
                                   <span
@@ -554,7 +548,7 @@ export default function DatosGlobales() {
                   <h3 className="text-md font-semibold text-slate-700 dark:text-slate-200 mb-1">
                     Fiabilidad entre procesos (alfa de Cronbach)
                   </h3>
-                  <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">
+                  <p className="text-sm text-slate-700 dark:text-slate-200 mb-4">
                     Comparación del alfa de Cronbach por constructo entre los procesos seleccionados.
                   </p>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -576,7 +570,7 @@ export default function DatosGlobales() {
                   <h3 className="text-md font-semibold text-slate-700 dark:text-slate-200 mb-1">
                     Promedios entre procesos
                   </h3>
-                  <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">
+                  <p className="text-sm text-slate-700 dark:text-slate-200 mb-4">
                     Promedio general por constructo entre los procesos seleccionados.
                   </p>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -584,9 +578,9 @@ export default function DatosGlobales() {
                       <TarjetaComparativaConstructo
                         key={item.nombreConstructo}
                         item={item}
-                        colorPorValor={() => tema.sidebar}
+                        colorPorValor={() => tema.colorInforme}
                         formatearValor={valor => valor.toFixed(2)}
-                        maxEscala={4}
+                        maxEscala={escalaLikert}
                       />
                     ))}
                   </div>
