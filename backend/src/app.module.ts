@@ -84,10 +84,6 @@ const getRedisConfig = () => {
         };
       },
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client'), 
-      exclude: ['/api/{*splat}'],
-    }),
   ],
   controllers: 
   [

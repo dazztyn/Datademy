@@ -48,6 +48,7 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req: RequestConPerfilGoogle, @Res() res: Response) 
   {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:8080';
     try
     {
       const resultadoLogin = await this.authService.validarUsuarioGoogle(req.user);
@@ -72,7 +73,7 @@ export class AuthController {
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: tiempoVida1Hora,
       });
-      return res.redirect('/dashboard');
+      return res.redirect(`${frontendUrl}/dashboard`);
     }
     catch (error: unknown) 
     {
@@ -82,7 +83,7 @@ export class AuthController {
         mensajeError = error.message;
       }
       
-      return res.redirect(`/login?error=${encodeURIComponent(mensajeError)}`);
+      return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(mensajeError)}`);
     }
   }
 
