@@ -14,10 +14,8 @@ import { DatabaseModule } from './database/database.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { HealthController } from './health.controller';
 import { CsrfGuard } from './common/guards/csrf.guard';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
-import { join } from 'path';
 import { CommonModule } from './common/common.module';
 import { AdminModule } from './admin/admin.module';
 

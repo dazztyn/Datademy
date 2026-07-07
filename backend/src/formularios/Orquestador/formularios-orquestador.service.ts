@@ -111,6 +111,29 @@ export class FormulariosOrquestadorService {
     };
   }
   
+  async eliminarFormularioDeProceso(usuario_id: string, idProceso: string, tipoFormulario: TipoFormulario) 
+  {
+    const proceso = await this.procesosService.obtenerProcesoInterno(usuario_id, idProceso);
+    
+    const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES 
+      ? proceso.formulario_estudiantes 
+      : proceso.formulario_socios;
+
+    if (!configFormulario || !configFormulario.id_google_form) {
+      throw new BadRequestException(`El formulario de ${tipoFormulario} no está asignado a este proceso.`);
+    }
+
+    await this.googleDriveService.enviarArchivoAPapelera(configFormulario.id_google_form);
+
+    const resultado = await this.procesosService.desasignarFormulario(usuario_id, idProceso, tipoFormulario);
+
+    return {
+      estado: 'exito',
+      mensaje: `El formulario de ${tipoFormulario} fue enviado a la papelera y eliminado del sistema.`,
+      datosActualizados: resultado.datos
+    };
+  }
+
   async vincularFormularioExistente(
     usuario_id: string,
     idProceso: string,
