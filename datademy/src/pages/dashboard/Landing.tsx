@@ -15,6 +15,7 @@ import { useProceso } from '../../context/ProcesoContext'
 import iconoCarpeta from '../../assets/FOLDER.png'
 import ModalBienvenida from '../../components/ModalBienvenidainfo'
 import CerrarSesionBtn from '../../components/CerrarSesionBtn'
+import { usePersistedState } from '../../hooks/usePersistentState'
 
 export default function Landing() {
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
@@ -24,6 +25,8 @@ export default function Landing() {
   const { esAdmin } = useAuth()
   const { toast, mostrar, cerrar } = useToast()
   const { formularios, cargando, error, recargar } = useFormularios()
+  const [plantillasConfiguradas, setPlantillasConfiguradas] = usePersistedState('landing_plantillasConfiguradas', false)
+  const [destinoConfigurado, setDestinoConfigurado] = usePersistedState('landing_destinoConfigurado', false)
   const [mostrarBienvenida, setMostrarBienvenida] = useState(() => {
     const yaVisto = localStorage.getItem('datademy_bienvenida_vista')
     return yaVisto !== 'true' 
@@ -37,6 +40,7 @@ export default function Landing() {
     mostrar('Sincronizando plantillas...', 'cargando')
     try {
       await sincronizarPlantillas(idCarpeta)
+      setPlantillasConfiguradas(true)
       mostrar('Carpeta de plantillas configurada correctamente', 'exito')
     } catch {
       mostrar('Error al configurar carpeta de plantillas', 'error')
@@ -49,6 +53,7 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
     mostrar('Configurando carpeta destino...', 'cargando')
     try {
       await configurarCarpetaDestino(idCarpeta)
+      setDestinoConfigurado(true)
       mostrar('Carpeta destino configurada correctamente', 'exito')
     } catch {
       mostrar('Error al configurar carpeta destino', 'error')
@@ -80,42 +85,59 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
               Procesos disponibles
             </h1>
       </div>
-              <div className="flex items-center gap-3">
-        <button
-          onClick={abrirPickerPlantillas}
-          disabled={!isReadyPlantillas}
-          className={`text-lg flex items-center gap-2 px-4 py-2 rounded-full text-white font-medium transition-all duration-200
-          ${isReadyPlantillas
-            ? 'hover:scale-105 active:scale-95 cursor-pointer shadow-md'
-            : 'opacity-40 cursor-not-allowed filter grayscale'
-          }`}
-          style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
-        >
-          <img
-            src={iconoCarpeta}
-            alt="Carpeta Plantillas"
-            className="w-7 h-7 object-contain brightness-0 invert"
-          />
-          <span>Carpeta Plantillas</span>
-        </button>
-
-        <button
-          onClick={abrirPickerDestino}
-          disabled={!isReadyDestino}
-          className={`text-lg flex items-center gap-2 px-4 py-2 rounded-full text-white font-medium transition-all duration-200
-          ${isReadyDestino
-            ? 'hover:scale-105 active:scale-95 cursor-pointer shadow-md'
-            : 'opacity-40 cursor-not-allowed filter grayscale'
-          }`}
-          style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
-        >
-          <img
-            src={iconoCarpeta}
-            alt="Carpeta Destino"
-            className="w-7 h-7 object-contain brightness-0 invert"
-          />
-          <span>Carpeta Destino</span>
-        </button>
+        <div className="flex items-center gap-3">
+  <button
+    onClick={abrirPickerPlantillas}
+    disabled={!isReadyPlantillas}
+    className={`text-lg flex items-center gap-2 px-4 py-2 rounded-full text-white font-medium transition-all duration-200
+    ${!isReadyPlantillas
+      ? 'opacity-40 cursor-not-allowed filter grayscale'
+      : 'hover:scale-105 active:scale-95 cursor-pointer shadow-md'
+    }`}
+    style={{
+      background: plantillasConfiguradas
+        ? 'linear-gradient(to right, #22c55e, #16a34a)'
+        : 'linear-gradient(to right, #94a3b8, #64748b)',
+    }}
+  >
+    <img
+      src={iconoCarpeta}
+      alt="Carpeta Plantillas"
+      className="w-7 h-7 object-contain brightness-0 invert"
+    />
+    <span className="flex flex-col items-start leading-tight">
+      <span>Carpeta Plantillas</span>
+      <span className="text-xs font-normal opacity-90">
+        {plantillasConfiguradas ? 'Asignada' : 'No asignada'}
+      </span>
+    </span>
+  </button>
+  <button
+    onClick={abrirPickerDestino}
+    disabled={!isReadyDestino}
+    className={`text-lg flex items-center gap-2 px-4 py-2 rounded-full text-white font-medium transition-all duration-200
+    ${!isReadyDestino
+      ? 'opacity-40 cursor-not-allowed filter grayscale'
+      : 'hover:scale-105 active:scale-95 cursor-pointer shadow-md'
+    }`}
+    style={{
+      background: destinoConfigurado
+        ? 'linear-gradient(to right, #22c55e, #16a34a)'
+        : 'linear-gradient(to right, #94a3b8, #64748b)',
+    }}
+  >
+    <img
+      src={iconoCarpeta}
+      alt="Carpeta Destino"
+      className="w-7 h-7 object-contain brightness-0 invert"
+    />
+    <span className="flex flex-col items-start leading-tight">
+      <span>Carpeta Destino</span>
+      <span className="text-xs font-normal opacity-90">
+        {destinoConfigurado ? 'Asignada' : 'No asignada'}
+      </span>
+    </span>
+  </button>
 
         <button
           onClick={() => setModalAbierto(true)}
