@@ -3,7 +3,7 @@ import ModalAsignarFormulario from './ModalAsignarFormulario'
 import ModalVincularExistente from './ModalVincularExistente'
 import { createPortal } from 'react-dom'
 import ModalConfirmar from './ModalConfirmar'
-import { desasignarFormulario } from '../services/formularios_service'
+import { desasignarFormulario, eliminarFormulario } from '../services/formularios_service'
 import { useToast } from '../hooks/useToast'
 import Toast from '../components/Toast'
 
@@ -24,6 +24,8 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const [mostrarDesasignar, setMostrarDesasignar] = useState(false)
   const [desasignando, setDesasignando] = useState(false)
+  const [mostrarEliminar, setMostrarEliminar] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
   const { toast, mostrar, cerrar } = useToast()
 
   const abrirMenu = () => {
@@ -49,6 +51,20 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
       mostrar('Error al desasignar el formulario. Intenta de nuevo.', 'error')
     } finally {
       setDesasignando(false)
+    }
+  }
+  const handleEliminarFormulario = async () => {
+    setEliminando(true)
+    try {
+      await eliminarFormulario(idProceso, tipo)
+      onAsignado()
+      setMostrarEliminar(false)
+      mostrar('Formulario eliminado correctamente', 'exito')
+    } catch (err) {
+      console.error('Error al eliminar el formulario', err)
+      mostrar('Error al eliminar el formulario. Intenta de nuevo.', 'error')
+    } finally {
+      setEliminando(false)
     }
   }
   return (
@@ -112,6 +128,12 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
                       >
                         ✕ Desasignar
                       </button>
+                      <button
+                      onClick={() => { setMenuAbierto(false); setMostrarEliminar(true) }}
+                      className="w-full text-left px-3 py-2 text-md text-red-600 dark:text-red-500 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    >
+                      🗑 Eliminar formulario
+                    </button>
                     </div>
                   </>,
                   document.body
@@ -159,6 +181,14 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
           onConfirmar={handleDesasignar}
           onCerrar={() => setMostrarDesasignar(false)}
           cargando={desasignando}
+        />
+      )}
+       {mostrarEliminar && (
+        <ModalConfirmar
+          mensaje={`Se eliminará el formulario de ${tipo} de forma permanente, incluyendo el Google Form en Drive. Esta acción no se puede deshacer.`}
+          onConfirmar={handleEliminarFormulario}
+          onCerrar={() => setMostrarEliminar(false)}
+          cargando={eliminando}
         />
       )}
       {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={cerrar} />}
