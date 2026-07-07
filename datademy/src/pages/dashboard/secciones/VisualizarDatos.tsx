@@ -99,6 +99,15 @@ export default function Visualizar() {
 {(() => {
   const selectClass = "w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-md focus:outline-none focus:ring-2 focus:ring-blue-400"
 
+  const ETIQUETAS_FILTROS: Record<string, string> = {
+    carreras: 'Carrera',
+    sedes: 'Sede',
+    generos: 'Género',
+    niveles_formativos: 'Nivel formativo',
+    asignaturas: 'Asignatura',
+    organizaciones: 'Organización',
+  }
+
   const fd = {
     nombres_constructos: filtrosDisponibles.nombres_constructos ?? [],
   }
@@ -111,11 +120,12 @@ export default function Visualizar() {
       if (!opciones || opciones.length === 0) return null
 
       const claveFiltro = MAPA_PLURAL_A_SINGULAR[etiquetaPlural] ?? etiquetaPlural
+      const etiqueta = ETIQUETAS_FILTROS[etiquetaPlural] ?? etiquetaPlural
 
       return (
         <div key={claveFiltro}>
           <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">
-            {etiquetaPlural.replace(/s$/, '')}
+            {etiqueta}
           </label>
           <select
             onChange={e => setFiltros(f => ({ ...f, [claveFiltro]: e.target.value || undefined }))}

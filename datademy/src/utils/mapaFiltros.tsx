@@ -1,8 +1,17 @@
 export const MAPA_PLURAL_A_SINGULAR: Record<string, string> = {
-  'Carreras': 'carrera',
-  'Sedes': 'sede',
-  'Géneros': 'genero',
-  'Niveles formativos': 'nivel_formativo',
-  'Asignaturas': 'asignatura',
-  'Organizaciones': 'organizacion',
+  carreras: 'carrera',
+  sedes: 'sede',
+  generos: 'genero',
+  niveles_formativos: 'nivel_formativo',
+  asignaturas: 'asignatura',
+  organizaciones: 'organizacion',
+}
+
+export const ETIQUETAS_FILTROS: Record<string, string> = {
+  carreras: 'Carrera',
+  sedes: 'Sede',
+  generos: 'Género',
+  niveles_formativos: 'Nivel formativo',
+  asignaturas: 'Asignatura',
+  organizaciones: 'Organización',
 }
