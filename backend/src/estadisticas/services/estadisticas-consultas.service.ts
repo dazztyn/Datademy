@@ -106,12 +106,12 @@ export class EstadisticasConsultasService {
     };
 
     const mapeoPlurales: Record<string, string> = {
-      carrera: 'carreras',
-      sede: 'sedes',
-      genero: 'generos',
-      nivel_formativo: 'niveles_formativos',
-      asignatura: 'asignaturas',
-      organizacion: 'organizaciones'
+      carrera: 'Carreras',
+      sede: 'Sedes',
+      genero: 'Géneros',
+      nivel_formativo: 'Niveles formativos',
+      asignatura: 'Asignaturas',
+      organizacion: 'Organizaciones'
     };
 
     const promesas = Object.entries(MAPA_FILTROS_MONGO)

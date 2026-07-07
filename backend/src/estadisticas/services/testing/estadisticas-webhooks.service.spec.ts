@@ -22,6 +22,8 @@ describe('EstadisticasWebhooksService', () => {
   let mockCache: { limpiarCacheGlobal: jest.Mock };
 
   beforeEach(async () => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
     mockProcesos = { 
       buscarProcesosPorUsuarioYFormulario: jest.fn(), 
       buscarTodosPorIdFormularioGoogle: jest.fn(), 
@@ -60,6 +62,10 @@ describe('EstadisticasWebhooksService', () => {
     }).compile();
 
     service = module.get<EstadisticasWebhooksService>(EstadisticasWebhooksService);
+  });
+  
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('manejarNuevoWebhookGoogle', () => {

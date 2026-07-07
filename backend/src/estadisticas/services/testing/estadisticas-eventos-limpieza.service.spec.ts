@@ -16,6 +16,7 @@ describe('EstadisticasEventosLimpiezaService', () => {
   };
 
   beforeEach(async () => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EstadisticasEventosLimpiezaService,
@@ -26,6 +27,10 @@ describe('EstadisticasEventosLimpiezaService', () => {
 
     service = module.get<EstadisticasEventosLimpiezaService>(EstadisticasEventosLimpiezaService);
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('limpiarDatosHuerfanos', () => {
