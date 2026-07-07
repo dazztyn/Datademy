@@ -53,8 +53,6 @@ export class NpsCalculator {
     if (!resultadosMongo || resultadosMongo.length === 0) return null;
     
     const data = resultadosMongo[0]; 
-    if (data.totalValidos === 0) return null;
-
     const promotores_pct = Number(((data.promotores / data.totalValidos) * 100).toFixed(1));
     const pasivos_pct = Number(((data.pasivos / data.totalValidos) * 100).toFixed(1));
     const detractores_pct = Number(((data.detractores / data.totalValidos) * 100).toFixed(1));

@@ -34,7 +34,7 @@ export class FormulariosWorkerService {
           await this.googleDriveService.enviarArchivoAPapelera(proceso.formulario_estudiantes.id_google_form);
         }
 
-        this.eventEmitter.emit('proceso.eliminado', proceso._id.toString());
+        this.eventEmitter.emit('proceso.eliminado', { procesoId: proceso._id.toString() });
 
         await this.procesosRepo.eliminarProceso(proceso._id.toString());
 

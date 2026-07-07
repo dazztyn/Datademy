@@ -131,23 +131,13 @@ export class SatisfaccionCalculator {
         distribucion_frecuencias: stats.frecuencias 
       }));
 
-      const ordenadas = preguntas.length > 0 
-        ? [...preguntas].sort((a, b) => b.promedio - a.promedio)
-        : [];
+      const ordenadas = [...preguntas].sort((a, b) => b.promedio - a.promedio);
 
       const pregunta_mayor_promedio = ordenadas.length > 0
-        ? { 
-            pregunta: ordenadas[0].pregunta, 
-            promedio: ordenadas[0].promedio 
-          }
-        : null;
+        ? { pregunta: ordenadas[0].pregunta, promedio: ordenadas[0].promedio } : null;
 
       const pregunta_menor_promedio = ordenadas.length > 0
-        ? { 
-            pregunta: ordenadas[ordenadas.length - 1].pregunta, 
-            promedio: ordenadas[ordenadas.length - 1].promedio 
-          }
-        : null;
+        ? { pregunta: ordenadas[ordenadas.length - 1].pregunta, promedio: ordenadas[ordenadas.length - 1].promedio } : null;
 
       return { 
         numero_pagina: numeroPagina, 
