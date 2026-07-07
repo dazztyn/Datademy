@@ -168,6 +168,14 @@ export interface FiltrosDisponibles {
   asignaturas?: string[]
   nombres_constructos?: { id: number; nombre: string }[]
 }
+const MAPA_CLAVES_BACKEND: Record<string, keyof FiltrosDisponibles> = {
+  Carreras: 'carreras',
+  Sedes: 'sedes',
+  'Géneros': 'generos',
+  'Niveles formativos': 'niveles_formativos',
+  Asignaturas: 'asignaturas',
+  Organizaciones: 'organizaciones',
+}
 
 export async function obtenerFiltrosDisponibles(
   idProceso: string,
@@ -179,7 +187,22 @@ export async function obtenerFiltrosDisponibles(
   )
   if (!response.ok) throw new Error('Error al obtener filtros')
   const data = await response.json()
-  return data.filtros_disponibles ?? {}
+  const crudo: Record<string, any> = data.filtros_disponibles ?? {}
+
+  const normalizado: FiltrosDisponibles = {}
+
+  for (const [claveBackend, valor] of Object.entries(crudo)) {
+    if (claveBackend === 'nombres_constructos') {
+      normalizado.nombres_constructos = valor
+      continue
+    }
+    const claveInterna = MAPA_CLAVES_BACKEND[claveBackend]
+    if (claveInterna) {
+      normalizado[claveInterna] = valor
+    }
+  }
+
+  return normalizado
 }
 export interface CantidadPaginasResponse {
   estado: string

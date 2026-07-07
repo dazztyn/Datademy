@@ -16,6 +16,7 @@ import type { FiltrosMetricas } from '../../../services/estadisticos_service'
 import { useTheme } from '../../../context/ThemeContext'
 import { temasPagina, temaDefault } from '../../../utils/temasPagina'
 import { useLocation } from 'react-router-dom'
+import { MAPA_PLURAL_A_SINGULAR } from '../../../utils/mapaFiltros'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
@@ -95,134 +96,61 @@ export default function Visualizar() {
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
         <h3 className="text-lg ml-1 font-medium text-slate-600 dark:text-slate-300 mb-3">Filtros</h3>
-         {(() => {
+{(() => {
   const selectClass = "w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-  
+
   const fd = {
-    carreras: filtrosDisponibles.carreras ?? [],
-    sedes: filtrosDisponibles.sedes ?? [],
-    generos: filtrosDisponibles.generos ?? [],
-    niveles_formativos: filtrosDisponibles.niveles_formativos ?? [],
-    asignaturas: filtrosDisponibles.asignaturas ?? [],
-    organizaciones: filtrosDisponibles.organizaciones ?? [],
     nombres_constructos: filtrosDisponibles.nombres_constructos ?? [],
   }
 
-  const filtrosActivos = [
-    tipoActivo === 'estudiantes' && fd.carreras.length > 0 && (
-      <div key="carrera">
-        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Carrera</label>
-        <select onChange={e => setFiltros(f => ({ ...f, carrera: e.target.value || undefined }))} className={selectClass}>
-          <option value="">Todas</option>
-          {fd.carreras.map(c => <option key={c}>{c}</option>)}
-        </select>
-      </div>
-    ),
-    tipoActivo === 'estudiantes' && fd.sedes.length > 0 && (
-      <div key="sede">
-        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Sede</label>
-        <select onChange={e => setFiltros(f => ({ ...f, sede: e.target.value || undefined }))} className={selectClass}>
-          <option value="">Todas</option>
-          {fd.sedes.map(s => <option key={s}>{s}</option>)}
-        </select>
-      </div>
-    ),
-    tipoActivo === 'estudiantes' && fd.generos.length > 0 && (
-      <div key="genero_est">
-        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Género</label>
-        <select onChange={e => setFiltros(f => ({ ...f, genero: e.target.value || undefined }))} className={selectClass}>
-          <option value="">Todos</option>
-          {fd.generos.map(g => <option key={g}>{g}</option>)}
-        </select>
-      </div>
-    ),
-    tipoActivo === 'estudiantes' && fd.niveles_formativos.length > 0 && (
-      <div key="nivel">
-        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Nivel formativo</label>
-        <select onChange={e => setFiltros(f => ({ ...f, nivel_formativo: e.target.value || undefined }))} className={selectClass}>
-          <option value="">Todos</option>
-          {fd.niveles_formativos.map(n => <option key={n}>{n}</option>)}
-        </select>
-      </div>
-    ),
-    tipoActivo === 'estudiantes' && fd.asignaturas.length > 0 && (
-      <div key="asignatura_est">
-        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Asignatura</label>
-        <select onChange={e => setFiltros(f => ({ ...f, asignatura: e.target.value || undefined }))} className={selectClass}>
-          <option value="">Todas</option>
-          {fd.asignaturas.map(n => <option key={n}>{n}</option>)}
-        </select>
-      </div>
-    ),
-    tipoActivo === 'socios' && fd.organizaciones.length > 0 && (
-      <div key="organizacion">
-        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Organización</label>
-        <select onChange={e => setFiltros(f => ({ ...f, organizacion: e.target.value || undefined }))} className={selectClass}>
-          <option value="">Todas</option>
-          {fd.organizaciones.map(o => <option key={o}>{o}</option>)}
-        </select>
-      </div>
-    ),
-    tipoActivo === 'socios' && fd.generos.length > 0 && (
-      <div key="genero_socios">
-        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Género</label>
-        <select onChange={e => setFiltros(f => ({ ...f, genero: e.target.value || undefined }))} className={selectClass}>
-          <option value="">Todos</option>
-          {fd.generos.map(g => <option key={g}>{g}</option>)}
-        </select>
-      </div>
-    ),
-    tipoActivo === 'socios' && fd.carreras.length > 0 && (
-      <div key="asignatura_socios">
-        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Asignatura</label>
-        <select onChange={e => setFiltros(f => ({ ...f, asignatura: e.target.value || undefined }))} className={selectClass}>
-          <option value="">Todas</option>
-          {fd.carreras.map(o => <option key={o}>{o}</option>)}
-        </select>
-      </div>
-    ),
-    tipoActivo === 'socios' && fd.asignaturas.length > 0 && (
-      <div key="nivel_socios">
-        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Nivel formativo</label>
-        <select onChange={e => setFiltros(f => ({ ...f, nivel_formativo: e.target.value || undefined }))} className={selectClass}>
-          <option value="">Todos</option>
-          {fd.asignaturas.map(n => <option key={n}>{n}</option>)}
-        </select>
-      </div>
-    ),
-        fd.nombres_constructos.length > 0 && (
+  const claves = Object.keys(filtrosDisponibles).filter(k => k !== 'nombres_constructos')
+
+  const filtrosActivos = claves
+    .map(etiquetaPlural => {
+      const opciones = filtrosDisponibles[etiquetaPlural as keyof typeof filtrosDisponibles] as string[]
+      if (!opciones || opciones.length === 0) return null
+
+      const claveFiltro = MAPA_PLURAL_A_SINGULAR[etiquetaPlural] ?? etiquetaPlural
+
+      return (
+        <div key={claveFiltro}>
+          <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">
+            {etiquetaPlural.replace(/s$/, '')}
+          </label>
+          <select
+            onChange={e => setFiltros(f => ({ ...f, [claveFiltro]: e.target.value || undefined }))}
+            className={selectClass}
+          >
+            <option value="">Todas</option>
+            {opciones.map(o => <option key={o}>{o}</option>)}
+          </select>
+        </div>
+      )
+    })
+    .filter((el): el is React.ReactElement => el !== null)
+
+  if (fd.nombres_constructos.length > 0) {
+    filtrosActivos.push(
       <div key="constructo">
         <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">
           Constructo
         </label>
-
         <select
-          value={constructoSeleccionado ?? ''}
           onChange={e => {
-            const val = e.target.value
-              ? Number(e.target.value)
-              : undefined
-
+            const val = e.target.value ? Number(e.target.value) : undefined
             setConstructoSeleccionado(val)
-
-            setFiltros(f => ({
-              ...f,
-              pagina: val,
-            }))
+            setFiltros(f => ({ ...f, pagina: val }))
           }}
           className={selectClass}
         >
           <option value="">Todos</option>
-
           {fd.nombres_constructos.map(c => (
-            <option key={c.id} value={c.id}>
-              {c.nombre}
-            </option>
+            <option key={c.id} value={c.id}>{c.nombre}</option>
           ))}
         </select>
       </div>
-    ),
-  ].filter(Boolean)
+    )
+  }
 
   return (
     <div className="grid grid-cols-2 gap-3">
