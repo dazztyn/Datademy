@@ -193,13 +193,12 @@ export class EstadisticasComparativasService {
     });
 
     return Array.from(mapaConstructos.values()).map(c => {
-      const promedioGlobal = c.alfas_globales.length > 0 
-        ? Number((c.alfas_globales.reduce((sum, item) => sum + item.alfa, 0) / c.alfas_globales.length).toFixed(3)) : 0;
+      const promedioGlobal = Number((c.alfas_globales.reduce((sum, item) => sum + item.alfa, 0) / c.alfas_globales.length).toFixed(3));
 
       const preguntasFinales = Array.from(c.mapa_preguntas.entries()).map(([pregunta, alfasArray]) => ({
         pregunta,
         detalle_procesos: alfasArray,
-        promedio_alfa_pregunta: alfasArray.length > 0 ? Number((alfasArray.reduce((sum, item) => sum + item.alfa, 0) / alfasArray.length).toFixed(3)) : 0
+        promedio_alfa_pregunta: Number((alfasArray.reduce((sum, item) => sum + item.alfa, 0) / alfasArray.length).toFixed(3))
       }));
 
       return { nombre_constructo: c.nombre_constructo, detalle_procesos: c.alfas_globales, promedio_alfa_constructo: promedioGlobal, preguntas: preguntasFinales };
@@ -249,8 +248,7 @@ export class EstadisticasComparativasService {
       const preguntasFinales = Array.from(c.mapa_preguntas.entries()).map(([pregunta, promediosArray]) => ({
         pregunta,
         detalle_procesos: promediosArray,
-        promedio_general_pregunta: promediosArray.length > 0 
-          ? Number((promediosArray.reduce((sum, item) => sum + item.promedio, 0) / promediosArray.length).toFixed(1)) : 0
+        promedio_general_pregunta: Number((promediosArray.reduce((sum, item) => sum + item.promedio, 0) / promediosArray.length).toFixed(1))
       }));
 
       return { 
