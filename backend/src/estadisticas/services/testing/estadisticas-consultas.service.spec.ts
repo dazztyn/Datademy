@@ -128,25 +128,26 @@ describe('EstadisticasConsultasService', () => {
       mockProcesos.obtenerProcesoInterno.mockResolvedValue({
         formulario_estudiantes: { nombres_constructos: ['Liderazgo'] }
       });
-      mockRepositorio.obtenerOpcionesDistintas
-        .mockResolvedValueOnce(['Medicina', 'No especificada'])  
-        .mockResolvedValueOnce(['Femenino', 'No especificado'])
-        .mockResolvedValueOnce(['Sede Central'])               
-        .mockResolvedValueOnce([])                            
-        .mockResolvedValueOnce(['Empresa X'])                   
-        .mockResolvedValueOnce(['Biología']);                  
+      mockRepositorio.obtenerOpcionesDistintas.mockImplementation(async (campoMongo: string) => {
+        const campo = String(campoMongo).toLowerCase();
+        if (campo.includes('carrera')) return ['Medicina', 'No especificada'];
+        if (campo.includes('genero')) return ['Femenino', 'No especificado'];
+        if (campo.includes('sede')) return ['Sede Central'];
+        if (campo.includes('organizacion')) return ['Empresa X'];
+        if (campo.includes('asignatura')) return ['Biología'];
+        return [];
+      });               
 
       const resultado = await service.obtenerOpcionesFiltrosDisponibles('p1', 'u1', TipoFormulario.ESTUDIANTES);
       
       const filtros = resultado!.filtros_disponibles as Record<string, string[]>;
 
-      expect(filtros.carreras).toEqual(['Medicina']);
-      expect(filtros.generos).toEqual(['Femenino']);
-      expect(filtros.sedes).toEqual(['Sede Central']);
-      expect(filtros.organizaciones).toEqual(['Empresa X']);
-      expect(filtros.asignaturas).toEqual(['Biología']);
-      
-      expect(filtros.niveles_formativos).toBeUndefined();
+      expect(filtros.Carreras).toEqual(['Medicina']);
+      expect(filtros.Géneros).toEqual(['Femenino']);
+      expect(filtros.Sedes).toEqual(['Sede Central']);
+      expect(filtros.Organizaciones).toEqual(['Empresa X']);
+      expect(filtros.Asignaturas).toEqual(['Biología']);
+      expect(filtros['Niveles formativos']).toBeUndefined();
     });
 
     it('debería usar estudiantes por defecto en el parámetro tipoFormulario', async () => {

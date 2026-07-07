@@ -84,8 +84,6 @@ export class EstadisticasMathService {
 
   private calcularVarianzaMuestral(valores: number[]): number {
     const n = valores.length;
-    if (n < 2) return 0;
-    
     let suma = 0;
     let sumaCuadrados = 0;
     

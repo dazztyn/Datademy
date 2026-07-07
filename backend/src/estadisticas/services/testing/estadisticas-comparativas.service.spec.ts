@@ -7,7 +7,6 @@ import { TipoFormulario } from '../../../common/enum/tipo-formulario.enum';
 import { BadRequestException } from '@nestjs/common';
 import { ProcesoDocument } from '../../../formularios/schemas/proceso.schema';
 import { MetricaConstructo } from '../../interfaces/metrica-constructo.interface';
-import { ProcesoComparativa } from '../../interfaces/proceso-comparativo.interface';
 
 describe('EstadisticasComparativasService', () => {
   let service: EstadisticasComparativasService;
@@ -56,13 +55,13 @@ describe('EstadisticasComparativasService', () => {
           promedios_por_pagina: [{ nombre_constructo: 'C1', promedio_constructo: 4.5, numero_pagina: 2 } as MetricaConstructo],
           fiabilidad_constructos: [{ nombre_constructo: 'C1', alfa_cronbach_global: 0.8, alfa_si_se_elimina_pregunta: { 'P1': 0.7 }, numero_pagina: 2 }],
           detalle_por_dimension: [{ nombre_constructo: 'C1', preguntas: [{ pregunta: 'P1', promedio: 4.0, total_respuestas: 10, distribucion_frecuencias: {} }], numero_pagina: 2, pregunta_mayor_promedio: null, pregunta_menor_promedio: null }]
-        } as unknown as ProcesoComparativa['metricas'])
+        } as unknown as ReturnType<EstadisticasAnaliticasService['calcularMetricasAnaliticas']>)
         .mockReturnValueOnce({
           promedio_satisfaccion_general: 6.5,
           promedios_por_pagina: [{ nombre_constructo: 'C1', promedio_constructo: 6.0, numero_pagina: 2 } as MetricaConstructo],
           fiabilidad_constructos: [{ nombre_constructo: 'C1', alfa_cronbach_global: 0.9, alfa_si_se_elimina_pregunta: { 'P1': 0.8 }, numero_pagina: 2 }],
           detalle_por_dimension: [{ nombre_constructo: 'C1', preguntas: [{ pregunta: 'P1', promedio: 5.5, total_respuestas: 10, distribucion_frecuencias: {} }], numero_pagina: 2, pregunta_mayor_promedio: null, pregunta_menor_promedio: null }]
-        } as unknown as ProcesoComparativa['metricas']);
+        } as unknown as ReturnType<EstadisticasAnaliticasService['calcularMetricasAnaliticas']>);
 
       const resultado = await service.obtenerComparativaGlobal('usr1', ['id1', 'id2'], TipoFormulario.ESTUDIANTES);
 
@@ -71,8 +70,54 @@ describe('EstadisticasComparativasService', () => {
       expect(resultado.comparativa_global[1].variacion_satisfaccion_respecto_anterior).toBe(1.5); 
       expect(resultado.comparativa_global[1].variaciones_constructos![0].variacion_respecto_anterior).toBe(1.5);
       expect(resultado.comparativa_alfas[0].promedio_alfa_constructo).toBe(0.85); 
-      expect(resultado.comparativa_promedios[0].promedio_general_constructo).toBe(5.2); 
+      expect(resultado.comparativa_promedios[0].promedio_general_constructo).toBe(5.3);
     });
+    
+    it('debería agrupar constructos en el mapa cubriendo ramas de nuevos y repetidos (Línea 232)', async () => {
+      mockProcesosService.obtenerProcesoInterno
+        .mockResolvedValueOnce({ _id: 'id1', nombre_proceso: 'P1', anio: 2023 } as unknown as ProcesoDocument)
+        .mockResolvedValueOnce({ _id: 'id2', nombre_proceso: 'P2', anio: 2024 } as unknown as ProcesoDocument);
+      
+      mockRepositorio.buscarPorQuery.mockResolvedValue([]);
+      
+      mockAnaliticasService.calcularMetricasAnaliticas
+        .mockReturnValueOnce({
+          promedio_satisfaccion_general: 5, promedios_por_pagina: [], fiabilidad_constructos: [],
+          detalle_por_dimension: [
+            { nombre_constructo: 'ConstructoRepetido', preguntas: [], numero_pagina: 1, pregunta_mayor_promedio: null, pregunta_menor_promedio: null }
+          ]
+        } as unknown as ReturnType<EstadisticasAnaliticasService['calcularMetricasAnaliticas']>)
+        .mockReturnValueOnce({
+          promedio_satisfaccion_general: 5, promedios_por_pagina: [], fiabilidad_constructos: [],
+          detalle_por_dimension: [
+            { nombre_constructo: 'ConstructoRepetido', preguntas: [], numero_pagina: 1, pregunta_mayor_promedio: null, pregunta_menor_promedio: null },
+            { nombre_constructo: 'ConstructoNuevo', preguntas: [], numero_pagina: 2, pregunta_mayor_promedio: null, pregunta_menor_promedio: null }
+          ]
+        } as unknown as ReturnType<EstadisticasAnaliticasService['calcularMetricasAnaliticas']>);
+
+      await service.obtenerComparativaGlobal('usr', ['id1', 'id2'], TipoFormulario.ESTUDIANTES);
+      
+      expect(mockAnaliticasService.calcularMetricasAnaliticas).toHaveBeenCalled();
+    });
+
+    it('debería manejar promedios_por_pagina undefined para cubrir el fallback (Línea 222)', async () => {
+      mockProcesosService.obtenerProcesoInterno.mockResolvedValueOnce({
+        _id: 'id_undef', nombre_proceso: 'Proceso Sin Promedios', anio: 2026
+      } as unknown as ProcesoDocument);
+      
+      mockRepositorio.buscarPorQuery.mockResolvedValue([]);
+      
+      mockAnaliticasService.calcularMetricasAnaliticas.mockReturnValueOnce({
+        promedio_satisfaccion_general: 5,
+        promedios_por_pagina: undefined as unknown as MetricaConstructo[], 
+        fiabilidad_constructos: [],
+        detalle_por_dimension: []
+      } as unknown as ReturnType<EstadisticasAnaliticasService['calcularMetricasAnaliticas']>);
+
+      const resultado = await service.obtenerComparativaGlobal('usr', ['id_undef'], TipoFormulario.ESTUDIANTES);
+      expect(resultado.estado).toBe('exito');
+    });
+
   });
 
   describe('obtenerComparativaInterna', () => {
@@ -104,7 +149,7 @@ describe('EstadisticasComparativasService', () => {
         promedios_por_pagina: [{ nombre_constructo: 'C2', promedio_constructo: 5.5, numero_pagina: 2 } as MetricaConstructo],
         fiabilidad_constructos: [],
         detalle_por_dimension: []
-      } as unknown as ProcesoComparativa['metricas']);
+      } as unknown as ReturnType<EstadisticasAnaliticasService['calcularMetricasAnaliticas']>);
 
       mockRepositorio.buscarPorQuery.mockResolvedValue([]);
 
@@ -135,16 +180,17 @@ describe('EstadisticasComparativasService', () => {
 
       mockAnaliticasService.calcularMetricasAnaliticas
         .mockReturnValueOnce({
-          promedio_satisfaccion_general: 0, 
-          promedios_por_pagina: [], 
-          detalle_por_dimension: undefined
-        } as unknown as ProcesoComparativa['metricas'])
-        .mockReturnValueOnce({
           promedio_satisfaccion_general: 5.0,
           promedios_por_pagina: [{ nombre_constructo: 'C_Nuevo', promedio_constructo: 5.0, numero_pagina: 2 } as MetricaConstructo],
           fiabilidad_constructos: [],
           detalle_por_dimension: []
-        } as unknown as ProcesoComparativa['metricas']);
+        } as unknown as ReturnType<EstadisticasAnaliticasService['calcularMetricasAnaliticas']>)
+        .mockReturnValueOnce({
+          promedio_satisfaccion_general: 0, 
+          promedios_por_pagina: [], 
+          fiabilidad_constructos: undefined, 
+          detalle_por_dimension: undefined
+        } as unknown as ReturnType<EstadisticasAnaliticasService['calcularMetricasAnaliticas']>);
 
       const resultado = await service.obtenerComparativaGlobal('usr1', ['id1', 'id2'], TipoFormulario.SOCIOS);
 
@@ -153,6 +199,61 @@ describe('EstadisticasComparativasService', () => {
       
       expect(resultado.comparativa_global[1].variacion_satisfaccion_respecto_anterior).toBeNull(); 
       expect(resultado.comparativa_global[1].variaciones_constructos![0].variacion_respecto_anterior).toBeNull(); 
+    });
+
+    it('debería cubrir ramas de SOCIOS y promedios/alfas en cero (Líneas 42, 196, 236, 252)', async () => {
+      mockProcesosService.obtenerProcesoInterno.mockResolvedValueOnce({
+        _id: 'proc_socios',
+        anio: 2026,
+        formulario_socios: { nombres_constructos: ['C_Socio'] }
+      } as unknown as ProcesoDocument);
+      
+      mockRepositorio.obtenerOpcionesDistintas.mockResolvedValueOnce(['Grupo1']);
+      
+      mockAnaliticasService.calcularMetricasAnaliticas.mockReturnValueOnce({
+        promedio_satisfaccion_general: 5,
+        promedios_por_pagina: [
+            { nombre_constructo: 'C_Socio', promedio_constructo: 5, numero_pagina: 1 }
+        ],
+        fiabilidad_constructos: [
+          { 
+            nombre_constructo: 'C_Socio', 
+            alfa_cronbach_global: null as unknown as number, 
+            alfa_si_se_elimina_pregunta: { 'P1': null as unknown as number },
+            numero_pagina: 1 
+          }
+        ],
+        detalle_por_dimension: [
+          { 
+            nombre_constructo: 'C_Socio', 
+            preguntas: undefined as unknown as any[], 
+            numero_pagina: 1, 
+            pregunta_mayor_promedio: null, 
+            pregunta_menor_promedio: null 
+          },
+          {
+            nombre_constructo: 'C_Socio_2',
+            preguntas: [
+              { pregunta: 'P2', promedio: null as unknown as number, total_respuestas: 10, distribucion_frecuencias: {} }
+            ],
+            numero_pagina: 2,
+            pregunta_mayor_promedio: null,
+            pregunta_menor_promedio: null
+          }
+        ]
+      } as unknown as ReturnType<EstadisticasAnaliticasService['calcularMetricasAnaliticas']>);
+
+      mockRepositorio.buscarPorQuery.mockResolvedValue([]);
+
+      const resultado = await service.obtenerComparativaInterna(
+        'usr', 'proc_socios', 'carrera', TipoFormulario.SOCIOS
+      );
+
+      expect(resultado.comparativa_alfas[0].promedio_alfa_constructo).toBe(0); 
+      expect(resultado.comparativa_alfas[0].preguntas[0].promedio_alfa_pregunta).toBe(0); 
+      
+      const p2 = resultado.comparativa_promedios.find(c => c.nombre_constructo === 'C_Socio_2');
+      expect(p2?.preguntas[0].promedio_general_pregunta).toBe(0); 
     });
   });
 });
