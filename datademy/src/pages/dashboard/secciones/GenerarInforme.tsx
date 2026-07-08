@@ -589,16 +589,16 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
       </div>
 
       <div className={seccionClass}>
-        <h3 className={tituloSeccion}>Datos personales</h3>
+        <h3 className={tituloSeccion}>Información autor informe</h3>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClass}>Nombre</label>
+            <label className={labelClass}>Su nombre</label>
             <input type="text" value={nombreUsuario} onChange={e => setNombreUsuario(e.target.value)} placeholder="Ej: María González" className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Sede</label>
+            <label className={labelClass}>Su sede</label>
             <select value={sede} onChange={e => setSede(e.target.value)} className={inputClass}>
-              <option value="">Selecciona una sede...</option>
+              <option value="">Seleccione su sede...</option>
               {(filtrosDisponibles?.sedes ?? []).map((s: string) => (
                 <option key={s} value={s}>{s}</option>
               ))}
