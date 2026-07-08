@@ -19,7 +19,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 const COLORES = ['#5fb7bb', '#0d438b', '#7f458f']
 const BASE_URL = import.meta.env.VITE_API_URL
-const FONT_SIZE_EJE = 27
+const FONT_SIZE_EJE = 25
 const ALTURA_LINEA = FONT_SIZE_EJE * 1.45 // espaciado típico entre líneas de texto envuelto
 
 function getHeaders(): HeadersInit {
