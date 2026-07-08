@@ -121,6 +121,17 @@ export async function desasignarFormulario(
   })
   if (!response.ok) throw new Error('Error al desasignar formulario')
 }
+export async function eliminarFormulario(
+  idProceso: string,
+  tipoFormulario: 'estudiantes' | 'socios'
+): Promise<void> {
+  const response = await fetch(`${BASE_URL}/formularios/${idProceso}/eliminar-formulario/${tipoFormulario}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al eliminar el formulario')
+}
 export interface Informe {
   id_informe_drive: string
   nombre_informe: string
