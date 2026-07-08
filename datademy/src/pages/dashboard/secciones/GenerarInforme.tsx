@@ -19,7 +19,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 const COLORES = ['#5fb7bb', '#0d438b', '#7f458f']
 const BASE_URL = import.meta.env.VITE_API_URL
-const FONT_SIZE_EJE = 25
+const FONT_SIZE_EJE = 30
 const ALTURA_LINEA = FONT_SIZE_EJE * 1.45 // espaciado típico entre líneas de texto envuelto
 
 function getHeaders(): HeadersInit {
@@ -781,7 +781,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
 
                     
                     const anchoEtiquetas = Math.floor(anchoTotal * 0.65)
-                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1200))
+                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1350))
 
 
                     const chartData = {
@@ -834,7 +834,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     if (preguntas.length === 0) return null
 
                     const anchoEtiquetas = Math.floor(anchoTotal * 0.65)
-                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1200))
+                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1350))
 
 
                     const chartData = {
