@@ -325,6 +325,7 @@ export async function obtenerComparativaGlobal(
 export type AgrupacionInterna = 'carrera' | 'sede' | 'asignatura' | 'nivel_formativo'
 
 export interface FiltrosComparativaInterna {
+  tipo?: 'estudiantes' | 'socios'
   sede?: string
   genero?: string
   carrera?: string
