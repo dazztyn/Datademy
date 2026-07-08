@@ -19,6 +19,8 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 const COLORES = ['#5fb7bb', '#0d438b', '#7f458f']
 const BASE_URL = import.meta.env.VITE_API_URL
+const FONT_SIZE_EJE = 15
+const ALTURA_LINEA = FONT_SIZE_EJE * 1.45 // espaciado típico entre líneas de texto envuelto
 
 function getHeaders(): HeadersInit {
   return { 'Content-Type': 'application/json' }
@@ -401,7 +403,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
     x: {
       min: 0,
       max: maxVal,
-      ticks: { color: '#64748b', font: { size: 13 } },
+      ticks: { color: '#64748b', font: { size: FONT_SIZE_EJE } },
       grid: { color: 'rgba(0,0,0,0.06)' },
     },
     y: {
@@ -410,7 +412,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
         : undefined,
       ticks: {
         color: '#1e293b',
-        font: { size: 16},
+        font: { size: FONT_SIZE_EJE, lineHeight: `${ALTURA_LINEA}px` },
         autoSkip: false,
       },
       grid: { color: 'rgba(0,0,0,0.06)' },
@@ -425,7 +427,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
           align: 'end' as const,
           clamp: true,
           color: '#0f172a',
-          font: { weight: 'bold' as const, size: 14 },
+          font: { weight: 'bold' as const, size: FONT_SIZE_EJE },
           formatter: (value: number) => (value != null ? value.toFixed(2) : ''),
         }
       : { display: false },
@@ -779,7 +781,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         },
                       ],
                     }
-
+                    const maxLineas = Math.max(1, ...chartData.labels.map(l => l.length))
+                    const alturaPorFila = Math.max(60, maxLineas * ALTURA_LINEA + 16)
                     return (
                       <div
                           key={`preview-${constructo.numero_pagina}`}
@@ -791,7 +794,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                           <div className="w-full overflow-x-auto flex justify-center">
                             <div
                               className="flex-shrink-0"
-                              style={{ height: `${preguntas.length * 60 + 40}px`, width: `${anchoTotal}px` }}
+                              style={{ height: `${preguntas.length * alturaPorFila + 40}px`, width: `${anchoTotal}px` }}
                             >
                               <Bar
                                 ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
@@ -828,6 +831,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         borderRadius: 5,
                       }],
                     }
+                    const maxLineas = Math.max(1, ...chartData.labels.map(l => l.length))
+                    const alturaPorFila = Math.max(60, maxLineas * ALTURA_LINEA + 16)
 
                     return (
                       <div
@@ -840,7 +845,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         <div className="w-full overflow-x-auto flex justify-center">
                           <div
                             className="flex-shrink-0"
-                            style={{ height: `${preguntas.length * 60 + 40}px`, width: `${anchoTotal}px` }}
+                            style={{ height: `${preguntas.length * alturaPorFila + 40}px`, width: `${anchoTotal}px` }}
                           >
                             <Bar
                               ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}
