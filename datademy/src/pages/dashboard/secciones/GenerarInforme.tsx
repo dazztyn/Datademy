@@ -173,7 +173,12 @@ export default function GenerarInforme() {
     sede: sede || undefined,
     nivel_formativo: programa || undefined,
   })
-  const { metricas: metricasSocios } = useMetricas(idProceso, { tipo: 'socios' })
+  const { metricas: metricasSocios } = useMetricas(idProceso, {
+    tipo: 'socios',
+    carrera: carrera || undefined,
+    sede: sede || undefined,
+    nivel_formativo: programa || undefined,
+  })
   const totalEstudiantes = metricas?.total_esperados ?? 0
   const totalRespuestas = metricas?.total_encuestados ?? 0
   const porcRespuestas = fmt(metricas?.tasa_respuesta_porcentaje, 1)
