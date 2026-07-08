@@ -56,4 +56,8 @@ export class ProcesosRepository {
     return await this.modelo.findOneAndDelete({ _id: idProceso, usuario_id }).exec();
   }
 
+  async eliminarProcesosDeUsuario(usuario_id: string): Promise<void> {
+    await this.modelo.deleteMany({ usuario_id }).exec();
+  }
+
 }

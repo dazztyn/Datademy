@@ -188,6 +188,12 @@ export class ProcesosService {
     return eliminado;
   }
 
+  @OnEvent('usuario.eliminado')
+  async limpiarProcesosUsuario(usuarioId: string) {
+    await this.procesosRepo.eliminarProcesosDeUsuario(usuarioId);
+    await this.cacheHelper.limpiarCacheGlobal();
+  }
+
   @OnEvent('informe.generado')
   async manejarInformeGeneradoTerminado(payload: { usuarioId: string, idProceso: string, informe: InformeGenerado }) {
     try {

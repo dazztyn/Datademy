@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfiguracionesRepository } from '../repository/configuraciones.repository';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ConfiguracionesService {
@@ -17,4 +18,10 @@ export class ConfiguracionesService {
     }
     return config.id_carpeta_destino_formularios;
   }
+
+  @OnEvent('usuario.eliminado')
+  async limpiarConfiguracionUsuario(usuarioId: string) {
+    await this.configRepo.borrarConfiguracion(usuarioId);
+  }
+
 }

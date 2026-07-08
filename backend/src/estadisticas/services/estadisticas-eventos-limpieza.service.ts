@@ -14,7 +14,6 @@ export class EstadisticasEventosLimpiezaService {
   @OnEvent('proceso.eliminado')
   async limpiarDatosHuerfanos(payload: { procesoId: string }): Promise<void> {
     if (!payload || !payload.procesoId) return;
-    console.log(`[Eventos] Escuché que se borró el proceso ${payload.procesoId}. Limpiando estadísticas...`);
     await this.repositorio.eliminarRespuestasPorProceso(payload.procesoId);
     await this.cacheHelper.limpiarCacheGlobal();
   }
@@ -22,11 +21,16 @@ export class EstadisticasEventosLimpiezaService {
   @OnEvent('formulario.desasignado')
   async limpiarEstadisticasHuerfanas(payload: { procesoId: string, tipoFormulario: string }) {
     if (!payload?.procesoId || !payload?.tipoFormulario) return;
-    console.log(`[Event Bus] Limpiando estadísticas del formulario ${payload.tipoFormulario} desasignado...`);
     await this.repositorio.eliminarEstadisticasPorFiltro({
       proceso_id: payload.procesoId,
       tipo_formulario: payload.tipoFormulario
     });
+    await this.cacheHelper.limpiarCacheGlobal();
+  }
+
+  @OnEvent('usuario.eliminado')
+  async limpiarEstadisticasUsuario(usuarioId: string) {
+    await this.repositorio.eliminarEstadisticasPorFiltro({ usuario_id: usuarioId });
     await this.cacheHelper.limpiarCacheGlobal();
   }
 }

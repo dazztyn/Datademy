@@ -21,4 +21,9 @@ export class ConfiguracionesRepository {
       return await config.save();
     }
   }
+
+  async borrarConfiguracion(usuario_id: string): Promise<void> {
+    await this.modelo.deleteMany({ usuario_id }).exec();
+  }
+
 }

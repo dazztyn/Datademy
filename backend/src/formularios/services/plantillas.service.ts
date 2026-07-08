@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ArchivoGoogleDrive } from 'src/google/interfaces/archivo-google.interface';
 import { FiltroPlantillas } from '../interfaces/FiltroPlantillas';
 import { PlantillasRepository } from '../repository/plantillas.repository';
+import { OnEvent } from '@nestjs/event-emitter'
 
 
 @Injectable()
@@ -28,4 +29,11 @@ export class PlantillasService {
       datos: plantillas.map(p => ({ idPlantilla: p.idPlantilla, nombrePlantilla: p.nombrePlantilla })) 
     };
   }
+
+  @OnEvent('usuario.eliminado')
+  async limpiarPlantillasUsuario(usuarioId: string) {
+    console.log(`[Eventos] Limpiando plantillas cacheadas del usuario ${usuarioId}...`);
+    await this.plantillasRepo.borrarPlantillas(usuarioId);
+  }
+
 }
