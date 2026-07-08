@@ -17,9 +17,10 @@ export class EstadisticasConsultasService {
   ) {}
 
   async obtenerResultadosTabulares(procesoId: string, usuarioId: string, filtros: Record<string, string>) {
-    const tipoFormulario = (filtros['tipo'] as TipoFormulario) || TipoFormulario.ESTUDIANTES;
+    const filtrosSeguros = filtros || {};
+    const tipoFormulario = (filtrosSeguros['tipo'] as TipoFormulario) || TipoFormulario.ESTUDIANTES;
 
-    const queryMongo = await this.construirQueryConPodaInteligente(procesoId, usuarioId, tipoFormulario, filtros);
+    const queryMongo = await this.construirQueryConPodaInteligente(procesoId, usuarioId, tipoFormulario, filtrosSeguros);
 
     const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, '', { fecha_respuesta: -1 }, 1000);
 
@@ -31,9 +32,10 @@ export class EstadisticasConsultasService {
   }
 
   async obtenerMetricasAnaliticas(procesoId: string, usuarioId: string, filtros: Record<string, string>, paginaFiltro?: number) {
-    const tipoFormulario = filtros['tipo'] as TipoFormulario || TipoFormulario.ESTUDIANTES;
+    const filtrosSeguros = filtros || {};
+    const tipoFormulario = filtrosSeguros['tipo'] as TipoFormulario || TipoFormulario.ESTUDIANTES;
 
-    const queryMongo = await this.construirQueryConPodaInteligente(procesoId, usuarioId, tipoFormulario, filtros);
+    const queryMongo = await this.construirQueryConPodaInteligente(procesoId, usuarioId, tipoFormulario, filtrosSeguros);
 
     const proceso = await this.procesosService.obtenerProcesoInterno(usuarioId, procesoId);
     const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;

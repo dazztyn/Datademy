@@ -165,6 +165,13 @@ export class EstadisticasAnaliticasService
       escala_maxima_satisfaccion: escalaSatisfaccion,
       escala_maxima_likert: escalaLikert,
       porcentaje_volveria_participar: null,
+      detalle_por_dimension: [],
+      nps_satisfaccion: null,
+      ranking_preguntas: { top_3: [], bottom_3: [] },
+      tabla_socios_comunitarios: [],
+      satisfaccion_por_carrera: [],
+      satisfaccion_por_sede: [],
+      satisfaccion_por_organizacion: []
     };
   }
 }
