@@ -38,18 +38,9 @@ export class EstadisticasConsultasService {
   }
 
   async obtenerMetricasAnaliticas(procesoId: string, usuarioId: string, filtros: Record<string, string>, paginaFiltro?: number) {
-    const queryMongo: Record<string, unknown> = { proceso_id: procesoId, usuario_id: usuarioId };
     const tipoFormulario = filtros['tipo'] as TipoFormulario || TipoFormulario.ESTUDIANTES;
 
-    Object.entries(filtros)
-      .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '')
-      .forEach(([llaveFrontend, valor]) => {
-        const campoMapeadoMongo = MAPA_FILTROS_MONGO[llaveFrontend];
-        if (campoMapeadoMongo) {
-          queryMongo[campoMapeadoMongo] = valor;
-        }
-      }
-    );
+    const queryMongo = await this.construirQueryConPodaInteligente(procesoId, usuarioId, tipoFormulario, filtros);
 
     const proceso = await this.procesosService.obtenerProcesoInterno(usuarioId, procesoId);
     const configFormulario = tipoFormulario === TipoFormulario.ESTUDIANTES ? proceso.formulario_estudiantes : proceso.formulario_socios;
@@ -130,6 +121,45 @@ export class EstadisticasConsultasService {
     await Promise.all(promesas);
 
     return { estado: 'exito', filtros_disponibles };
+  }
+
+  private async construirQueryConPodaInteligente(
+    procesoId: string, 
+    usuarioId: string, 
+    tipoFormulario: TipoFormulario, 
+    filtrosCrudos: Record<string, string>
+  ): Promise<Record<string, unknown>> {
+    const queryMongo: Record<string, unknown> = { 
+      proceso_id: procesoId, 
+      usuario_id: usuarioId, 
+      tipo_formulario: tipoFormulario 
+    };
+
+    const entradasFiltros = Object.entries(filtrosCrudos).filter(([llave, valor]) => 
+      valor !== undefined && valor !== null && valor !== '' && llave !== 'tipo' && llave !== 'pagina'
+    );
+
+    await Promise.all(entradasFiltros.map(async ([llaveFrontend, valor]) => {
+      const campoMapeadoMongo = MAPA_FILTROS_MONGO[llaveFrontend];
+      
+      if (campoMapeadoMongo) {
+        const opcionesCrudas = await this.repositorio.obtenerOpcionesDistintas(campoMapeadoMongo, {
+          proceso_id: procesoId,
+          usuario_id: usuarioId,
+          tipo_formulario: tipoFormulario
+        });
+        
+        const esCampoActivo = opcionesCrudas.some(op => 
+          op && op !== 'No especificada' && op !== 'No especificado' && op !== 'Sin respuesta'
+        );
+
+        if (esCampoActivo) {
+          queryMongo[campoMapeadoMongo] = valor;
+        }
+      }
+    }));
+
+    return queryMongo;
   }
 
 }
