@@ -287,7 +287,7 @@ export default function GenerarInforme() {
   const observer = new ResizeObserver(entries => {
     const ancho = entries[0]?.contentRect.width
     if (ancho && ancho > 0) {
-      setAnchoTotal(Math.floor(ancho) - 24)
+      setAnchoTotal(Math.floor(ancho) + 24)
     }
   })
   observer.observe(el)
@@ -781,7 +781,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
 
                     
                     const anchoEtiquetas = Math.floor(anchoTotal * 0.65)
-                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1800))
+                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1200))
 
 
                     const chartData = {
@@ -834,7 +834,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     if (preguntas.length === 0) return null
 
                     const anchoEtiquetas = Math.floor(anchoTotal * 0.65)
-                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1400))
+                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1200))
 
 
                     const chartData = {
