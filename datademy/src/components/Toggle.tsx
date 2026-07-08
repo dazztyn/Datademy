@@ -3,11 +3,20 @@ interface ToggleProps<T extends string> {
   opcion1: T
   opcion2: T
   onChange: (v: T) => void
+  className?: string
+  botonClassName?: string
 }
 
-export default function Toggle<T extends string>({ valor, opcion1, opcion2, onChange }: ToggleProps<T>) {
+export default function Toggle<T extends string>({
+  valor,
+  opcion1,
+  opcion2,
+  onChange,
+  className = '',
+  botonClassName = '',
+}: ToggleProps<T>) {
   return (
-    <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1">
+    <div className={`flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 ${className}`}>
       {[opcion1, opcion2].map(op => (
         <button
           key={op}
@@ -16,7 +25,7 @@ export default function Toggle<T extends string>({ valor, opcion1, opcion2, onCh
             ${valor === op
               ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
               : 'text-slate-400 dark:text-slate-500'
-            }`}
+            } ${botonClassName}`}
         >
           {op}
         </button>

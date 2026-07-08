@@ -209,13 +209,14 @@ export default function ComparativaInterna() {
             Volver
           </button>
           <h1 className="text-white font-semibold text-md">Comparativa interna</h1>
-          <h1 className="text-white font-semibold text-md">Comparativa interna</h1>
-          <Toggle
-            valor={tipoActivo}
-            opcion1="estudiantes"
-            opcion2="socios"
-            onChange={(v) => setTipoActivo(v as 'estudiantes' | 'socios')}
-          />
+                      <Toggle
+              valor={tipoActivo}
+              opcion1="estudiantes"
+              opcion2="socios"
+              onChange={setTipoActivo}
+              className="px-2 py-1.5"
+              botonClassName="px-4 uppercase tracking-wide"
+            />
           <span className="text-md font-medium text-white/80 bg-white/15 px-2.5 py-1 rounded-full">
             Agrupando por: {AGRUPACIONES.find(a => a.valor === agruparPor)?.etiqueta}
           </span>

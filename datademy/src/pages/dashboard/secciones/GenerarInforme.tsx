@@ -410,7 +410,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
         : undefined,
       ticks: {
         color: '#1e293b',
-        font: { size: 13 },
+        font: { size: 20 },
         autoSkip: false,
       },
       grid: { color: 'rgba(0,0,0,0.06)' },
