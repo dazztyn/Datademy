@@ -126,13 +126,13 @@ export default function SlotFormulario({ label, asignado, idGoogleForm, idProces
                         onClick={() => { setMenuAbierto(false); setMostrarDesasignar(true)}}
                         className="w-full text-left px-3 py-2 text-md text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       >
-                        ✕ Desasignar
+                        ☼ Desasignar
                       </button>
                       <button
                       onClick={() => { setMenuAbierto(false); setMostrarEliminar(true) }}
                       className="w-full text-left px-3 py-2 text-md text-red-600 dark:text-red-500 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
-                      🗑 Eliminar formulario
+                      ✕ Eliminar formulario
                     </button>
                     </div>
                   </>,
