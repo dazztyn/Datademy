@@ -26,11 +26,6 @@ export interface NuevoUsuarioAdmin {
 export interface EliminacionUsuarioResultado {
   estado: string
   mensaje: string
-  detalles: {
-    respuestas_borradas: number
-    procesos_borrados: number
-    configs_reportes_borradas: number
-  }
 }
 
 export async function listarUsuarios(): Promise<UsuarioAdmin[]> {

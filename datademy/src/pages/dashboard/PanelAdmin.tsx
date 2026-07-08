@@ -78,23 +78,20 @@ export default function PanelAdmin() {
   }
 
   const handleEliminar = async () => {
-    if (!usuarioAEliminar) return
-    setEliminando(true)
-    try {
-      const resultado = await eliminarUsuario(usuarioAEliminar._id)
-      mostrar(
-        `${resultado.mensaje} — ${resultado.detalles.respuestas_borradas} respuestas, ${resultado.detalles.procesos_borrados} procesos y ${resultado.detalles.configs_reportes_borradas} configuraciones de reportes eliminadas.`,
-        'exito'
-      )
-      setUsuarioAEliminar(null)
-      cargarUsuarios()
-    } catch {
-      mostrar('Error al eliminar usuario', 'error')
-    } finally {
-      setEliminando(false)
-    }
+  if (!usuarioAEliminar) return
+  setEliminando(true)
+  try {
+    const resultado = await eliminarUsuario(usuarioAEliminar._id)
+    mostrar(resultado.mensaje, 'exito')
+    setUsuarioAEliminar(null)
+    cargarUsuarios()
+  } catch (err) {
+    console.error(err)
+    mostrar('Error al eliminar usuario', 'error')
+  } finally {
+    setEliminando(false)
   }
-
+}
   const inputClass =
     'w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400'
   const labelClass = 'text-xs text-slate-500 dark:text-slate-400 mb-1 block'
@@ -239,7 +236,7 @@ export default function PanelAdmin() {
 
       {usuarioAEliminar && (
         <ModalConfirmar
-          mensaje={`Se eliminará a ${usuarioAEliminar.nombre} (${usuarioAEliminar.correo}) junto con todas sus respuestas, procesos y configuraciones de reportes. Esta acción no se puede deshacer.`}
+          mensaje={`Se eliminará a ${usuarioAEliminar.nombre} (${usuarioAEliminar.correo}). Sus respuestas, procesos y configuraciones de reportes asociadas se eliminarán en segundo plano. Esta acción no se puede deshacer.`}
           onConfirmar={handleEliminar}
           onCerrar={() => setUsuarioAEliminar(null)}
           cargando={eliminando}
