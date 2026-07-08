@@ -322,7 +322,7 @@ export async function obtenerComparativaGlobal(
   if (!response.ok) throw new Error('Error al obtener comparativa global')
   return response.json()
 }
-export type AgrupacionInterna = 'carrera' | 'sede' | 'asignatura' | 'nivel_formativo'
+export type AgrupacionInterna = 'carrera' | 'sede' | 'asignatura' | 'nivel_formativo' | 'organizacion'
 
 export interface FiltrosComparativaInterna {
   tipo?: 'estudiantes' | 'socios'
@@ -331,6 +331,7 @@ export interface FiltrosComparativaInterna {
   carrera?: string
   asignatura?: string
   nivel_formativo?: string
+  organizacion?: string
 }
 
 export async function obtenerComparativaInterna(

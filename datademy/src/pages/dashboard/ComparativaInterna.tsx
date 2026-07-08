@@ -40,6 +40,7 @@ const AGRUPACIONES_SOCIOS: { valor: AgrupacionInterna; etiqueta: string }[] = [
   { valor: 'carrera', etiqueta: 'Carrera' },
   { valor: 'sede', etiqueta: 'Sede' },
   { valor: 'asignatura', etiqueta: 'Asignatura' },
+  { valor: 'organizacion', etiqueta: 'Organización' },
 ]
 
 
@@ -62,7 +63,7 @@ export default function ComparativaInterna() {
   const [filtroAsignatura, setFiltroAsignatura] = useState('')
   const [filtroNivelFormativo, setFiltroNivelFormativo] = useState('')
   const [filtroGenero, setFiltroGenero] = useState('')
-
+  const [filtroOrganizacion, setFiltroOrganizacion] = useState('')
   const [respuesta, setRespuesta] = useState<ComparativaResponse | null>(null)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -78,6 +79,7 @@ export default function ComparativaInterna() {
   setFiltroAsignatura('')
   setFiltroNivelFormativo('')
   setFiltroGenero('')
+  setFiltroOrganizacion('')
   if (tipoActivo === 'socios' && agruparPor === 'nivel_formativo') {
     setAgruparPor('carrera')
   }
@@ -89,6 +91,7 @@ export default function ComparativaInterna() {
       case 'sede': return filtrosDisponibles?.sedes ?? []
       case 'asignatura': return filtrosDisponibles?.asignaturas ?? []
       case 'nivel_formativo': return filtrosDisponibles?.niveles_formativos ?? []
+      case 'organizacion': return filtrosDisponibles?.organizaciones ?? []
       default: return []
     }
   }, [agruparPor, filtrosDisponibles])
@@ -107,11 +110,12 @@ export default function ComparativaInterna() {
     setCargando(true)
     setError(null)
     try {
-      const data = await obtenerComparativaInterna(idProceso, agruparPor, [...seleccionados], {
+     const data = await obtenerComparativaInterna(idProceso, agruparPor, [...seleccionados], {
   tipo: tipoActivo,
   carrera: agruparPor !== 'carrera' ? (filtroCarrera || undefined) : undefined,
   sede: agruparPor !== 'sede' ? (filtroSede || undefined) : undefined,
   asignatura: agruparPor !== 'asignatura' ? (filtroAsignatura || undefined) : undefined,
+  organizacion: agruparPor !== 'organizacion' ? (filtroOrganizacion || undefined) : undefined,
   nivel_formativo: tipoActivo === 'estudiantes' && agruparPor !== 'nivel_formativo' ? (filtroNivelFormativo || undefined) : undefined,
   genero: tipoActivo === 'estudiantes' ? (filtroGenero || undefined) : undefined,
 })
@@ -186,6 +190,7 @@ export default function ComparativaInterna() {
           { clave: 'carrera', etiqueta: 'Carrera', valor: filtroCarrera, onChange: setFiltroCarrera, opciones: filtrosDisponibles?.carreras ?? [] },
           { clave: 'sede', etiqueta: 'Sede', valor: filtroSede, onChange: setFiltroSede, opciones: filtrosDisponibles?.sedes ?? [] },
           { clave: 'asignatura', etiqueta: 'Asignatura', valor: filtroAsignatura, onChange: setFiltroAsignatura, opciones: filtrosDisponibles?.asignaturas ?? [] },
+          { clave: 'organizacion', etiqueta: 'Organización', valor: filtroOrganizacion, onChange: setFiltroOrganizacion, opciones: filtrosDisponibles?.organizaciones ?? [] },
         ]
       : [
           { clave: 'carrera', etiqueta: 'Carrera', valor: filtroCarrera, onChange: setFiltroCarrera, opciones: filtrosDisponibles?.carreras ?? [] },
