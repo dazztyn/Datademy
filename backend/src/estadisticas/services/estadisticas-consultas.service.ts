@@ -17,16 +17,9 @@ export class EstadisticasConsultasService {
   ) {}
 
   async obtenerResultadosTabulares(procesoId: string, usuarioId: string, filtros: Record<string, string>) {
-    const queryMongo: Record<string, string | number | boolean | Record<string, unknown>> = { proceso_id: procesoId, usuario_id: usuarioId };
+    const tipoFormulario = (filtros['tipo'] as TipoFormulario) || TipoFormulario.ESTUDIANTES;
 
-    Object.entries(filtros)
-      .filter(([_, valor]) => valor !== undefined && valor !== null && valor !== '') 
-      .forEach(([llaveFrontend, valor]) => {
-        const campoMapeadoMongo = MAPA_FILTROS_MONGO[llaveFrontend];
-        if (campoMapeadoMongo) {
-          queryMongo[campoMapeadoMongo] = valor; 
-        }
-      });
+    const queryMongo = await this.construirQueryConPodaInteligente(procesoId, usuarioId, tipoFormulario, filtros);
 
     const estadisticas = await this.repositorio.buscarPorQuery(queryMongo, '', { fecha_respuesta: -1 }, 1000);
 
