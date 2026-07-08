@@ -13,6 +13,7 @@ import { useGooglePicker } from '../../../hooks/useGooglePicker'
 import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
 import { usePersistedState } from '../../../hooks/usePersistentState'
 import { useInforme } from '../../../context/InformeContext'
+import Toggle from '../../../components/Toggle'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, ChartDataLabels)
 
@@ -390,34 +391,6 @@ export default function GenerarInforme() {
     'bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 space-y-4'
   const tituloSeccion = 'text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3'
 
-  const Toggle = ({
-    valor,
-    opcion1,
-    opcion2,
-    onChange,
-  }: {
-    valor: string
-    opcion1: string
-    opcion2: string
-    onChange: (v: any) => void
-  }) => (
-    <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1">
-      {[opcion1, opcion2].map(op => (
-        <button
-          key={op}
-          onClick={() => onChange(op)}
-          className={`flex-1 py-2 rounded-lg text-md font-medium transition-all duration-200
-            ${valor === op
-              ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
-              : 'text-slate-400 dark:text-slate-500'
-            }`}
-        >
-          {op}
-        </button>
-      ))}
-    </div>
-  )
-
 const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number): any => ({
   indexAxis: 'y' as const,
   maintainAspectRatio: false,
@@ -437,7 +410,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
         : undefined,
       ticks: {
         color: '#1e293b',
-        font: { size: 13 },
+        font: { size: 16},
         autoSkip: false,
       },
       grid: { color: 'rgba(0,0,0,0.06)' },

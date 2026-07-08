@@ -25,15 +25,25 @@ import {
   normalizarPromedios,
 } from '../../utils/comparativas'
 import iconoVolver from '../../assets/HOME.png'
+import Toggle from '../../components/Toggle'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
-const AGRUPACIONES: { valor: AgrupacionInterna; etiqueta: string }[] = [
+const AGRUPACIONES_ESTUDIANTES: { valor: AgrupacionInterna; etiqueta: string }[] = [
   { valor: 'carrera', etiqueta: 'Carrera' },
   { valor: 'sede', etiqueta: 'Sede' },
   { valor: 'asignatura', etiqueta: 'Asignatura' },
   { valor: 'nivel_formativo', etiqueta: 'Nivel formativo' },
 ]
+
+const AGRUPACIONES_SOCIOS: { valor: AgrupacionInterna; etiqueta: string }[] = [
+  { valor: 'carrera', etiqueta: 'Carrera' },
+  { valor: 'sede', etiqueta: 'Sede' },
+  { valor: 'asignatura', etiqueta: 'Asignatura' },
+  { valor: 'organizacion', etiqueta: 'Organización' },
+]
+
+
 
 export default function ComparativaInterna() {
   const navigate = useNavigate()
@@ -41,36 +51,39 @@ export default function ComparativaInterna() {
   const { idProceso } = useProceso()
   const tema = temasPagina['/comparativa-interna'] ?? temaDefault
 
-  const { filtros: filtrosDisponibles, cargando: cargandoFiltros } = useFiltrosDisponibles(idProceso, 'estudiantes')
+  const [tipoActivo, setTipoActivo] = useState<'estudiantes' | 'socios'>('estudiantes')
+
+  const { filtros: filtrosDisponibles, cargando: cargandoFiltros } = useFiltrosDisponibles(idProceso, tipoActivo)
 
   const [agruparPor, setAgruparPor] = useState<AgrupacionInterna>('carrera')
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
-
+  const AGRUPACIONES = tipoActivo === 'socios' ? AGRUPACIONES_SOCIOS : AGRUPACIONES_ESTUDIANTES
   const [filtroCarrera, setFiltroCarrera] = useState('')
   const [filtroSede, setFiltroSede] = useState('')
   const [filtroAsignatura, setFiltroAsignatura] = useState('')
   const [filtroNivelFormativo, setFiltroNivelFormativo] = useState('')
   const [filtroGenero, setFiltroGenero] = useState('')
-
+  const [filtroOrganizacion, setFiltroOrganizacion] = useState('')
   const [respuesta, setRespuesta] = useState<ComparativaResponse | null>(null)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const colorTexto = theme === 'dark' ? 'white' : '#334155'
   const colorGrid = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'
-
-  // Al cambiar de agrupación, la selección y los resultados anteriores dejan de
-  // tener sentido, y el filtro que coincide con la nueva agrupación se limpia
-  // (queda deshabilitado, no tiene caso mantenerle un valor cargado).
   useEffect(() => {
-    setSeleccionados(new Set())
-    setRespuesta(null)
-    setError(null)
-    if (agruparPor === 'carrera') setFiltroCarrera('')
-    if (agruparPor === 'sede') setFiltroSede('')
-    if (agruparPor === 'asignatura') setFiltroAsignatura('')
-    if (agruparPor === 'nivel_formativo') setFiltroNivelFormativo('')
-  }, [agruparPor])
+  setSeleccionados(new Set())
+  setRespuesta(null)
+  setError(null)
+  setFiltroCarrera('')
+  setFiltroSede('')
+  setFiltroAsignatura('')
+  setFiltroNivelFormativo('')
+  setFiltroGenero('')
+  setFiltroOrganizacion('')
+  if (tipoActivo === 'socios' && agruparPor === 'nivel_formativo') {
+    setAgruparPor('carrera')
+  }
+}, [agruparPor, tipoActivo])
 
   const valoresDisponibles = useMemo(() => {
     switch (agruparPor) {
@@ -78,6 +91,7 @@ export default function ComparativaInterna() {
       case 'sede': return filtrosDisponibles?.sedes ?? []
       case 'asignatura': return filtrosDisponibles?.asignaturas ?? []
       case 'nivel_formativo': return filtrosDisponibles?.niveles_formativos ?? []
+      case 'organizacion': return filtrosDisponibles?.organizaciones ?? []
       default: return []
     }
   }, [agruparPor, filtrosDisponibles])
@@ -96,13 +110,15 @@ export default function ComparativaInterna() {
     setCargando(true)
     setError(null)
     try {
-      const data = await obtenerComparativaInterna(idProceso, agruparPor, [...seleccionados], {
-        carrera: agruparPor !== 'carrera' ? (filtroCarrera || undefined) : undefined,
-        sede: agruparPor !== 'sede' ? (filtroSede || undefined) : undefined,
-        asignatura: agruparPor !== 'asignatura' ? (filtroAsignatura || undefined) : undefined,
-        nivel_formativo: agruparPor !== 'nivel_formativo' ? (filtroNivelFormativo || undefined) : undefined,
-        genero: filtroGenero || undefined,
-      })
+     const data = await obtenerComparativaInterna(idProceso, agruparPor, [...seleccionados], {
+  tipo: tipoActivo,
+  carrera: agruparPor !== 'carrera' ? (filtroCarrera || undefined) : undefined,
+  sede: agruparPor !== 'sede' ? (filtroSede || undefined) : undefined,
+  asignatura: agruparPor !== 'asignatura' ? (filtroAsignatura || undefined) : undefined,
+  organizacion: agruparPor !== 'organizacion' ? (filtroOrganizacion || undefined) : undefined,
+  nivel_formativo: tipoActivo === 'estudiantes' && agruparPor !== 'nivel_formativo' ? (filtroNivelFormativo || undefined) : undefined,
+  genero: tipoActivo === 'estudiantes' ? (filtroGenero || undefined) : undefined,
+})
       setRespuesta(data)
     } catch {
       setError('No se pudo obtener la comparativa')
@@ -168,15 +184,21 @@ export default function ComparativaInterna() {
 
   const selectClass =
     'rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800'
-
-  const filtros: { clave: AgrupacionInterna | 'genero'; etiqueta: string; valor: string; onChange: (v: string) => void; opciones: string[] }[] = [
-    { clave: 'carrera', etiqueta: 'Carrera', valor: filtroCarrera, onChange: setFiltroCarrera, opciones: filtrosDisponibles?.carreras ?? [] },
-    { clave: 'sede', etiqueta: 'Sede', valor: filtroSede, onChange: setFiltroSede, opciones: filtrosDisponibles?.sedes ?? [] },
-    { clave: 'asignatura', etiqueta: 'Asignatura', valor: filtroAsignatura, onChange: setFiltroAsignatura, opciones: filtrosDisponibles?.asignaturas ?? [] },
-    { clave: 'nivel_formativo', etiqueta: 'Nivel formativo', valor: filtroNivelFormativo, onChange: setFiltroNivelFormativo, opciones: filtrosDisponibles?.niveles_formativos ?? [] },
-    { clave: 'genero', etiqueta: 'Género', valor: filtroGenero, onChange: setFiltroGenero, opciones: filtrosDisponibles?.generos ?? [] },
-  ]
-
+  const filtros: { clave: AgrupacionInterna | 'genero'; etiqueta: string; valor: string; onChange: (v: string) => void; opciones: string[] }[] =
+    tipoActivo === 'socios'
+      ? [
+          { clave: 'carrera', etiqueta: 'Carrera', valor: filtroCarrera, onChange: setFiltroCarrera, opciones: filtrosDisponibles?.carreras ?? [] },
+          { clave: 'sede', etiqueta: 'Sede', valor: filtroSede, onChange: setFiltroSede, opciones: filtrosDisponibles?.sedes ?? [] },
+          { clave: 'asignatura', etiqueta: 'Asignatura', valor: filtroAsignatura, onChange: setFiltroAsignatura, opciones: filtrosDisponibles?.asignaturas ?? [] },
+          { clave: 'organizacion', etiqueta: 'Organización', valor: filtroOrganizacion, onChange: setFiltroOrganizacion, opciones: filtrosDisponibles?.organizaciones ?? [] },
+        ]
+      : [
+          { clave: 'carrera', etiqueta: 'Carrera', valor: filtroCarrera, onChange: setFiltroCarrera, opciones: filtrosDisponibles?.carreras ?? [] },
+          { clave: 'sede', etiqueta: 'Sede', valor: filtroSede, onChange: setFiltroSede, opciones: filtrosDisponibles?.sedes ?? [] },
+          { clave: 'asignatura', etiqueta: 'Asignatura', valor: filtroAsignatura, onChange: setFiltroAsignatura, opciones: filtrosDisponibles?.asignaturas ?? [] },
+          { clave: 'nivel_formativo', etiqueta: 'Nivel formativo', valor: filtroNivelFormativo, onChange: setFiltroNivelFormativo, opciones: filtrosDisponibles?.niveles_formativos ?? [] },
+          { clave: 'genero', etiqueta: 'Género', valor: filtroGenero, onChange: setFiltroGenero, opciones: filtrosDisponibles?.generos ?? [] },
+        ]
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
       <div
@@ -192,6 +214,14 @@ export default function ComparativaInterna() {
             Volver
           </button>
           <h1 className="text-white font-semibold text-md">Comparativa interna</h1>
+                      <Toggle
+              valor={tipoActivo}
+              opcion1="estudiantes"
+              opcion2="socios"
+              onChange={setTipoActivo}
+              className="px-2 py-1.5"
+              botonClassName="px-4 uppercase tracking-wide"
+            />
           <span className="text-md font-medium text-white/80 bg-white/15 px-2.5 py-1 rounded-full">
             Agrupando por: {AGRUPACIONES.find(a => a.valor === agruparPor)?.etiqueta}
           </span>

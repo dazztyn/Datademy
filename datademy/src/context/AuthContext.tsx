@@ -19,7 +19,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 const BASE_URL = import.meta.env.VITE_API_URL
-const INTERVALO_CHEQUEO_GOOGLE_MS = 5 * 60 * 1000 // el token de Google dura 1h, check cada 5 min
+const INTERVALO_CHEQUEO_GOOGLE_MS = 30 * 60 * 1000 // el token de Google dura 1h, check cada 30 min
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
