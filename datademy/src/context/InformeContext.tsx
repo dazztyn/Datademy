@@ -1,79 +1,92 @@
 import { createContext, useContext, useState, useRef, useEffect } from 'react'
 
+type EstadoJob = 'idle' | 'procesando' | 'completado' | 'error'
+
 interface InformeContextType {
-  estadoJob: 'idle' | 'procesando' | 'completado' | 'error'
+  estadoJob: EstadoJob
   urlInforme: string | null
-  iniciarPolling: (jobId: string) => void
+  escucharEstadoJob: (jobId: string) => void
   resetear: () => void
 }
 
 const InformeContext = createContext<InformeContextType | undefined>(undefined)
-
 const BASE_URL = import.meta.env.VITE_API_URL
-const MAX_POLLING_MS = 2 * 60 * 1000
+const MAX_ESPERA_MS = 2 * 60 * 1000
+
 export function InformeProvider({ children }: { children: React.ReactNode }) {
-  const [estadoJob, setEstadoJob] = useState<'idle' | 'procesando' | 'completado' | 'error'>('idle')
+  const [estadoJob, setEstadoJob] = useState<EstadoJob>('idle')
   const [urlInforme, setUrlInforme] = useState<string | null>(null)
-  const intervaloRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const detenerPolling = () => {
-    if (intervaloRef.current) {
-      clearInterval(intervaloRef.current)
-      intervaloRef.current = null
+
+  const eventSourceRef = useRef<EventSource | null>(null)
+  const maxTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const cerrarConexion = () => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close()
+      eventSourceRef.current = null
     }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
+    if (maxTimeoutRef.current) {
+      clearTimeout(maxTimeoutRef.current)
+      maxTimeoutRef.current = null
     }
   }
-  useEffect(() => {
-    return () => detenerPolling()
-  }, [])
-  const iniciarPolling = (jobId: string) => {
-    if (intervaloRef.current) clearInterval(intervaloRef.current)
 
+  useEffect(() => {
+    return () => cerrarConexion()
+  }, [])
+
+  const escucharEstadoJob = (jobId: string) => {
+    cerrarConexion()
     setEstadoJob('procesando')
 
-    intervaloRef.current = setInterval(async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/reportes/estado/${jobId}?t=${Date.now()}`, {
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-        })
-        if (!response.ok) throw new Error()
-        const data = await response.json()
+    const es = new EventSource(`${BASE_URL}/reportes/estado/${jobId}`, {
+      withCredentials: true,
+    })
+    eventSourceRef.current = es
 
-        if (data.estado === 'completado') {
-          clearInterval(intervaloRef.current!)
-          intervaloRef.current = null
-          setEstadoJob('completado')
-          setUrlInforme(data.resultado.url_informe)
-        } else if (data.estado === 'error') {
-          clearInterval(intervaloRef.current!)
-          intervaloRef.current = null
-          setEstadoJob('error')
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+
+        switch (data.estado) {
+          case 'completado':
+            setEstadoJob('completado')
+            setUrlInforme(data.resultado.url_informe)
+            cerrarConexion()
+            break
+          case 'error':
+          case 'no_encontrado':
+            setEstadoJob('error')
+            cerrarConexion()
+            break
+          case 'procesando':
+            break
         }
       } catch {
-        clearInterval(intervaloRef.current!)
-        intervaloRef.current = null
         setEstadoJob('error')
+        cerrarConexion()
       }
-    }, 3000)
-    timeoutRef.current = setTimeout(() => {
-          if (intervaloRef.current) {
-            detenerPolling()
-            setEstadoJob('error')
-          }
-        }, MAX_POLLING_MS)
+    }
+
+    es.onerror = () => {
+      setEstadoJob('error')
+      cerrarConexion()
+    }
+
+    maxTimeoutRef.current = setTimeout(() => {
+      setEstadoJob('error')
+      cerrarConexion()
+    }, MAX_ESPERA_MS)
   }
+
   const resetear = () => {
-    if (intervaloRef.current) clearInterval(intervaloRef.current)
+    cerrarConexion()
     setEstadoJob('idle')
     setUrlInforme(null)
   }
 
   return (
-    <InformeContext.Provider value={{ estadoJob, urlInforme, iniciarPolling, resetear }}>
+    <InformeContext.Provider value={{ estadoJob, urlInforme, escucharEstadoJob, resetear }}>
       {children}
     </InformeContext.Provider>
   )

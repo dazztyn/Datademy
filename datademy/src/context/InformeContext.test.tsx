@@ -32,7 +32,7 @@ describe('InformeContext — polling', () => {
 
     const { result } = renderHook(() => useInforme(), { wrapper })
 
-    act(() => result.current.iniciarPolling('job-1'))
+    act(() => result.current.escucharEstadoJob('job-1'))
     expect(result.current.estadoJob).toBe('procesando')
 
     await act(async () => {
@@ -47,7 +47,7 @@ describe('InformeContext — polling', () => {
     vi.mocked(fetch).mockResolvedValueOnce(await respuestaFetch({ estado: 'error' }))
 
     const { result } = renderHook(() => useInforme(), { wrapper })
-    act(() => result.current.iniciarPolling('job-1'))
+    act(() => result.current.escucharEstadoJob('job-1'))
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3000)
@@ -60,7 +60,7 @@ describe('InformeContext — polling', () => {
     vi.mocked(fetch).mockResolvedValueOnce(await respuestaFetch({}, false))
 
     const { result } = renderHook(() => useInforme(), { wrapper })
-    act(() => result.current.iniciarPolling('job-1'))
+    act(() => result.current.escucharEstadoJob('job-1'))
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3000)
@@ -74,7 +74,7 @@ describe('InformeContext — polling', () => {
     vi.mocked(fetch).mockResolvedValue(await respuestaFetch({ estado: 'procesando' }))
 
     const { result } = renderHook(() => useInforme(), { wrapper })
-    act(() => result.current.iniciarPolling('job-1'))
+    act(() => result.current.escucharEstadoJob('job-1'))
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2 * 60 * 1000) // exactamente MAX_POLLING_MS
@@ -89,7 +89,7 @@ describe('InformeContext — polling', () => {
     )
 
     const { result } = renderHook(() => useInforme(), { wrapper })
-    act(() => result.current.iniciarPolling('job-1'))
+    act(() => result.current.escucharEstadoJob('job-1'))
 
     // se completa rápido, mucho antes del timeout
     await act(async () => {
@@ -111,7 +111,7 @@ describe('InformeContext — polling', () => {
     vi.mocked(fetch).mockResolvedValueOnce(await respuestaFetch({ estado: 'completado', resultado: { url_informe: 'x' } }))
 
     const { result } = renderHook(() => useInforme(), { wrapper })
-    act(() => result.current.iniciarPolling('job-1'))
+    act(() => result.current.escucharEstadoJob('job-1'))
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3000)
@@ -129,7 +129,7 @@ describe('InformeContext — polling', () => {
     vi.mocked(fetch).mockResolvedValueOnce(await respuestaFetch({ estado: 'completado', resultado: { url_informe: 'x' } }))
 
     const { result } = renderHook(() => useInforme(), { wrapper })
-    act(() => result.current.iniciarPolling('job-1'))
+    act(() => result.current.escucharEstadoJob('job-1'))
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3000)
     })
