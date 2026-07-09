@@ -173,7 +173,8 @@ Cuando el sistema se despliega en un servidor dedicado con un dominio real (ej. 
 ## 1. IDs de Clientes OAuth 2.0 (Backend / Web)
 Para permitir el inicio de sesión seguro de los profesores en el nuevo dominio:
 * **Orígenes autorizados de JavaScript:** Agrega la URL base de tu frontend (ej. `https://tudominio.com`).
-* **URI de redireccionamiento autorizados:** Agrega la ruta exacta del callback del backend (ej. `https://tudominio.com/auth/google/callback`).
+* **URI de redireccionamiento autorizados:** Agrega la ruta exacta del callback del backend (ej. `https://tudominio.com/api/auth/google/callback`).
+(Nota: La URI 1 dentro de las URIs de redireccionamiento autorizados, no se debe tocar ni eliminar.)
 
 ## 2. Claves de API (Google Picker)
 Para proteger la cuota de uso y evitar que otras páginas roben la API Key que usa el Frontend:
