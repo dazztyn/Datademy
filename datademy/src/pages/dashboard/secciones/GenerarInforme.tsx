@@ -130,7 +130,7 @@ type FiltrosInforme = {
 }
 export default function GenerarInforme() {
   const { idProceso } = useProceso()
-  const { estadoJob, urlInforme, iniciarPolling, resetear } = useInforme()
+  const { estadoJob, urlInforme, escucharEstadoJob, resetear } = useInforme()
   const { toast, mostrar, cerrar } = useToast()
   const location = useLocation()
   const tema = temasPagina[location.pathname] ?? temaDefault
@@ -380,7 +380,7 @@ export default function GenerarInforme() {
       if (!response.ok) throw new Error()
       const data = await response.json()
       mostrar('Informe en cola, procesando...', 'cargando')
-      iniciarPolling(data.jobId)
+      escucharEstadoJob(data.jobId)
     } catch {
       mostrar('Error al enviar la solicitud', 'error')
     } finally {
