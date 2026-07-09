@@ -163,8 +163,35 @@ PORT=
 ```
 
 > Los scopes de Google solicitados por la app incluyen `email`, `profile`, `drive` y `documents`, necesarios para leer los formularios/respuestas y generar los informes en Google Docs. `WEBHOOK_SECRET` protege el endpoint que recibe las notificaciones de nuevas respuestas desde Google.
+> 
+### 3. Configuración de Google Cloud (Paso a Producción)
 
-### 3. Despliegue con Docker
+Cuando el sistema se despliega en un servidor dedicado con un dominio real (ej. `https://tudominio.com`), es estrictamente necesario actualizar las credenciales en la **Consola de Google Cloud** por motivos de seguridad. 
+
+> **Importante:** Todas las URLs configuradas en Google Cloud en entorno de producción **deben tener certificado HTTPS**. Google rechazará conexiones `http://` estándar.
+
+## 1. IDs de Clientes OAuth 2.0 (Backend / Web)
+Para permitir el inicio de sesión seguro de los profesores en el nuevo dominio:
+* **Orígenes autorizados de JavaScript:** Agrega la URL base de tu frontend (ej. `https://tudominio.com`).
+* **URI de redireccionamiento autorizados:** Agrega la ruta exacta del callback del backend (ej. `https://tudominio.com/auth/google/callback`).
+
+## 2. Claves de API (Google Picker)
+Para proteger la cuota de uso y evitar que otras páginas roben la API Key que usa el Frontend:
+* **Restricciones de aplicación (Referrers HTTP):** Ve a la clave de API y restringe el uso añadiendo tu dominio con un comodín al final: `https://tudominio.com/*`.
+
+## 3. Webhooks y Eventos (Google Cloud Pub/Sub)
+Para que las respuestas de los formularios lleguen automáticamente al servidor:
+* **Verificación de Dominio:** Demuestra la propiedad de tu dominio en *API y Servicios > Verificación de Dominio* (usando Google Search Console).
+* **URL de Extremo (Push Endpoint):** Edita la suscripción de Pub/Sub y cambia la URL local por la ruta de producción (ej. `https://tudominio.com/estadisticas/webhooks/google`).
+
+## 4. IDs de Clientes OAuth 2.0 (Aplicación Móvil)
+Si se compila la aplicación móvil para las tiendas (Play Store / App Store), las credenciales de Expo de desarrollo ya no servirán:
+* **Android (Huella SHA-1):** Genera y registra la huella digital `SHA-1` del certificado de producción con el que firmaste el `.aab` o `.apk`.
+* **URI de Redirección:** Actualiza el `redirect_uri` para que apunte al esquema nativo de tu aplicación (ej. `datademy://...`).
+message.txt
+3 KB
+  
+### 4. Despliegue con Docker
 
 El proyecto está completamente contenerizado para asegurar consistencia entre el entorno de desarrollo y producción. Para levantar toda la infraestructura (base de datos, caché, backend y frontend web), ejecuta en la raíz del proyecto:
 
@@ -184,7 +211,7 @@ Esto levantará los siguientes servicios:
 > docker-compose -f docker-compose.prod.yml up -d --build
 > ```
 
-### 4. Ejecución manual (sin Docker)
+### 5. Ejecución manual (sin Docker)
 
 **Backend**
 ```bash
