@@ -11,7 +11,7 @@ services:
       - mongo_data:/data/db 
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin_datademy
-      - MONGO_INITDB_ROOT_PASSWORD=TuPasswordSuperSeguro123
+      - MONGO_INITDB_ROOT_PASSWORD=TuPasswordSuperSeguro123 #Esto se debe cambiar y en el .env tambien.
 
   redis-datademy:
     image: redis:alpine
