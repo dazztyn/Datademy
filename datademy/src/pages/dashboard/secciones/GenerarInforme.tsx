@@ -19,6 +19,8 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 const COLORES = ['#5fb7bb', '#0d438b', '#7f458f']
 const BASE_URL = import.meta.env.VITE_API_URL
+const FONT_SIZE_EJE = 25
+const ALTURA_LINEA = FONT_SIZE_EJE * 1.45 // espaciado típico entre líneas de texto envuelto
 
 function getHeaders(): HeadersInit {
   return { 'Content-Type': 'application/json' }
@@ -136,7 +138,8 @@ export default function GenerarInforme() {
   const pieRef = useRef<ChartJS<'pie'> | null>(null)
   const barrasRefs = useRef<Record<number, ChartJS<"bar", number[], string[]> | null | undefined>>({})
   const barrasSociosRefs = useRef<Record<number, ChartJS<"bar", number[], string[]> | null | undefined>>({})
-
+  const contenedorGraficosRef = useRef<HTMLDivElement>(null)
+  const [anchoTotal, setAnchoTotal] = useState(1400)
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, 'estudiantes')
 
   const [asignaturaNombre, setAsignaturaNombre] = usePersistedState('asignatura', '')
@@ -278,7 +281,18 @@ export default function GenerarInforme() {
     mostrar('Error al generar el informe', 'error')
   }
 }, [estadoJob, urlInforme])
-
+  useEffect(() => {
+  const el = contenedorGraficosRef.current
+  if (!el) return
+  const observer = new ResizeObserver(entries => {
+    const ancho = entries[0]?.contentRect.width
+    if (ancho && ancho > 0) {
+      setAnchoTotal(Math.floor(ancho) + 24)
+    }
+  })
+  observer.observe(el)
+  return () => observer.disconnect()
+}, [])
   const handleGenerar = async () => {
     if (!idProceso || !metricas) return
     if ( !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente || !programa) {
@@ -401,7 +415,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
     x: {
       min: 0,
       max: maxVal,
-      ticks: { color: '#64748b', font: { size: 13 } },
+      ticks: { color: '#64748b', font: { size: FONT_SIZE_EJE } },
       grid: { color: 'rgba(0,0,0,0.06)' },
     },
     y: {
@@ -410,7 +424,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
         : undefined,
       ticks: {
         color: '#1e293b',
-        font: { size: 16},
+        font: { size: FONT_SIZE_EJE, lineHeight: `${ALTURA_LINEA}px` },
         autoSkip: false,
       },
       grid: { color: 'rgba(0,0,0,0.06)' },
@@ -425,7 +439,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
           align: 'end' as const,
           clamp: true,
           color: '#0f172a',
-          font: { weight: 'bold' as const, size: 14 },
+          font: { weight: 'bold' as const, size: FONT_SIZE_EJE },
           formatter: (value: number) => (value != null ? value.toFixed(2) : ''),
         }
       : { display: false },
@@ -575,16 +589,16 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
       </div>
 
       <div className={seccionClass}>
-        <h3 className={tituloSeccion}>Datos personales</h3>
+        <h3 className={tituloSeccion}>Información autor informe</h3>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClass}>Nombre</label>
+            <label className={labelClass}>Su nombre</label>
             <input type="text" value={nombreUsuario} onChange={e => setNombreUsuario(e.target.value)} placeholder="Ej: María González" className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Sede</label>
+            <label className={labelClass}>Su sede</label>
             <select value={sede} onChange={e => setSede(e.target.value)} className={inputClass}>
-              <option value="">Selecciona una sede...</option>
+              <option value="">Seleccione su sede...</option>
               {(filtrosDisponibles?.sedes ?? []).map((s: string) => (
                 <option key={s} value={s}>{s}</option>
               ))}
@@ -619,8 +633,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
         </div>
       </div>
 
-      <div className={seccionClass}>
-        <h3 className={tituloSeccion}>Caracterización estudiantes</h3>
+      <div className={seccionClass} ref={contenedorGraficosRef}>
+         <h3 className={tituloSeccion}>Caracterización estudiantes</h3>
         {metricas && metricas.total_encuestados === 0 ? (
           <div className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-4 py-6 text-center">
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
@@ -765,11 +779,13 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
-                    const anchoTotal = 1400
-                    const anchoEtiquetas = Math.floor(anchoTotal * 0.55)
+                    
+                    const anchoEtiquetas = Math.floor(anchoTotal * 0.65)
+                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1400))
+
 
                     const chartData = {
-                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, 70)),
+                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, caracteresPorLinea)),
                       datasets: [
                         {
                           label: constructo.nombre_constructo,
@@ -779,7 +795,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         },
                       ],
                     }
-
+                    const maxLineas = Math.max(1, ...chartData.labels.map(l => l.length))
+                    const alturaPorFila = Math.max(60, maxLineas * ALTURA_LINEA + 16)
                     return (
                       <div
                           key={`preview-${constructo.numero_pagina}`}
@@ -790,8 +807,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                           </p>
                           <div className="w-full overflow-x-auto flex justify-center">
                             <div
-                              className="flex-shrink-0"
-                              style={{ height: `${preguntas.length * 60 + 40}px`, width: `${anchoTotal}px` }}
+                              className="flex-shrink-0 bg-white rounded-lg"
+                              style={{ height: `${preguntas.length * alturaPorFila + 40}px`, width: `${anchoTotal}px` }}
                             >
                               <Bar
                                 ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
@@ -816,11 +833,12 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
-                    const anchoTotal = 1400
-                    const anchoEtiquetas = Math.floor(anchoTotal * 0.55)
+                    const anchoEtiquetas = Math.floor(anchoTotal * 0.65)
+                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1400))
+
 
                     const chartData = {
-                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, 70)),
+                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, caracteresPorLinea)),
                       datasets: [{
                         label: constructo.nombre_constructo,
                         data: preguntas.map(p => p.promedio ?? 0),
@@ -828,6 +846,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         borderRadius: 5,
                       }],
                     }
+                    const maxLineas = Math.max(1, ...chartData.labels.map(l => l.length))
+                    const alturaPorFila = Math.max(60, maxLineas * ALTURA_LINEA + 16)
 
                     return (
                       <div
@@ -839,8 +859,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         </p>
                         <div className="w-full overflow-x-auto flex justify-center">
                           <div
-                            className="flex-shrink-0"
-                            style={{ height: `${preguntas.length * 60 + 40}px`, width: `${anchoTotal}px` }}
+                            className="flex-shrink-0 bg-white rounded-lg"
+                            style={{ height: `${preguntas.length * alturaPorFila + 40}px`, width: `${anchoTotal}px` }}
                           >
                             <Bar
                               ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}
