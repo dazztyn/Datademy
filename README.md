@@ -18,9 +18,9 @@
 
 ## Descripción
 
-**Datademy** es una plataforma de software diseñada para **automatizar los procesos manuales en la evaluación de proyectos A+S (Aprendizaje y Servicio)** de la **Universidad Católica del Norte, sede Coquimbo**.
+**Datademy** es una plataforma de software diseñada para **automatizar los procesos manuales en la creación de informes de proyectos A+S (Aprendizaje y Servicio)** de la **Universidad Católica del Norte, sede Coquimbo**.
 
-El sistema elimina la carga operativa asociada a la gestión de encuestas masivas, centraliza los datos y genera reportes estadísticos automatizados en tiempo real, mediante integraciones avanzadas con el ecosistema de **Google Workspace**.
+El sistema reduce la carga asociada a la gestión de encuestas, centraliza los datos y genera reportes estadísticos automatizados en tiempo real, mediante integraciones avanzadas con el ecosistema de **Google Workspace**.
 
 ### El problema
 
@@ -49,10 +49,9 @@ Datademy conecta directamente con **Google Forms, Google Drive y Google Docs** p
 
 ## Características principales
 
-- **Orquestación de formularios:** clonación y vinculación automatizada de plantillas de Google Forms para cada proceso A+S.
+- **Orquestación de formularios:** vinculación de plantillas de Google Forms para cada proceso A+S.
 - **Procesamiento en segundo plano:** uso de colas (Bull + Redis) para procesar altos volúmenes de datos sin bloquear la interfaz.
 - **Generación de informes automatizados:** inyección dinámica de gráficos y métricas (NPS, Alfa de Cronbach, demográficos, comparativas) directamente en plantillas de Google Docs.
-- **Actualización reactiva:** eventos en tiempo real (Server-Sent Events) para reflejar el estado de las tareas de fondo, como la generación de un informe, sin necesidad de recargar la página.
 - **Ecosistema multiplataforma:** arquitectura dividida en Frontend web, Backend (API) y Aplicación móvil.
 
 ---
@@ -63,18 +62,18 @@ Este es un **monorepo** compuesto por tres aplicaciones independientes:
 
 ```
 dazztyn-datademy/
-├── backend/          # API REST (NestJS)
-├── datademy/         # Aplicación web (React + Vite)
-├── datademy-mobile/  # Aplicación móvil (Expo / React Native)
-├── docker-compose.yml
-└── docker-compose.prod.yml
+- backend/          # API REST (NestJS)
+- datademy/         # Aplicación web (React + Vite)
+- datademy-mobile/  # Aplicación móvil (Expo / React Native)
+- docker-compose.yml
+- docker-compose.prod.yml
 ```
 
-| Componente | Rol |
-|---|---|
-| **backend** | API REST que orquesta la autenticación con Google, la integración con Google Forms/Drive/Docs, el procesamiento estadístico y la generación de informes. |
-| **datademy** | Panel web donde el socio/a de A+S visualiza datos, métricas y genera informes. |
-| **datademy-mobile** | App móvil para consultar y hacer seguimiento de los datos desde el celular. |
+## Componentes
+
+**backend** - API REST que orquesta la autenticación con Google, la integración con Google Forms/Drive/Docs, el procesamiento estadístico y la generación de informes.
+**datademy** - Panel web donde el socio/a de A+S visualiza datos, métricas y genera informes.
+**datademy-mobile** - App móvil para consultar y hacer seguimiento de los datos desde el celular.
 
 ---
 
