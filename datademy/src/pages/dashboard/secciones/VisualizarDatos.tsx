@@ -96,51 +96,96 @@ export default function Visualizar() {
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
         <h3 className="text-lg ml-1 font-medium text-slate-600 dark:text-slate-300 mb-3">Filtros</h3>
-{(() => {
+         {(() => {
   const selectClass = "w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-
-  const ETIQUETAS_FILTROS: Record<string, string> = {
-    carreras: 'Carrera',
-    sedes: 'Sede',
-    generos: 'Género',
-    niveles_formativos: 'Nivel formativo',
-    asignaturas: 'Asignatura',
-    organizaciones: 'Organización',
-  }
-
+  
   const fd = {
     nombres_constructos: filtrosDisponibles.nombres_constructos ?? [],
   }
 
-  const claves = Object.keys(filtrosDisponibles).filter(k => k !== 'nombres_constructos')
-
-  const filtrosActivos = claves
-    .map(etiquetaPlural => {
-      const opciones = filtrosDisponibles[etiquetaPlural as keyof typeof filtrosDisponibles] as string[]
-      if (!opciones || opciones.length === 0) return null
-
-      const claveFiltro = MAPA_PLURAL_A_SINGULAR[etiquetaPlural] ?? etiquetaPlural
-      const etiqueta = ETIQUETAS_FILTROS[etiquetaPlural] ?? etiquetaPlural
-
-      return (
-        <div key={claveFiltro}>
-          <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">
-            {etiqueta}
-          </label>
-          <select
-            onChange={e => setFiltros(f => ({ ...f, [claveFiltro]: e.target.value || undefined }))}
-            className={selectClass}
-          >
-            <option value="">Todas</option>
-            {opciones.map(o => <option key={o}>{o}</option>)}
-          </select>
-        </div>
-      )
-    })
-    .filter((el): el is React.ReactElement => el !== null)
-
-  if (fd.nombres_constructos.length > 0) {
-    filtrosActivos.push(
+  const filtrosActivos = [
+    tipoActivo === 'estudiantes' && fd.carreras.length > 0 && (
+      <div key="carrera">
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Carrera</label>
+        <select onChange={e => setFiltros(f => ({ ...f, carrera: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todas</option>
+          {fd.carreras.map(c => <option key={c}>{c}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'estudiantes' && fd.sedes.length > 0 && (
+      <div key="sede">
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Sede</label>
+        <select onChange={e => setFiltros(f => ({ ...f, sede: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todas</option>
+          {fd.sedes.map(s => <option key={s}>{s}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'estudiantes' && fd.generos.length > 0 && (
+      <div key="genero_est">
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Género</label>
+        <select onChange={e => setFiltros(f => ({ ...f, genero: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todos</option>
+          {fd.generos.map(g => <option key={g}>{g}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'estudiantes' && fd.niveles_formativos.length > 0 && (
+      <div key="nivel">
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Nivel formativo</label>
+        <select onChange={e => setFiltros(f => ({ ...f, nivel_formativo: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todos</option>
+          {fd.niveles_formativos.map(n => <option key={n}>{n}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'estudiantes' && fd.asignaturas.length > 0 && (
+      <div key="asignatura_est">
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Asignatura</label>
+        <select onChange={e => setFiltros(f => ({ ...f, asignatura: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todas</option>
+          {fd.asignaturas.map(n => <option key={n}>{n}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'socios' && fd.organizaciones.length > 0 && (
+      <div key="organizacion">
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Organización</label>
+        <select onChange={e => setFiltros(f => ({ ...f, organizacion: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todas</option>
+          {fd.organizaciones.map(o => <option key={o}>{o}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'socios' && fd.generos.length > 0 && (
+      <div key="genero_socios">
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Género</label>
+        <select onChange={e => setFiltros(f => ({ ...f, genero: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todos</option>
+          {fd.generos.map(g => <option key={g}>{g}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'socios' && fd.carreras.length > 0 && (
+      <div key="asignatura_socios">
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Asignatura</label>
+        <select onChange={e => setFiltros(f => ({ ...f, asignatura: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todas</option>
+          {fd.carreras.map(o => <option key={o}>{o}</option>)}
+        </select>
+      </div>
+    ),
+    tipoActivo === 'socios' && fd.asignaturas.length > 0 && (
+      <div key="nivel_socios">
+        <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">Nivel formativo</label>
+        <select onChange={e => setFiltros(f => ({ ...f, nivel_formativo: e.target.value || undefined }))} className={selectClass}>
+          <option value="">Todos</option>
+          {fd.asignaturas.map(n => <option key={n}>{n}</option>)}
+        </select>
+      </div>
+    ),
+        fd.nombres_constructos.length > 0 && (
       <div key="constructo">
         <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">
           Constructo
@@ -197,55 +242,75 @@ export default function Visualizar() {
 
       {metricas && !cargando && metricas.total_encuestados > 0 && (
         <>
-          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${
-      tipoActivo === 'socios' ? 'lg:grid-cols-6' : 'lg:grid-cols-5'
-    }`}>
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-        <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">Total encuestados</p>
-        <p className="text-4xl font-bold text-slate-800 dark:text-slate-100">
-          {metricas.total_encuestados}
-        </p>
-      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">Total encuestados</p>
+              <p className="text-4xl font-bold text-slate-800 dark:text-slate-100">
+                {metricas.total_encuestados}
+              </p>
+            </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-        <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
-          Satisfacción general
-        </p>
-        <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
-          {fmt(metricas.promedio_satisfaccion_general)}
-        </p>
-        <p className="text-xs text-slate-400 mt-1">sobre {metricas.escala_maxima_satisfaccion}</p>
-      </div>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
+                Satisfacción general
+              </p>
+              <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+                {fmt(metricas.promedio_satisfaccion_general)}
+              </p>
+              <p className="text-xs text-slate-400 mt-1">sobre 7.0</p>
+            </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-        <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
-          Promedio preguntas
-        </p>
-        <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
-          {fmt(metricas.promedio_satisfaccion_constructos)}
-        </p>
-      </div>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
+                Promedio preguntas
+              </p>
+              <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+                {fmt(metricas.promedio_satisfaccion_constructos)}
+              </p>
+            </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-        <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">Tasa de respuesta</p>
-        <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
-          {fmt(metricas.tasa_respuesta_porcentaje, 0)}%
-        </p>
-      </div>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+              <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">Tasa de respuesta</p>
+              <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
+                {fmt(metricas.tasa_respuesta_porcentaje, 0)}%
+              </p>
+            </div>
 
-      {tipoActivo === 'socios' && (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-          <p className="text-sm text-slate-600 dark:text-slate-50 mb-1">
-            Volvería a participar
-          </p>
-          <p className="text-4xl font-bold" style={{ color: tema.sidebar }}>
-            {fmt(metricas.porcentaje_volveria_participar, 0)}%
-          </p>
-          <p className="text-xs text-slate-400 mt-1">
-            {fmt(metricas.porcentaje_volveria_participar, 0)}% volvería a participar
-          </p>
-        </div>
-      )}
+            {datosGenero && (
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+                <p className="text-sm text-slate-600 dark:text-slate-50 mb-2">
+                  Distribución por género
+                </p>
+                <div className="w-full h-24">
+                  <Pie
+                    key={`pie-${theme}`}
+                    data={datosGenero}
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'right',
+                          labels: {
+                            color: colorTexto,
+                            font: { size: 9 },
+                            boxWidth: 10,
+                          },
+                        },
+                        tooltip: {
+                          backgroundColor:
+                            theme === 'dark' ? tema.sidebar : 'white',
+                          titleColor:
+                            theme === 'dark' ? 'white' : tema.sidebar,
+                          bodyColor:
+                            theme === 'dark' ? 'white' : tema.sidebar,
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
       {datosGenero && (
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
@@ -347,7 +412,13 @@ export default function Visualizar() {
                       </strong>
                     </span>
                   </div>
-                   <div className="grid grid-cols-2 gap-2 mb-4">
+                   <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-3 flex flex-col justify-center">
+                      <p className="text-xs text-slate-400 mb-0.5">Promedio general</p>
+                      <p className="text-lg font-bold" style={{ color: tema.sidebar }}>
+                        {fmt(promedio_constructo, 2)}
+                      </p>
+                    </div>
 
                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3">
                       <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-1">
@@ -384,9 +455,9 @@ export default function Visualizar() {
                   
                  <div
           className="flex gap-3"
-          style={{ height: `${preguntas.length * 44 + 30}px` }}
+          style={{ height: `${preguntas.length * 44 + 40}px` }}
         >
-          <div className="w-1/2 flex flex-col pr-2" style={{ paddingBottom: '30px' }}>
+          <div className="w-1/2 flex flex-col pr-2" style={{ paddingBottom: '40px' }}>
             {preguntas.map((p, i) => (
               <div
                 key={i}
@@ -406,12 +477,10 @@ export default function Visualizar() {
               options={{
                 indexAxis: 'y',
                 maintainAspectRatio: false,
-                layout: { padding: { right: 32 } },
                 scales: {
                   x: {
                     min: 0,
-                    max: metricas?.escala_maxima_likert ?? 4,
-                    afterFit: (scale: any) => { scale.height = 30 },
+                    max: 4,
                     ticks: { color: colorTexto },
                     grid: { color: colorGrid },
                   },

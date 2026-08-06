@@ -46,23 +46,26 @@ export function InformeProvider({ children }: { children: React.ReactNode }) {
 
     es.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data)
+        const response = await fetch(`${BASE_URL}/reportes/estado/${jobId}?t=${Date.now()}`, {
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        })
+        if (!response.ok) throw new Error()
+        const data = await response.json()
 
-        switch (data.estado) {
-          case 'completado':
-            setEstadoJob('completado')
-            setUrlInforme(data.resultado.url_informe)
-            cerrarConexion()
-            break
-          case 'error':
-          case 'no_encontrado':
-            setEstadoJob('error')
-            cerrarConexion()
-            break
-          case 'procesando':
-            break
+        if (data.estado === 'completado') {
+          clearInterval(intervaloRef.current!)
+          intervaloRef.current = null
+          setEstadoJob('completado')
+          setUrlInforme(data.resultado.url_informe)
+        } else if (data.estado === 'error') {
+          clearInterval(intervaloRef.current!)
+          intervaloRef.current = null
+          setEstadoJob('error')
         }
       } catch {
+        clearInterval(intervaloRef.current!)
+        intervaloRef.current = null
         setEstadoJob('error')
         cerrarConexion()
       }

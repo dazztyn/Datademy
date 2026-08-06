@@ -105,7 +105,7 @@ export function fmt(value: number | null | undefined, decimals = 2): string {
   if (value == null || isNaN(value)) return '—'
   return value.toFixed(decimals)
 }
-export function wrapTextParaEtiqueta(texto: string, maxCaracteresPorLinea: number): string[] {
+function wrapTextParaEtiqueta(texto: string, maxCaracteresPorLinea: number): string[] {
   const palabras = texto.split(' ')
   const lineas: string[] = []
   let lineaActual = ''
@@ -138,8 +138,7 @@ export default function GenerarInforme() {
   const pieRef = useRef<ChartJS<'pie'> | null>(null)
   const barrasRefs = useRef<Record<number, ChartJS<"bar", number[], string[]> | null | undefined>>({})
   const barrasSociosRefs = useRef<Record<number, ChartJS<"bar", number[], string[]> | null | undefined>>({})
-  const contenedorGraficosRef = useRef<HTMLDivElement>(null)
-  const [anchoTotal, setAnchoTotal] = useState(1400)
+
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, 'estudiantes')
 
   const [asignaturaNombre, setAsignaturaNombre] = usePersistedState('asignatura', '')
@@ -405,28 +404,52 @@ export default function GenerarInforme() {
     'bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 space-y-4'
   const tituloSeccion = 'text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3'
 
+  const Toggle = ({
+    valor,
+    opcion1,
+    opcion2,
+    onChange,
+  }: {
+    valor: string
+    opcion1: string
+    opcion2: string
+    onChange: (v: any) => void
+  }) => (
+    <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1">
+      {[opcion1, opcion2].map(op => (
+        <button
+          key={op}
+          onClick={() => onChange(op)}
+          className={`flex-1 py-2 rounded-lg text-md font-medium transition-all duration-200
+            ${valor === op
+              ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
+              : 'text-slate-400 dark:text-slate-500'
+            }`}
+        >
+          {op}
+        </button>
+      ))}
+    </div>
+  )
+
 const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number): any => ({
   indexAxis: 'y' as const,
   maintainAspectRatio: false,
   animation: false,
   devicePixelRatio: 2,
-  layout: { padding: { right: showLabels ? 200 : 0} },
+  layout: { padding: { right: showLabels ? 48 : 0 } },
   scales: {
     x: {
       min: 0,
       max: maxVal,
-      ticks: { color: '#64748b', font: { size: FONT_SIZE_EJE } },
+      ticks: { color: '#64748b', font: { size: 10 } },
       grid: { color: 'rgba(0,0,0,0.06)' },
     },
     y: {
       afterFit: anchoEtiquetas
         ? (scale: any) => { scale.width = anchoEtiquetas }
         : undefined,
-      ticks: {
-        color: '#1e293b',
-        font: { size: FONT_SIZE_EJE, lineHeight: `${ALTURA_LINEA}px` },
-        autoSkip: false,
-      },
+      ticks: { color: '#64748b', font: { size: 10 }, autoSkip: false },
       grid: { color: 'rgba(0,0,0,0.06)' },
     },
   },
@@ -438,8 +461,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
           anchor: 'end' as const,
           align: 'end' as const,
           clamp: true,
-          color: '#0f172a',
-          font: { weight: 'bold' as const, size: FONT_SIZE_EJE },
+          color: '#02171e',
+          font: { weight: 'bold' as const, size: 15 },
           formatter: (value: number) => (value != null ? value.toFixed(2) : ''),
         }
       : { display: false },
@@ -779,13 +802,11 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
-                    
-                    const anchoEtiquetas = Math.floor(anchoTotal * 0.65)
-                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1400))
-
+                    const anchoTotal = 1080
+                    const anchoEtiquetas = anchoTotal / 2
 
                     const chartData = {
-                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, caracteresPorLinea)),
+                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, 100)),
                       datasets: [
                         {
                           label: constructo.nombre_constructo,
@@ -799,24 +820,21 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const alturaPorFila = Math.max(60, maxLineas * ALTURA_LINEA + 16)
                     return (
                       <div
-                          key={`preview-${constructo.numero_pagina}`}
-                          className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3"
+                        key={`preview-${constructo.numero_pagina}`}
+                        className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3"
+                      >
+                        <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
+                          {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
+                        </p>
+                        <div
+                          className="mx-auto"
+                          style={{ height: `${preguntas.length * 44 + 32}px`, width: `${anchoTotal}px` }}
                         >
-                          <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
-                            {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
-                          </p>
-                          <div className="w-full overflow-x-auto flex justify-center">
-                            <div
-                              className="flex-shrink-0 bg-white rounded-lg"
-                              style={{ height: `${preguntas.length * alturaPorFila + 40}px`, width: `${anchoTotal}px` }}
-                            >
-                              <Bar
-                                ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
-                                data={chartData}
-                                options={barOptions(metricas.escala_maxima_likert, true, anchoEtiquetas)}
-                              />
-                            </div>
-                          </div>
+                          <Bar
+                            ref={(el) => { barrasRefs.current[constructo.numero_pagina] = el }}
+                            data={chartData}
+                            options={barOptions(4, true, anchoEtiquetas)}
+                          />
                         </div>
                     )
                   })}
@@ -833,12 +851,11 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                     const preguntas = constructo.preguntas ?? []
                     if (preguntas.length === 0) return null
 
-                    const anchoEtiquetas = Math.floor(anchoTotal * 0.65)
-                    const caracteresPorLinea = Math.round(70 * (anchoTotal / 1400))
-
+                    const anchoTotal = 1080
+                    const anchoEtiquetas = anchoTotal / 2
 
                     const chartData = {
-                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, caracteresPorLinea)),
+                      labels: preguntas.map(p => wrapTextParaEtiqueta(p.pregunta, 100)),
                       datasets: [{
                         label: constructo.nombre_constructo,
                         data: preguntas.map(p => p.promedio ?? 0),
@@ -857,17 +874,15 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                           {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
-                        <div className="w-full overflow-x-auto flex justify-center">
-                          <div
-                            className="flex-shrink-0 bg-white rounded-lg"
-                            style={{ height: `${preguntas.length * alturaPorFila + 40}px`, width: `${anchoTotal}px` }}
-                          >
-                            <Bar
-                              ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}
-                              data={chartData}
-                              options={barOptions(metricas.escala_maxima_likert, true, anchoEtiquetas)}
-                            />
-                          </div>
+                        <div
+                          className="mx-auto"
+                          style={{ height: `${preguntas.length * 44 + 32}px`, width: `${anchoTotal}px` }}
+                        >
+                          <Bar
+                            ref={(el) => { barrasSociosRefs.current[constructo.numero_pagina] = el }}
+                            data={chartData}
+                            options={barOptions(4, true, anchoEtiquetas)}
+                          />
                         </div>
                       </div>
                     )

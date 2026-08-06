@@ -266,7 +266,7 @@ export default function CompletarDatos() {
       <div className="w-full bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
         <button
           onClick={handleGuardar}
-          disabled={guardando || !paginasEstudiantes || !paginasSocios}
+          disabled={guardando || !metricasEstudiantes || !metricasSocios}
           className="w-full py-3.5 rounded-xl text-white text-2xl font-semibold transition-all disabled:opacity-60 shadow-md hover:opacity-95"
           style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
         >

@@ -70,7 +70,9 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
       <HeroBanner nombre="a Datademy" />
-      <div className="max-w-3xl mx-auto px-6 pb-24">    
+
+      <div className="max-w-4xl mx-auto px-6 pb-24">
+        
         <div className="flex md:flex-row items-center justify-between gap-4 mb-6">
            <div className="flex items-center gap-3">
             <button
@@ -85,59 +87,42 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
               Procesos disponibles
             </h1>
       </div>
-        <div className="flex items-center gap-3">
-  <button
-    onClick={abrirPickerPlantillas}
-    disabled={!isReadyPlantillas}
-    className={`text-lg flex items-center gap-2 px-4 py-2 rounded-full text-white font-medium transition-all duration-200
-    ${!isReadyPlantillas
-      ? 'opacity-40 cursor-not-allowed filter grayscale'
-      : 'hover:scale-105 active:scale-95 cursor-pointer shadow-md'
-    }`}
-    style={{
-      background: plantillasConfiguradas
-        ? 'linear-gradient(to right, #22c55e, #16a34a)'
-        : 'linear-gradient(to right, #94a3b8, #64748b)',
-    }}
-  >
-    <img
-      src={iconoCarpeta}
-      alt="Carpeta Plantillas"
-      className="w-7 h-7 object-contain brightness-0 invert"
-    />
-    <span className="flex flex-col items-start leading-tight">
-      <span>Carpeta Plantillas</span>
-      <span className="text-xs font-normal opacity-90">
-        {plantillasConfiguradas ? 'Asignada' : 'No asignada'}
-      </span>
-    </span>
-  </button>
-  <button
-    onClick={abrirPickerDestino}
-    disabled={!isReadyDestino}
-    className={`text-lg flex items-center gap-2 px-4 py-2 rounded-full text-white font-medium transition-all duration-200
-    ${!isReadyDestino
-      ? 'opacity-40 cursor-not-allowed filter grayscale'
-      : 'hover:scale-105 active:scale-95 cursor-pointer shadow-md'
-    }`}
-    style={{
-      background: destinoConfigurado
-        ? 'linear-gradient(to right, #22c55e, #16a34a)'
-        : 'linear-gradient(to right, #94a3b8, #64748b)',
-    }}
-  >
-    <img
-      src={iconoCarpeta}
-      alt="Carpeta Destino"
-      className="w-7 h-7 object-contain brightness-0 invert"
-    />
-    <span className="flex flex-col items-start leading-tight">
-      <span>Carpeta Destino</span>
-      <span className="text-xs font-normal opacity-90">
-        {destinoConfigurado ? 'Asignada' : 'No asignada'}
-      </span>
-    </span>
-  </button>
+              <div className="flex items-center gap-3">
+        <button
+          onClick={abrirPickerPlantillas}
+          disabled={!isReadyPlantillas}
+          className={`text-lg flex items-center gap-2 px-4 py-2 rounded-full text-white font-medium transition-all duration-200
+          ${isReadyPlantillas
+            ? 'hover:scale-105 active:scale-95 cursor-pointer shadow-md'
+            : 'opacity-40 cursor-not-allowed filter grayscale'
+          }`}
+          style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+        >
+          <img
+            src={iconoCarpeta}
+            alt="Carpeta Plantillas"
+            className="w-7 h-7 object-contain brightness-0 invert"
+          />
+          <span>Carpeta Plantillas</span>
+        </button>
+
+        <button
+          onClick={abrirPickerDestino}
+          disabled={!isReadyDestino}
+          className={`text-lg flex items-center gap-2 px-4 py-2 rounded-full text-white font-medium transition-all duration-200
+          ${isReadyDestino
+            ? 'hover:scale-105 active:scale-95 cursor-pointer shadow-md'
+            : 'opacity-40 cursor-not-allowed filter grayscale'
+          }`}
+          style={{ background: 'linear-gradient(to right, #5fb7bb, #0d438b)' }}
+        >
+          <img
+            src={iconoCarpeta}
+            alt="Carpeta Destino"
+            className="w-7 h-7 object-contain brightness-0 invert"
+          />
+          <span>Carpeta Destino</span>
+        </button>
 
         <button
           onClick={() => setModalAbierto(true)}
