@@ -4,4 +4,5 @@ export interface ConsultaEstadisticas
   $and?: Array<{
     $or: Array<Record<string, string | { $exists: boolean }>>
   }>;
+  [key: string]: unknown;
 }

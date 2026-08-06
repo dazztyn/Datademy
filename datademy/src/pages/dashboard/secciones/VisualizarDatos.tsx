@@ -16,6 +16,7 @@ import type { FiltrosMetricas } from '../../../services/estadisticos_service'
 import { useTheme } from '../../../context/ThemeContext'
 import { temasPagina, temaDefault } from '../../../utils/temasPagina'
 import { useLocation } from 'react-router-dom'
+import { MAPA_PLURAL_A_SINGULAR } from '../../../utils/mapaFiltros'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
@@ -46,6 +47,7 @@ export default function Visualizar() {
 }, []) 
   useEffect(() => {
     setFiltros({ tipo: tipoActivo })
+    setConstructoSeleccionado(undefined)
   }, [tipoActivo])
 
   const distribucionGenero = metricas?.distribucion_genero ?? []
@@ -98,12 +100,6 @@ export default function Visualizar() {
   const selectClass = "w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 px-3 py-2 text-md focus:outline-none focus:ring-2 focus:ring-blue-400"
   
   const fd = {
-    carreras: filtrosDisponibles.carreras ?? [],
-    sedes: filtrosDisponibles.sedes ?? [],
-    generos: filtrosDisponibles.generos ?? [],
-    niveles_formativos: filtrosDisponibles.niveles_formativos ?? [],
-    asignaturas: filtrosDisponibles.asignaturas ?? [],
-    organizaciones: filtrosDisponibles.organizaciones ?? [],
     nombres_constructos: filtrosDisponibles.nombres_constructos ?? [],
   }
 
@@ -194,33 +190,22 @@ export default function Visualizar() {
         <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">
           Constructo
         </label>
-
         <select
           onChange={e => {
-            const val = e.target.value
-              ? Number(e.target.value)
-              : undefined
-
+            const val = e.target.value ? Number(e.target.value) : undefined
             setConstructoSeleccionado(val)
-
-            setFiltros(f => ({
-              ...f,
-              pagina: val,
-            }))
+            setFiltros(f => ({ ...f, pagina: val }))
           }}
           className={selectClass}
         >
           <option value="">Todos</option>
-
           {fd.nombres_constructos.map(c => (
-            <option key={c.id} value={c.id}>
-              {c.nombre}
-            </option>
+            <option key={c.id} value={c.id}>{c.nombre}</option>
           ))}
         </select>
       </div>
-    ),
-  ].filter(Boolean)
+    )
+  }
 
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -246,7 +231,6 @@ export default function Visualizar() {
 
       {metricas && !cargando && metricas.total_encuestados === 0 && (
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 border border-slate-200 dark:border-slate-700 text-center">
-          <p className="text-2xl mb-2">🔍</p>
           <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
             Sin resultados para este filtro
           </p>
@@ -328,7 +312,38 @@ export default function Visualizar() {
             )}
           </div>
 
-          {/* Bar charts per constructo */}
+      {datosGenero && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+          <p className="text-sm text-slate-600 dark:text-slate-50 mb-2">
+            Distribución por género
+          </p>
+          <div className="w-full h-24">
+            <Pie
+              key={`pie-${theme}`}
+              data={datosGenero}
+              options={{
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'right',
+                    labels: {
+                      color: 'white',
+                      font: { size: 9 },
+                      boxWidth: 10,
+                    },
+                  },
+                  tooltip: {
+                    backgroundColor: theme === 'dark' ? tema.sidebar : 'white',
+                    titleColor: theme === 'dark' ? 'white' : tema.sidebar,
+                    bodyColor: theme === 'dark' ? 'white' : tema.sidebar,
+                  },
+                },
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
           {(metricas.detalle_por_dimension ?? [])
             .filter((_, i) => i < metricas.detalle_por_dimension.length - 1)
             .filter(
@@ -339,7 +354,6 @@ export default function Visualizar() {
             .map(constructo => {
               const preguntas = constructo.preguntas ?? []
 
-              // Skip constructos with no questions for the current filter
               if (preguntas.length === 0) return null
 
               const etiquetas = preguntas.map((_, i) => `Pregunta ${i + 1}`)

@@ -66,7 +66,7 @@ const PaginaConstructoSchema = SchemaFactory.createForClass(PaginaConstructo);
 @Schema({ timestamps: true })
 export class Estadistica {
   
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   id_respuesta_google!: string;
 
   @Prop({ required: true })
@@ -78,7 +78,7 @@ export class Estadistica {
   @Prop({ required: true })
   usuario_id!: string;
 
-  @Prop({ required: true, enum: Object.values(TipoFormulario) })
+  @Prop({ type: String, required: true, enum: Object.values(TipoFormulario) })
   tipo_formulario!: TipoFormulario;
 
   @Prop({ type: DatosRespondenteSchema, required: true })
@@ -91,3 +91,8 @@ export class Estadistica {
 export const EstadisticaSchema = SchemaFactory.createForClass(Estadistica);
 
 EstadisticaSchema.index({ proceso_id: 1, usuario_id: 1, tipo_formulario: 1 });
+
+EstadisticaSchema.index(
+  { id_respuesta_google: 1, proceso_id: 1, tipo_formulario: 1 }, 
+  { unique: true }
+);

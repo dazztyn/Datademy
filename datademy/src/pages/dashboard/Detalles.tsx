@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
 import ThemeToggle from '../../components/ThemeToggle'
 import { temasPagina, temaDefault } from '../../utils/temasPagina'
@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { sincronizarManual } from '../../services/estadisticos_service'
 
 export default function Detalles() {
+  const navigate = useNavigate()
   const location = useLocation()
   const { theme } = useTheme()
   const { idProceso, verificarMetadatos } = useProceso()
@@ -65,8 +66,10 @@ const handleSincronizar = async () => {
         </h1>
         <Outlet />
       </main>
-
       <ThemeToggle />
+      {formularioNoDisponible && (
+        <ModalFormularioNoDisponible onVolver={volverAlLanding} />
+      )}
     </div>
   )
 }

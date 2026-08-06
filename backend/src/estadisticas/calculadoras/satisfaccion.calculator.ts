@@ -29,7 +29,7 @@ export class SatisfaccionCalculator {
     });
   }
 
-  calcularSatisfaccionGeneral(todasLasPreguntas: PreguntaAplanada[]) {
+  calcularSatisfaccionGeneral(todasLasPreguntas: PreguntaAplanada[], escalaSatisfaccion: number = 7) {
     const paginasNumeros = todasLasPreguntas.map(p => p.numero_pagina);
     if (paginasNumeros.length === 0) return 0;
     
@@ -43,7 +43,7 @@ export class SatisfaccionCalculator {
     
     if (preguntasSatisfaccion.length === 0) {
       preguntasSatisfaccion = todasLasPreguntas.filter(p => 
-        p.numero_pagina === ultimaPagina && p.valor_numerico >= 1 && p.valor_numerico <= 7
+        p.numero_pagina === ultimaPagina && p.valor_numerico >= 1 && p.valor_numerico <= escalaSatisfaccion
       );
     }
 
@@ -131,7 +131,21 @@ export class SatisfaccionCalculator {
         distribucion_frecuencias: stats.frecuencias 
       }));
 
-      return { numero_pagina: numeroPagina, nombre_constructo: nombreConstructo, preguntas };
+      const ordenadas = [...preguntas].sort((a, b) => b.promedio - a.promedio);
+
+      const pregunta_mayor_promedio = ordenadas.length > 0
+        ? { pregunta: ordenadas[0].pregunta, promedio: ordenadas[0].promedio } : null;
+
+      const pregunta_menor_promedio = ordenadas.length > 0
+        ? { pregunta: ordenadas[ordenadas.length - 1].pregunta, promedio: ordenadas[ordenadas.length - 1].promedio } : null;
+
+      return { 
+        numero_pagina: numeroPagina, 
+        nombre_constructo: nombreConstructo,
+        pregunta_mayor_promedio,
+        pregunta_menor_promedio, 
+        preguntas 
+      };
     }).sort((a, b) => a.numero_pagina - b.numero_pagina);
   }
 

@@ -14,10 +14,35 @@ import { DatabaseModule } from './database/database.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { HealthController } from './health.controller';
 import { CsrfGuard } from './common/guards/csrf.guard';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
+import { CommonModule } from './common/common.module';
+import { AdminModule } from './admin/admin.module';
+
+const getRedisConfig = () => {
+  if (process.env.REDIS_URL) {
+    const url = new URL(process.env.REDIS_URL);
+    return {
+      host: url.hostname,
+      port: parseInt(url.port || '6379', 10),
+      password: url.password,
+      tls: {
+        rejectUnauthorized: false,
+      },
+    };
+  }
+  
+  return {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD || undefined,
+  };
+};
 
 @Module({
   imports: 
   [
+    CommonModule,
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(process.env.MONGODB_URI!),
     ThrottlerModule.forRoot([{
@@ -27,17 +52,34 @@ import { CsrfGuard } from './common/guards/csrf.guard';
     EventEmitterModule.forRoot(),
     UsuariosModule, 
     DatabaseModule,
+    AdminModule,
     FormulariosModule, 
     GoogleModule, 
     AuthModule, 
     EstadisticasModule, 
     ReportesModule,
     BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: Number(process.env.REDIS_PORT) || 6379,
-        password: process.env.REDIS_PASSWORD || undefined,
-        tls: process.env.NODE_ENV === 'production' ? {} : undefined,
+      redis: getRedisConfig(),
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => {
+        const redisConf = getRedisConfig();
+        
+        const storeConfig = {
+          socket: {
+            host: redisConf.host,
+            port: redisConf.port,
+            tls: true,
+            rejectUnauthorized: false, 
+          },
+          password: redisConf.password,
+          ttl: 86400000,
+        };
+
+        return {
+          store: await redisStore(storeConfig),
+        };
       },
     }),
   ],

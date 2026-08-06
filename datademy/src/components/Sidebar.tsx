@@ -6,6 +6,7 @@ import { useInforme } from '../context/InformeContext'
 import { useAuth } from '../context/AuthContext'
 
 import ModalConfirmar from './ModalConfirmar'
+import ModalIrOtraSeccion from './ModalIrOtraSeccion'
 import iconoListar from '../assets/LIST.png'
 import iconoGraficos from '../assets/DATA.png'
 import iconoCronbach from '../assets/ALPHA.png'
@@ -15,7 +16,7 @@ import iconoCompletar from '../assets/CHECK_COSA.png'
 import iconoLock from '../assets/LOCK.png' 
 import iconoLogout from '../assets/LOGOUT.png'
 import iconoInformes from '../assets/INFORME.png'
-
+import iconoComparativaInterna from '../assets/COMPARATIVA.svg'
 interface SidebarItem {
   icono: string
   titulo: string
@@ -29,7 +30,7 @@ interface SidebarProps {
 const items: SidebarItem[] = [
   { icono: iconoListar, titulo: 'Listar resultados', ruta: '/detalles/listado' },
   { icono: iconoGraficos, titulo: 'Gráficos generales', ruta: '/detalles/graficos' },
-  { icono: iconoCronbach, titulo: 'Alfa de Cronbach', ruta: '/detalles/cronbach' },
+  { icono: iconoCronbach, titulo: 'Alfa de Cronbach', ruta: '/detalles/cronbach' }, 
 ]
 
 export default function Sidebar({ sync = false, onSincronizar }: SidebarProps) {
@@ -45,7 +46,7 @@ export default function Sidebar({ sync = false, onSincronizar }: SidebarProps) {
 
 const [mostrarLogout, setMostrarLogout] = useState(false)
 const [cerrandoSesion, setCerrandoSesion] = useState(false)
-
+const [mostrarConfirmacionComparativa, setMostrarConfirmacionComparativa] = useState(false)
 const handleCerrarSesion = async () => {
   setCerrandoSesion(true)
 
@@ -58,7 +59,7 @@ const handleCerrarSesion = async () => {
   }
 }
   const requiereMetadatos = (ruta: string) =>
-    ['/detalles/alumnos', '/detalles/socios', '/detalles/graficos', '/detalles/cronbach', '/detalles/informe'].includes(ruta)
+    ['/detalles/alumnos', '/detalles/socios', '/detalles/graficos', '/detalles/cronbach', '/detalles/informe', '/comparativa-interna'].includes(ruta)
 
   const handleRefresh = async () => {
     if (!idProceso || sync) return
@@ -66,6 +67,7 @@ const handleCerrarSesion = async () => {
       }
 
   const informeBloqueado = requiereMetadatos('/detalles/informe') && !metadatosCompletos
+  const comparativaBloqueada = requiereMetadatos('/comparativa-interna') && !metadatosCompletos
 
   return (
     <div
@@ -145,6 +147,30 @@ const handleCerrarSesion = async () => {
             </button>
           )
         })}
+<button
+  disabled={!idProceso || comparativaBloqueada}
+  onClick={() => setMostrarConfirmacionComparativa(true)}
+  title={
+    !idProceso
+      ? 'Selecciona un proceso primero'
+      : comparativaBloqueada
+      ? 'Completa los metadatos primero'
+      : undefined
+  }
+  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left w-full mt-1
+    ${!idProceso || comparativaBloqueada ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/10'}`}
+>
+  <span className="relative flex-shrink-0 w-6 h-6 flex items-center justify-center">
+    <img
+      src={comparativaBloqueada ? iconoLock : iconoComparativaInterna}
+      alt="Comparativa interna"
+      className="w-5 h-5 object-contain brightness-0 invert"
+    />
+  </span>
+  <span className={`text-md font-medium text-white whitespace-nowrap overflow-hidden transition-all duration-300 flex items-center gap-1 ${open ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
+    Comparativa interna
+  </span>
+</button>
       </div>
 
       <div className="px-3 flex flex-col gap-2 mt-4">
@@ -239,7 +265,16 @@ const handleCerrarSesion = async () => {
           </span>
         </button>
       </div>
-
+      {mostrarConfirmacionComparativa && (
+        <ModalIrOtraSeccion
+          mensaje="Esto lo llevará a otra sección, ¿continuar?"
+          onCerrar={() => setMostrarConfirmacionComparativa(false)}
+          onConfirmar={() => {
+            setMostrarConfirmacionComparativa(false)
+            navigate('/comparativa-interna')
+          }}
+        />
+      )}
       {mostrarLogout && (
         <ModalConfirmar
           mensaje="Se cerrará tu sesión actual."

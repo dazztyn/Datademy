@@ -119,7 +119,7 @@ const handleDesasignarTodo = async () => {
     }
 
     await Promise.all(promesas)
-    mostrar('Formulario desasignado con éxito', 'exito')
+    mostrar('Formularios desasignados con éxito', 'exito')
     onReload()
     setProcesoADesasignar(null)
 

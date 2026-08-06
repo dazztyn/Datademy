@@ -13,16 +13,19 @@ import { useGooglePicker } from '../../../hooks/useGooglePicker'
 import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
 import { usePersistedState } from '../../../hooks/usePersistentState'
 import { useInforme } from '../../../context/InformeContext'
+import Toggle from '../../../components/Toggle'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, ChartDataLabels)
 
 const COLORES = ['#5fb7bb', '#0d438b', '#7f458f']
 const BASE_URL = import.meta.env.VITE_API_URL
+const FONT_SIZE_EJE = 25
+const ALTURA_LINEA = FONT_SIZE_EJE * 1.45 // espaciado típico entre líneas de texto envuelto
 
 function getHeaders(): HeadersInit {
   return { 'Content-Type': 'application/json' }
 }
-function mapearTablaPromediosParaWord(
+export function mapearTablaPromediosParaWord(
   promediosEstudiantes: any[],
   nombresConstructosEst: string[],
   promedioGeneralEst: number,
@@ -63,7 +66,42 @@ function mapearTablaPromediosParaWord(
 
   return variablesWord
 }
-function fmt(value: number | null | undefined, decimals = 2): string {
+export function mapearExtremosPorConstructo(
+  detalleDimension: any[],
+  prefijo: string = ''
+): Record<string, string> {
+  const variables: Record<string, string> = {}
+  const LIMITE = 10
+  for (let i = 0; i < LIMITE; i++) {
+    const constructo = detalleDimension[i]
+    const idx = i + 1
+    if (!constructo || !constructo.preguntas || constructo.preguntas.length === 0) {
+      variables[`MayorNombre${prefijo}_${idx}`] = ''
+      variables[`MayorPromedio${prefijo}_${idx}`] = ''
+      variables[`ParrafoSec${prefijo}_${idx}`] = ''
+      continue
+    }
+    const preguntas = [...constructo.preguntas].sort((a: any, b: any) => b.promedio - a.promedio)
+    const mayor = preguntas[0]
+    const menor = preguntas[preguntas.length - 1]
+
+    variables[`MayorNombre${prefijo}_${idx}`] = mayor.pregunta ?? ''
+    variables[`MayorPromedio${prefijo}_${idx}`] = mayor.promedio != null ? Number(mayor.promedio).toFixed(1) : ''
+
+    let parrafo = ''
+    if (menor.promedio != null) {
+      if (menor.promedio <= 2.9) {
+        parrafo = `a diferencia de la pregunta n° ${menor.pregunta ?? ''}, con la menor valoración, de ${Number(menor.promedio).toFixed(1)}`
+      } else {
+        parrafo = 'Esta dimensión nos ha otorgado resultados satisfactorios.'
+      }
+    }
+    variables[`ParrafoSec${prefijo}_${idx}`] = parrafo
+  }
+  return variables
+}
+
+export function fmt(value: number | null | undefined, decimals = 2): string {
   if (value == null || isNaN(value)) return '—'
   return value.toFixed(decimals)
 }
@@ -92,7 +130,7 @@ type FiltrosInforme = {
 }
 export default function GenerarInforme() {
   const { idProceso } = useProceso()
-  const { estadoJob, urlInforme, iniciarPolling, resetear } = useInforme()
+  const { estadoJob, urlInforme, escucharEstadoJob, resetear } = useInforme()
   const { toast, mostrar, cerrar } = useToast()
   const location = useLocation()
   const tema = temasPagina[location.pathname] ?? temaDefault
@@ -138,7 +176,12 @@ export default function GenerarInforme() {
     sede: sede || undefined,
     nivel_formativo: programa || undefined,
   })
-  const { metricas: metricasSocios } = useMetricas(idProceso, { tipo: 'socios' })
+  const { metricas: metricasSocios } = useMetricas(idProceso, {
+    tipo: 'socios',
+    carrera: carrera || undefined,
+    sede: sede || undefined,
+    nivel_formativo: programa || undefined,
+  })
   const totalEstudiantes = metricas?.total_esperados ?? 0
   const totalRespuestas = metricas?.total_encuestados ?? 0
   const porcRespuestas = fmt(metricas?.tasa_respuesta_porcentaje, 1)
@@ -237,7 +280,18 @@ export default function GenerarInforme() {
     mostrar('Error al generar el informe', 'error')
   }
 }, [estadoJob, urlInforme])
-
+  useEffect(() => {
+  const el = contenedorGraficosRef.current
+  if (!el) return
+  const observer = new ResizeObserver(entries => {
+    const ancho = entries[0]?.contentRect.width
+    if (ancho && ancho > 0) {
+      setAnchoTotal(Math.floor(ancho) + 24)
+    }
+  })
+  observer.observe(el)
+  return () => observer.disconnect()
+}, [])
   const handleGenerar = async () => {
     if (!idProceso || !metricas) return
     if ( !carrera || !nombreUsuario || !sede || !numSemestre || !nombreDocente || !programa) {
@@ -278,7 +332,15 @@ export default function GenerarInforme() {
         nombresConstructosSoc,
         metricasSocios?.promedio_satisfaccion_constructos ?? 0
       )
+            const extremosEstudiantes = mapearExtremosPorConstructo(
+        (metricas.detalle_por_dimension ?? []).filter((_, i) => i < (metricas.detalle_por_dimension.length) - 1),
+        ''
+      )
 
+      const extremosSocios = mapearExtremosPorConstructo(
+        (metricasSocios?.detalle_por_dimension ?? []).filter((_, i) => i < ((metricasSocios?.detalle_por_dimension.length ?? 0)) - 1),
+        'S'
+      )
       const datosTexto: Record<string, string> = {
         AsignaturaModulo: asignaturaNombre,
         TipoClase: tipoClase,
@@ -296,7 +358,10 @@ export default function GenerarInforme() {
         TogglePronombre: pronombre,
         ToggleAsignatura: tipoAsignatura,
         ...tablaPromedios,
+        ...extremosEstudiantes,
+        ...extremosSocios,
       }
+
       const filtros: FiltrosInforme = {
         carrera,
         asignatura: asignaturaNombre,
@@ -314,7 +379,7 @@ export default function GenerarInforme() {
       if (!response.ok) throw new Error()
       const data = await response.json()
       mostrar('Informe en cola, procesando...', 'cargando')
-      iniciarPolling(data.jobId)
+      escucharEstadoJob(data.jobId)
     } catch {
       mostrar('Error al enviar la solicitud', 'error')
     } finally {
@@ -408,7 +473,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
   return () => { document.title = 'Datademy' }
 }, []) 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6">
       <div className={seccionClass}>
         <h3 className={tituloSeccion}>Configuración del informe</h3>
         <p className="text-md text-slate-600 dark:text-slate-300 mb-3">
@@ -547,16 +612,16 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
       </div>
 
       <div className={seccionClass}>
-        <h3 className={tituloSeccion}>Datos personales</h3>
+        <h3 className={tituloSeccion}>Información autor informe</h3>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClass}>Nombre</label>
+            <label className={labelClass}>Su nombre</label>
             <input type="text" value={nombreUsuario} onChange={e => setNombreUsuario(e.target.value)} placeholder="Ej: María González" className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Sede</label>
+            <label className={labelClass}>Su sede</label>
             <select value={sede} onChange={e => setSede(e.target.value)} className={inputClass}>
-              <option value="">Selecciona una sede...</option>
+              <option value="">Seleccione su sede...</option>
               {(filtrosDisponibles?.sedes ?? []).map((s: string) => (
                 <option key={s} value={s}>{s}</option>
               ))}
@@ -591,8 +656,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
         </div>
       </div>
 
-      <div className={seccionClass}>
-        <h3 className={tituloSeccion}>Caracterización estudiantes</h3>
+      <div className={seccionClass} ref={contenedorGraficosRef}>
+         <h3 className={tituloSeccion}>Caracterización estudiantes</h3>
         {metricas && metricas.total_encuestados === 0 ? (
           <div className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-4 py-6 text-center">
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
@@ -663,6 +728,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                   <Pie
                     data={datosGenero}
                     options={{
+                      devicePixelRatio: 2,
                       maintainAspectRatio: false,
                       plugins: {
                         legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 10 } },
@@ -686,7 +752,7 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
     data={datosGenero}
     options={{
       maintainAspectRatio: false,
-      devicePixelRatio: 1,
+      devicePixelRatio: 2,
       plugins: {
         legend: {
           position: 'right',
@@ -750,7 +816,8 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         },
                       ],
                     }
-
+                    const maxLineas = Math.max(1, ...chartData.labels.map(l => l.length))
+                    const alturaPorFila = Math.max(60, maxLineas * ALTURA_LINEA + 16)
                     return (
                       <div
                         key={`preview-${constructo.numero_pagina}`}
@@ -769,7 +836,6 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                             options={barOptions(4, true, anchoEtiquetas)}
                           />
                         </div>
-                      </div>
                     )
                   })}
                 </div>
@@ -797,14 +863,16 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                         borderRadius: 5,
                       }],
                     }
+                    const maxLineas = Math.max(1, ...chartData.labels.map(l => l.length))
+                    const alturaPorFila = Math.max(60, maxLineas * ALTURA_LINEA + 16)
 
                     return (
                       <div
-                        key={`socio-preview-${constructo.numero_pagina}`}
+                        key={`preview-${constructo.numero_pagina}`}
                         className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3"
                       >
-                        <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
-                          {constructo.nombre_constructo ?? `Dimensión ${constructo.numero_pagina}`}
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                          {constructo.nombre_constructo ?? `Constructo ${constructo.numero_pagina}`}
                         </p>
                         <div
                           className="mx-auto"
@@ -822,25 +890,26 @@ const barOptions = (maxVal: number, showLabels: boolean, anchoEtiquetas?: number
                 </div>
 
                 {promediosSocios.length > 0 && (
-                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { label: 'Vinculación', valor: promediosSocios[0]?.promedio_constructo },
-                      { label: 'Contribución', valor: promediosSocios[1]?.promedio_constructo },
-                      { label: 'Satisfacción', valor: promediosSocios[2]?.promedio_constructo },
-                      { label: 'Promedio general', valor: metricasSocios?.promedio_satisfaccion_constructos },
-                    ].map(({ label, valor }) => (
-                      <div
-                        key={label}
-                        className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-3 py-2.5 flex items-center justify-between gap-2"
-                      >
-                        <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{label}</span>
-                        <span className="text-sm font-bold flex-shrink-0" style={{ color: '#7f458f' }}>
-                          {fmt(valor)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    ...promediosSocios.slice(0, 3).map((p, i) => ({
+                      label: nombresConstructosSoc[i] ?? p.nombre_constructo ?? `Constructo ${i + 1}`,
+                      valor: p.promedio_constructo,
+                    })),
+                    { label: 'Promedio general', valor: metricasSocios?.promedio_satisfaccion_constructos },
+                  ].map(({ label, valor }, i) => (
+                    <div
+                      key={`${label}-${i}`}
+                      className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 px-3 py-2.5 flex items-center justify-between gap-2"
+                    >
+                      <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{label}</span>
+                      <span className="text-sm font-bold flex-shrink-0" style={{ color: '#7f458f' }}>
+                        {fmt(valor)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               </div>
             )}
           </div>

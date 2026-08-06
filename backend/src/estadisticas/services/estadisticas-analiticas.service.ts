@@ -26,11 +26,13 @@ export class EstadisticasAnaliticasService
     paginaFiltro?: number, 
     promediosMongoOptimizados?: PromedioMongoRaw[],
     demograficosOptimizados?: ConteoDemograficoRaw[],
-    npsOptimizado?: NpsMongoRaw[]
+    npsOptimizado?: NpsMongoRaw[],
+    escalaSatisfaccion: number = 7,
+    escalaLikert: number = 4
   ) 
   {
     if (!estadisticasBD || estadisticasBD.length === 0) {
-      return this.generarMetricasVacias(totalEsperados);
+      return this.generarMetricasVacias(totalEsperados, escalaSatisfaccion, escalaLikert);
     }
 
     const todasLasPreguntas = this.extraerPreguntasConPagina(estadisticasBD);
@@ -64,6 +66,30 @@ export class EstadisticasAnaliticasService
       promediosPorPagina = this.satisfaccionCalculator.calcularPromediosPorPagina(constructosAProcesar, nombresConstructos);
     }
 
+    let totalVolveria = 0;
+    let cantidadSi = 0;
+
+    estadisticasBD.forEach(est => {
+      (est.constructos_paginas || []).forEach(pagina => {
+        (pagina.preguntas_pagina || []).forEach(preg => {
+          
+          const tituloPregunta = preg.pregunta.toLowerCase();
+          
+          if (tituloPregunta.includes('volvería a participar') || tituloPregunta.includes('volveria a participar')) {
+            totalVolveria++;
+            const respuesta = (preg.respuesta_texto || '').toLowerCase().trim();
+            if (respuesta === 'sí' || respuesta === 'si' || preg.valor_numerico === 1) {
+              cantidadSi++;
+            }
+          }
+        });
+      });
+    });
+
+    const porcentajeVolveriaParticipar = totalVolveria > 0 
+      ? Math.round((cantidadSi / totalVolveria) * 100) 
+      : null;
+
     const promedioSatisfaccionConstructos = promediosPorPagina.length > 0 
       ? Number((promediosPorPagina.reduce((acc, p) => acc + p.promedio_constructo, 0) / promediosPorPagina.length).toFixed(1)) 
       : 0;
@@ -84,8 +110,11 @@ export class EstadisticasAnaliticasService
       distribucion_genero: distribucionGeneroFinal,
       promedios_por_pagina: promediosPorPagina,
       promedio_satisfaccion_constructos: promedioSatisfaccionConstructos,
+      escala_maxima_satisfaccion: escalaSatisfaccion,
+      escala_maxima_likert: escalaLikert,
+      porcentaje_volveria_participar: porcentajeVolveriaParticipar,
 
-      promedio_satisfaccion_general: this.satisfaccionCalculator.calcularSatisfaccionGeneral(todasLasPreguntas),
+      promedio_satisfaccion_general: this.satisfaccionCalculator.calcularSatisfaccionGeneral(todasLasPreguntas, escalaSatisfaccion),
       satisfaccion_por_carrera: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'carrera'),
       satisfaccion_por_sede: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'sede'),
       satisfaccion_por_organizacion: this.satisfaccionCalculator.calcularSatisfaccionPorAtributo(estadisticasBD, ultimaPagina, 'organizacion'),
@@ -124,7 +153,7 @@ export class EstadisticasAnaliticasService
       : `Constructo Página ${numeroPagina}`;
   }
 
-  private generarMetricasVacias(totalEsperados: number) {
+  private generarMetricasVacias(totalEsperados: number, escalaSatisfaccion: number = 7, escalaLikert: number = 4) {
     return {
       total_esperados: totalEsperados,
       total_encuestados: 0,
@@ -132,7 +161,17 @@ export class EstadisticasAnaliticasService
       distribucion_genero: [],
       promedios_por_pagina: [],
       promedio_satisfaccion_general: 0,
-      fiabilidad_constructos: []
+      fiabilidad_constructos: [],
+      escala_maxima_satisfaccion: escalaSatisfaccion,
+      escala_maxima_likert: escalaLikert,
+      porcentaje_volveria_participar: null,
+      detalle_por_dimension: [],
+      nps_satisfaccion: null,
+      ranking_preguntas: { top_3: [], bottom_3: [] },
+      tabla_socios_comunitarios: [],
+      satisfaccion_por_carrera: [],
+      satisfaccion_por_sede: [],
+      satisfaccion_por_organizacion: []
     };
   }
 }

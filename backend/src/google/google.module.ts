@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { GoogleService } from './google.service';
 import { GoogleController } from './google.controller';
+import { GoogleDriveService } from './services/google-drive.service';
+import { GoogleFormsService } from './services/google-forms.service';
 
 @Module({
-  providers: [GoogleService],
+  providers: [GoogleDriveService, GoogleFormsService],
   controllers: [GoogleController],
-  exports: [GoogleService], 
+  exports: [GoogleDriveService, GoogleFormsService], 
 })
 export class GoogleModule {}

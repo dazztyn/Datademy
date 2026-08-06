@@ -39,8 +39,7 @@ export class ReportesDocsService {
       comandos.push({
         insertInlineImage: {
           uri: img.imagenDrive.url,
-          location: { index: img.posicion },
-          objectSize: { width: { magnitude: 450, unit: 'PT' } } 
+          location: { index: img.posicion }
         }
       });
     }

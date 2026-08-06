@@ -9,15 +9,26 @@ import { ConteoDemograficoRaw, NpsMongoRaw, PromedioMongoRaw } from './interface
 export class EstadisticasRepository {
   constructor(@InjectModel('Estadistica') private readonly modelo: Model<EstadisticaDocument>) {}
 
-  async buscarPorQuery(queryMongo: any, selectCampos: string = '', sortOptions: any = {}) {
-    return await this.modelo.find(queryMongo).select(selectCampos).sort(sortOptions).lean().exec();
+  async buscarPorQuery(
+    queryMongo: Record<string, unknown>, 
+    selectCampos: string = '', 
+    sortOptions: Record<string, 1 | -1 | 'asc' | 'desc'> = {},
+    limite: number = 0
+  ) {
+    let query = this.modelo.find(queryMongo).select(selectCampos).sort(sortOptions as any).lean();
+    
+    if (limite > 0) {
+      query = query.limit(limite);
+    }
+    
+    return await query.exec();
   }
 
-  async obtenerOpcionesDistintas(campo: string, queryMongo: any) {
+  async obtenerOpcionesDistintas(campo: string, queryMongo: Record<string, unknown>) {
     return await this.modelo.distinct(campo, queryMongo);
   }
 
-  async insertarMultiples(documentos: any[]) {
+  async insertarMultiples(documentos: Array<Partial<EstadisticaDocument>>) {
     return await this.modelo.insertMany(documentos, { ordered: false });
   }
 

@@ -1,0 +1,153 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { google, forms_v1 } from 'googleapis';
+
+@Injectable()
+export class GoogleFormsService {
+  private oauth2Client;
+  private forms: forms_v1.Forms;
+
+  constructor(private readonly configService: ConfigService) {
+    this.oauth2Client = new google.auth.OAuth2(
+      this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+      this.configService.get<string>('GOOGLE_CALLBACK_URL') || 'https://developers.google.com/oauthplayground'
+    );
+
+    this.oauth2Client.setCredentials({
+      refresh_token: this.configService.get<string>('GOOGLE_REFRESH_TOKEN'),
+    });
+
+    this.forms = google.forms({ version: 'v1', auth: this.oauth2Client });
+  }
+
+  async obtenerDisenoFormulario(idFormulario: string): Promise<forms_v1.Schema$Form> {
+    try {
+      const respuesta = await this.forms.forms.get({ formId: idFormulario });
+      return respuesta.data;
+    } catch (error: unknown) {
+      console.error('Error al obtener el diseño del formulario:', error);
+      if (typeof error === 'object' && error !== null) {
+        const errObj = error as Record<string, unknown>;
+        if (errObj.code === 404 || errObj.status === 404) {
+          throw new NotFoundException('El formulario no existe en Google Drive. Es posible que haya sido eliminado manualmente.');
+        }
+      }
+      throw new Error('No se pudo conectar con la estructura del formulario en Google Forms.');
+    }
+  }
+
+  async obtenerTodasLasRespuestas(idFormulario: string, ultimaSincronizacion?: Date): Promise<forms_v1.Schema$FormResponse[]> {
+    try {
+      const parametros: forms_v1.Params$Resource$Forms$Responses$List = { formId: idFormulario };
+      if (ultimaSincronizacion) {
+        parametros.filter = `timestamp > ${ultimaSincronizacion.toISOString()}`;
+      }
+      const respuesta = await this.forms.forms.responses.list(parametros);
+      return (respuesta.data.responses as forms_v1.Schema$FormResponse[]) || [];
+    } catch (error: unknown) {
+      console.error('Error al obtener las respuestas de Google Forms:', error);
+
+      if (typeof error === 'object' && error !== null) {
+        
+        const errObj = error as Record<string, unknown>;
+        if (errObj.code === 404 || errObj.status === 404) {
+           throw new NotFoundException('El formulario no existe en Google Drive. Es posible que haya sido eliminado manualmente.');
+        }
+      }
+
+      throw new Error('No se pudieron recuperar las respuestas desde Google.');
+    }
+  }
+
+  async activarVigilanciaRespuestas(idFormulario: string): Promise<any> {
+    try {
+      const nombreTema = `projects/${process.env.GOOGLE_PROJECT_ID}/topics/respuestas-datademy`;
+      const respuesta = await this.forms.forms.watches.create({
+        formId: idFormulario,
+        requestBody: { watch: { target: { topic: { topicName: nombreTema } }, eventType: 'RESPONSES' } }
+      });
+      console.log(`Vigilancia activada para el formulario: ${idFormulario}`);
+      return respuesta.data as forms_v1.Schema$Watch;
+    } catch (error) {
+      if (error instanceof Error) {
+        const googleError = error as Error & { code?: number | string; status?: number };
+        const mensajeDeError = googleError.message;
+        const codigo = Number(googleError.code || googleError.status || 0);
+        
+        if (mensajeDeError.includes('already exists') || codigo === 400) {
+          console.log(`[Google API] La vigilancia ya estaba activada para: ${idFormulario}. Omitiendo error.`);
+          return { estado: 'ya_existia' };
+        }
+      }
+      console.error('Error al activar el Watch en Google Forms:', error);
+      throw new Error('No se pudo vincular el formulario con Pub/Sub.');
+    }
+  }
+
+  extraerEscalaMax(diseno: forms_v1.Schema$Form): number 
+  {
+    let escalaMax = 7;
+    if (diseno.items) {
+      const preguntaSatisfaccion = diseno.items.find(item => 
+        item.title && item.title.toLowerCase().includes('satisfacción general') &&
+        item.questionItem?.question?.choiceQuestion?.options
+      );
+
+      if (preguntaSatisfaccion && preguntaSatisfaccion.questionItem?.question?.choiceQuestion?.options) {
+        const opciones = preguntaSatisfaccion.questionItem.question.choiceQuestion.options;
+        let valorMasAlto = -1;
+        
+        opciones.forEach(opt => {
+          const match = (opt.value || '').trim().match(/^(\d+)/); 
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > valorMasAlto) valorMasAlto = num;
+          }
+        });
+
+        escalaMax = valorMasAlto > 0 ? valorMasAlto : opciones.length;
+      }
+    }
+    return escalaMax;
+  }
+
+  public extraerEscalaLikert(diseno: forms_v1.Schema$Form): number 
+  {
+    let escalaMax = 5;
+    let paginaActual = 1;
+
+    if (!diseno.items) return escalaMax;
+
+    for (const item of diseno.items) {
+      if (item.pageBreakItem) {
+        paginaActual++;
+        continue;
+      }
+
+      if (
+        paginaActual >= 2 && 
+        item.questionItem?.question?.choiceQuestion?.options &&
+        (!item.title || !item.title.toLowerCase().includes('satisfacción general'))
+      ) {
+        const opciones = item.questionItem.question.choiceQuestion.options;
+        let valorMasAlto = -1;
+
+        opciones.forEach(opt => {
+          const match = (opt.value || '').trim().match(/^(\d+)/); 
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > valorMasAlto) valorMasAlto = num;
+          }
+        });
+
+        escalaMax = valorMasAlto > 0 ? valorMasAlto : opciones.length;
+        
+        break; 
+      }
+    }
+
+    return escalaMax;
+  }
+
+}

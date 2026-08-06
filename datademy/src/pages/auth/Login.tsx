@@ -1,21 +1,37 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import ThemeToggle from '../../components/ThemeToggle'
 import logoA from '../../assets/LOGOA+S.png'
 import logoDIDEC from '../../assets/LOGODIDEC.png'
 import Google from '../../assets/GOOGLEICON.svg'
+
+const MENSAJES_CONOCIDOS: Record<string, string> = {
+  acceso_denegado: 'No tiene acceso a Datademy. Por favor, contacte al profesor/administrador para habilitar una cuenta.',
+}
+
 export default function Login() {
   const { isAuthenticated, isLoading } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [errorAcceso, setErrorAcceso] = useState<string | null>(null)
 
   useEffect(() => {
-      if (!isLoading && isAuthenticated) {
-        navigate('/dashboard', { replace: true })
-      }
-    }, [isAuthenticated, isLoading, navigate])
+    if (!isLoading && isAuthenticated) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [isAuthenticated, isLoading, navigate])
+
+  useEffect(() => {
+    const error = searchParams.get('error')
+    if (error) {
+      setErrorAcceso(MENSAJES_CONOCIDOS[error] ?? error)
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   const handleLogin = () => {
+    setErrorAcceso(null)
     window.location.href = import.meta.env.VITE_API_URL + '/auth/google'
   }
 
@@ -42,9 +58,20 @@ export default function Login() {
         <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-1">
           Iniciar sesión
         </h1>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-8">
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">
           Usa tu cuenta institucional de Google
         </p>
+
+        {errorAcceso && (
+          <div className="w-full mb-6 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3">
+            <p className="text-xs font-semibold text-red-600 dark:text-red-400 mb-0.5">
+              No autorizado
+            </p>
+            <p className="text-xs text-red-500 dark:text-red-400/80 leading-relaxed">
+              {errorAcceso}
+            </p>
+          </div>
+        )}
 
         <button
           onClick={handleLogin}

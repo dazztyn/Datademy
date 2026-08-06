@@ -1,9 +1,11 @@
-import { Controller, Post, Body, HttpCode, BadRequestException, Get, UseGuards, Req, Param, Query } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, BadRequestException, Get, UseGuards, Req, Param, Query, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { EstadisticasWebhooksService } from './services/estadisticas-webhooks.service';
 import { EstadisticasConsultasService } from './services/estadisticas-consultas.service';
 import { UsuarioActivo } from 'src/auth/interfaces/usuario-activo.interface';
 import { AuthGuard } from '@nestjs/passport';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
+import { EstadisticasComparativasService } from './services/estadisticas-comparativas.service';
 
 interface RequestConUsuario extends Request {
   user: UsuarioActivo;
@@ -15,9 +17,12 @@ export class EstadisticasController {
   constructor(
     private readonly webhooksService: EstadisticasWebhooksService,
     private readonly consultasService: EstadisticasConsultasService,
+    private readonly comparativasService: EstadisticasComparativasService,
   ) {}
 
   @Get('comparativa-global')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(86400000)
   async obtenerComparativaGlobal(
     @Req() req: RequestConUsuario,
     @Query('procesos') procesosUrl: string,
@@ -29,7 +34,7 @@ export class EstadisticasController {
     const procesosIds = procesosUrl.split(',');
     const tipoSeguro = (tipo as TipoFormulario) || TipoFormulario.ESTUDIANTES;
 
-    return await this.consultasService.obtenerComparativaGlobal(req.user.userId, procesosIds, tipoSeguro);
+    return await this.comparativasService.obtenerComparativaGlobal(req.user.userId, procesosIds, tipoSeguro);
   }
 
   @Post(':idProceso/sincronizar-manual')
@@ -50,6 +55,8 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/metricas')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(86400000)
   async obtenerMetricasFrontend(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
@@ -67,6 +74,8 @@ export class EstadisticasController {
   }
 
   @Get(':idProceso/filtros-disponibles')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(86400000)
   async obtenerOpcionesFiltros(
     @Req() req: RequestConUsuario,
     @Param('idProceso') idProceso: string,
@@ -74,5 +83,32 @@ export class EstadisticasController {
   ) {
     const tipoSeguro = (tipo as TipoFormulario) || TipoFormulario.ESTUDIANTES;
     return await this.consultasService.obtenerOpcionesFiltrosDisponibles(idProceso, req.user.userId, tipoSeguro);
+  }
+
+  @Get(':idProceso/comparativa-interna')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(86400000)
+  async obtenerComparativaInterna(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string,
+    @Query() queryParams: Record<string, string>
+  ) {
+    const { agruparPor, valores, tipo, ...filtrosAdicionales } = queryParams;
+
+    if (!agruparPor) {
+      throw new BadRequestException('Debes especificar por qué campo agrupar (ej. ?agruparPor=carrera o ?agruparPor=sede)');
+    }
+    
+    const tipoSeguro = (tipo as TipoFormulario) || TipoFormulario.ESTUDIANTES;
+    const valoresArray = valores ? valores.split(',') : undefined;
+    
+    return await this.comparativasService.obtenerComparativaInterna(
+      req.user.userId, 
+      idProceso, 
+      agruparPor, 
+      tipoSeguro,
+      valoresArray,
+      filtrosAdicionales
+    );
   }
 }

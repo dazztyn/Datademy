@@ -18,6 +18,9 @@ export interface Metricas {
   }[]
   promedio_satisfaccion_general: number
   promedio_satisfaccion_constructos: number
+  escala_maxima_satisfaccion: number
+  escala_maxima_likert: number
+  porcentaje_volveria_participar: number
   detalle_por_dimension: {
     numero_pagina: number
     nombre_constructo: string
@@ -165,6 +168,14 @@ export interface FiltrosDisponibles {
   asignaturas?: string[]
   nombres_constructos?: { id: number; nombre: string }[]
 }
+const MAPA_CLAVES_BACKEND: Record<string, keyof FiltrosDisponibles> = {
+  Carreras: 'carreras',
+  Sedes: 'sedes',
+  'Géneros': 'generos',
+  'Niveles formativos': 'niveles_formativos',
+  Asignaturas: 'asignaturas',
+  Organizaciones: 'organizaciones',
+}
 
 export async function obtenerFiltrosDisponibles(
   idProceso: string,
@@ -176,7 +187,22 @@ export async function obtenerFiltrosDisponibles(
   )
   if (!response.ok) throw new Error('Error al obtener filtros')
   const data = await response.json()
-  return data.filtros_disponibles ?? {}
+  const crudo: Record<string, any> = data.filtros_disponibles ?? {}
+
+  const normalizado: FiltrosDisponibles = {}
+
+  for (const [claveBackend, valor] of Object.entries(crudo)) {
+    if (claveBackend === 'nombres_constructos') {
+      normalizado.nombres_constructos = valor
+      continue
+    }
+    const claveInterna = MAPA_CLAVES_BACKEND[claveBackend]
+    if (claveInterna) {
+      normalizado[claveInterna] = valor
+    }
+  }
+
+  return normalizado
 }
 export interface CantidadPaginasResponse {
   estado: string
@@ -196,31 +222,89 @@ export async function obtenerCantidadPaginas(
   return response.json()
 }
 
+export interface NpsSatisfaccion {
+  score_nps: number
+  distribucion_porcentajes: {
+    promotores_pct: number
+    pasivos_pct: number
+    detractores_pct: number
+  }
+  cantidades_reales: {
+    promotores: number
+    pasivos: number
+    detractores: number
+    total: number
+  }
+}
+
 export interface ComparativaGlobal {
   id_proceso: string
   nombre_proceso: string
   anio: number
   metricas: {
+    total_esperados: number
     total_encuestados: number
-    promedio_satisfaccion_general: number
+    tasa_respuesta_porcentaje: number
     promedios_por_pagina: {
       numero_pagina: number
       nombre_constructo: string
       promedio_constructo: number
     }[]
+    promedio_satisfaccion_general: number
+    escala_maxima_likert: number
+    nps_satisfaccion: NpsSatisfaccion
   }
   variacion_satisfaccion_respecto_anterior: number | null
   variaciones_constructos: {
     nombre_constructo: string
     promedio_actual: number
-    variacion_respecto_anterior: number
+    variacion_respecto_anterior: number | null
   }[]
+}
+
+export interface DetalleProcesoAlfa {
+  nombre_proceso: string
+  alfa: number
+}
+
+export interface ComparativaAlfaPregunta {
+  pregunta: string
+  promedio_alfa_pregunta: number
+  detalle_procesos: DetalleProcesoAlfa[]
+}
+
+export interface ComparativaAlfa {
+  nombre_constructo: string
+  promedio_alfa_constructo: number
+  detalle_procesos: DetalleProcesoAlfa[]
+  preguntas: ComparativaAlfaPregunta[]
+}
+
+export interface DetalleProcesoPromedio {
+  nombre_proceso: string
+  promedio: number
+}
+
+export interface ComparativaPromedioPregunta {
+  pregunta: string
+  promedio_general_pregunta: number
+  detalle_procesos: DetalleProcesoPromedio[]
+}
+
+export interface ComparativaPromedio {
+  nombre_constructo: string
+  promedio_general_constructo: number
+  detalle_procesos: DetalleProcesoPromedio[]
+  preguntas: ComparativaPromedioPregunta[]
 }
 
 export interface ComparativaResponse {
   estado: string
+  agrupado_por?: string
   cantidad_procesos_comparados: number
   comparativa_global: ComparativaGlobal[]
+  comparativa_alfas: ComparativaAlfa[]
+  comparativa_promedios: ComparativaPromedio[]
 }
 
 export async function obtenerComparativaGlobal(
@@ -236,5 +320,39 @@ export async function obtenerComparativaGlobal(
     credentials: 'include',
   })
   if (!response.ok) throw new Error('Error al obtener comparativa global')
+  return response.json()
+}
+export type AgrupacionInterna = 'carrera' | 'sede' | 'asignatura' | 'nivel_formativo' | 'organizacion'
+
+export interface FiltrosComparativaInterna {
+  tipo?: 'estudiantes' | 'socios'
+  sede?: string
+  genero?: string
+  carrera?: string
+  asignatura?: string
+  nivel_formativo?: string
+  organizacion?: string
+}
+
+export async function obtenerComparativaInterna(
+  idProceso: string,
+  agruparPor: AgrupacionInterna,
+  valores: string[],
+  filtros: FiltrosComparativaInterna = {}
+): Promise<ComparativaResponse> {
+  const params = new URLSearchParams({
+    agruparPor,
+    valores: valores.join(','),
+  })
+
+  Object.entries(filtros).forEach(([clave, valor]) => {
+    if (valor) params.set(clave, valor)
+  })
+
+  const response = await fetch(`${BASE_URL}/estadisticas/${idProceso}/comparativa-interna?${params}`, {
+    headers: getHeaders(),
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al obtener comparativa interna')
   return response.json()
 }

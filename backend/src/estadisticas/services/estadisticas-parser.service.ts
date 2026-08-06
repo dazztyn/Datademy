@@ -4,6 +4,8 @@ import { GoogleFormDiseno } from '../interfaces/diseno-google.interface';
 import { GoogleFormRespuesta, AnswerItem } from '../interfaces/respuesta-google.interface';
 import { MapaPregunta } from '../interfaces/mapa-pregunta.interface';
 import { PaginaTemp } from '../interfaces/pagina-temp.interface';
+import { forms_v1 } from 'googleapis';
+import { DatosRespondente } from '../schemas/estadisticas.schema';
 
 @Injectable()
 export class EstadisticasParserService {
@@ -56,7 +58,7 @@ export class EstadisticasParserService {
         }
       });
 
-    return datos;
+    return datos as unknown as DatosRespondente;;
   }
 
   private construirMapaPreguntas(disenoCrudo: GoogleFormDiseno): Record<string, MapaPregunta> {
@@ -101,4 +103,42 @@ export class EstadisticasParserService {
     const textoLimpio = texto.trim().replace(/\s+/g, ' ');
     return textoLimpio.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
   }
+
+  adaptarDisenoGoogle(diseno: forms_v1.Schema$Form): GoogleFormDiseno {
+    return {
+      items: (diseno.items || []).map(item => ({
+        title: item.title || undefined,
+        pageBreakItem: item.pageBreakItem ? {} : undefined,
+        questionItem: item.questionItem ? {
+          question: {
+            questionId: item.questionItem.question?.questionId || '',
+            choiceQuestion: item.questionItem.question?.choiceQuestion ? {
+              options: (item.questionItem.question.choiceQuestion.options || []).map(opt => ({
+                value: opt.value || ''
+              }))
+            } : undefined
+          }
+        } : undefined
+      }))
+    };
+  }
+
+  adaptarRespuestaGoogle(respuesta: forms_v1.Schema$FormResponse): GoogleFormRespuesta {
+    const answersMap: Record<string, any> = {};
+    if (respuesta.answers) {
+      Object.entries(respuesta.answers).forEach(([key, ans]) => {
+        answersMap[key] = {
+          textAnswers: {
+            answers: (ans.textAnswers?.answers || []).map(t => ({ value: t.value || '' }))
+          }
+        };
+      });
+    }
+    return {
+      responseId: respuesta.responseId || '',
+      createTime: respuesta.createTime || undefined,
+      answers: answersMap
+    };
+  }
+
 }

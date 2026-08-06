@@ -77,22 +77,22 @@ export default function CompletarDatos() {
     .catch(() => {})
 }, [idProceso])
   useEffect(() => {
-    if (!metricasEstudiantes) return
-    const num = metricasEstudiantes.promedios_por_pagina.length
+    const num = paginasEstudiantes?.cantidad_constructos ?? metricasEstudiantes?.promedios_por_pagina.length
+    if (num == null) return
     setConstructosEstudiantes(prev => {
       if (prev.length === num) return prev
       return Array.from({ length: num }, (_, i) => prev[i] ?? '')
     })
-  }, [metricasEstudiantes])
+  }, [paginasEstudiantes, metricasEstudiantes])
 
   useEffect(() => {
-    if (!metricasSocios) return
-    const num = metricasSocios.promedios_por_pagina.length
+    const num = paginasSocios?.cantidad_constructos ?? metricasSocios?.promedios_por_pagina.length
+    if (num == null) return
     setConstructosSocios(prev => {
       if (prev.length === num) return prev
       return Array.from({ length: num }, (_, i) => prev[i] ?? '')
     })
-  }, [metricasSocios])
+  }, [paginasSocios, metricasSocios])
 
   const handleGuardar = async () => {
     if (!idProceso) return
@@ -204,11 +204,11 @@ export default function CompletarDatos() {
                   ))}
                 </div>
               </div>
-            ) : !metricasEstudiantes && (
-              <p className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">
-                Cargando estructura de estudiantes...
-              </p>
-            )}
+            ) : !paginasEstudiantes && !metricasEstudiantes && (
+               <p className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">
+                 Cargando estructura de estudiantes...
+               </p>
+             )}
           </div>
         </div>
         <div className={cardClass}>
@@ -253,11 +253,11 @@ export default function CompletarDatos() {
                   ))}
                 </div>
               </div>
-            ) : !metricasSocios && (
-              <p className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">
-                Cargando estructura de socios...
-              </p>
-            )}
+            ) : !paginasSocios && !metricasSocios && (
+               <p className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">
+                 Cargando estructura de socios...
+               </p>
+             )}
           </div>
         </div>
 

@@ -4,8 +4,8 @@ import { useResultados } from '../../../hooks/useResultados'
 import type { FiltrosResultados, Respuesta } from '../../../services/estadisticos_service'
 import ModalRespuestas from '../../../components/ModalRespuestas'
 import { useFiltrosDisponibles } from '../../../hooks/useFiltrosDisponibles'
-
-
+import { useMetricas } from '../../../hooks/useMetricas'
+import { MAPA_PLURAL_A_SINGULAR } from '../../../utils/mapaFiltros'
 const CAMPOS_FIJOS = ['id_respuesta', 'fecha', 'edad', 'genero', 'nivel_formativo', 'sede', 'carrera', 'nombre', 'organizacion', 'asignatura']
 
 export default function ListarResultados() {
@@ -15,7 +15,7 @@ export default function ListarResultados() {
   const [respuestaSeleccionada, setRespuestaSeleccionada] = useState<Respuesta | null>(null)
   const { resultados, cargando, error } = useResultados(idProceso, filtros)
   const { filtros: filtrosDisponibles } = useFiltrosDisponibles(idProceso, tipoActivo)
-
+  const { metricas } = useMetricas(idProceso, { tipo: tipoActivo })
   useEffect(() => {
   document.title = 'Datademy - Lista Resultados'
   return () => { document.title = 'Datademy' }
@@ -148,6 +148,30 @@ export default function ListarResultados() {
     ),
   ].filter(Boolean)
 
+  const filtrosActivos = claves
+    .map(etiquetaPlural => {
+      const opciones = filtrosDisponibles[etiquetaPlural as keyof typeof filtrosDisponibles] as string[]
+      if (!opciones || opciones.length === 0) return null
+
+      const claveFiltro = MAPA_PLURAL_A_SINGULAR[etiquetaPlural] ?? etiquetaPlural
+      const etiqueta = ETIQUETAS_FILTROS[etiquetaPlural] ?? etiquetaPlural
+
+      return (
+        <div key={claveFiltro}>
+          <label className="text-md ml-1 text-slate-600 dark:text-slate-50 mb-1 block">
+            {etiqueta}
+          </label>
+          <select
+            onChange={e => setFiltros(f => ({ ...f, [claveFiltro]: e.target.value || undefined }))}
+            className={selectClass}
+          >
+            <option value="">Todas</option>
+            {opciones.map(o => <option key={o}>{o}</option>)}
+          </select>
+        </div>
+      )
+    })
+    .filter((el): el is React.ReactElement => el !== null)
   return (
     <div className="grid grid-cols-2 gap-3">
       {filtrosActivos.map((filtro, i) => (
@@ -228,6 +252,7 @@ export default function ListarResultados() {
           respuesta={Object.fromEntries(
             Object.entries(respuestaSeleccionada).filter(([k]) => !CAMPOS_FIJOS.includes(k))
           )}
+          escalaSatisfaccion={metricas?.escala_maxima_satisfaccion ?? 7} //el 7 es un fallback por si no se cargan las métricas
           onCerrar={() => setRespuestaSeleccionada(null)}
         />
       )}

@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   mongodb:
     image: mongo:latest
@@ -32,9 +34,18 @@ services:
       - redis-datademy
     environment:
       - PORT=3000
-      - FRONTEND_URL=http://localhost:5173
+      - FRONTEND_URL=http://localhost:8080
       - MONGODB_URI=mongodb://mongodb:27017/datademy
       - REDIS_URL=redis://redis-datademy:6379
+
+  frontend-datademy:
+    build: ./datademy
+    container_name: frontend_datademy
+    ports:
+      - "8080:80"
+    restart: always
+    depends_on:
+      - backend-datademy
 
 volumes:
   mongo_data:

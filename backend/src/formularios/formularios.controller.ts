@@ -153,6 +153,25 @@ export class FormulariosController {
     );
   }
 
+  @Delete(':idProceso/eliminar-formulario/:tipoFormulario')
+  async eliminarFormularioFisico(
+    @Req() req: RequestConUsuario,
+    @Param('idProceso') idProceso: string,
+    @Param('tipoFormulario') tipoFormulario: string
+  ) {
+    const esTipoValido = tipoFormulario === TipoFormulario.ESTUDIANTES || tipoFormulario === TipoFormulario.SOCIOS;
+    
+    if (!esTipoValido) {
+      throw new BadRequestException(`El parámetro debe ser exactamente '${TipoFormulario.ESTUDIANTES}' o '${TipoFormulario.SOCIOS}'.`);
+    }
+
+    return await this.orquestadorService.eliminarFormularioDeProceso(
+      req.user.userId, 
+      idProceso, 
+      tipoFormulario as TipoFormulario
+    );
+  }
+
   @Get(':idProceso/informes')
   async obtenerInformes(@Req() req: RequestConUsuario, @Param('idProceso') idProceso: string) {
     return await this.procesosService.obtenerInformesDeProceso(req.user.userId, idProceso);

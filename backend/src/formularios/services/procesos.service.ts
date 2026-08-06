@@ -7,12 +7,15 @@ import { ProcesoDocument } from '../schemas/proceso.schema';
 import { TipoFormulario } from 'src/common/enum/tipo-formulario.enum';
 import { InformeGenerado } from '../interfaces/informe-generado.interface';
 import { OnEvent, EventEmitter2 } from '@nestjs/event-emitter';
+import { SafeCacheType } from 'src/common/interfaces/safe-cache.interface';
+import { CacheHelperService } from 'src/common/services/cache-helper.service';
 
 @Injectable()
 export class ProcesosService {
   constructor(
     private readonly procesosRepo: ProcesosRepository,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+    private readonly cacheHelper: CacheHelperService
   ) {}
 
   async obtenerTodosLosProcesos(usuario_id: string) {
@@ -41,6 +44,7 @@ export class ProcesosService {
   async actualizar(usuario_id: string, id: string, datos: ActualizarProcesoDto | UpdateQuery<ProcesoDocument>) {
     const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, id, datos);
     if (!actualizado) throw new NotFoundException('No se encontró el proceso con ese ID');
+    await this.cacheHelper.limpiarCacheGlobal();
     return {
       mensaje: '¡Proceso actualizado con éxito!',
       datos: { idProceso: actualizado._id.toString(), nombreProceso: actualizado.nombre_proceso, anio: actualizado.anio }
@@ -58,8 +62,12 @@ export class ProcesosService {
     return proceso;
   }
 
-  async buscarPorIdFormularioGoogle(idFormulario: string) {
-    return await this.procesosRepo.buscarPorIdFormularioGoogle(idFormulario);
+  async buscarTodosPorIdFormularioGoogle(idFormulario: string) {
+    return await this.procesosRepo.buscarTodosPorIdFormularioGoogle(idFormulario);
+  }
+
+  async buscarProcesosPorUsuarioYFormulario(usuarioId: string, idFormulario: string): Promise<ProcesoDocument[]> {
+    return await this.procesosRepo.buscarProcesosPorUsuarioYFormulario(usuarioId, idFormulario);
   }
 
   async guardarMetadatosFormulario(usuario_id: string, idProceso: string, tipoFormulario: 'socios' | 'estudiantes', nombresConstructos: string[], totalEsperados: number) {
@@ -68,6 +76,9 @@ export class ProcesosService {
       [`${campoBase}.nombres_constructos`]: nombresConstructos,
       [`${campoBase}.total_esperados`]: totalEsperados
     };
+
+    await this.cacheHelper.limpiarCacheGlobal();
+
     return await this.actualizar(usuario_id, idProceso, datosAActualizar);
   }
 
@@ -93,7 +104,10 @@ export class ProcesosService {
       : 'formulario_socios';
     
     const datosAActualizar: UpdateQuery<ProcesoDocument> = {
-      $set: { [campoBase]: null }
+      $set: { 
+        [campoBase]: null,
+         
+      }
     };
 
     const actualizado = await this.procesosRepo.actualizarProceso(usuario_id, idProceso, datosAActualizar);
@@ -102,10 +116,13 @@ export class ProcesosService {
       throw new NotFoundException('No se pudo desasignar: El proceso no existe o no tienes permisos.');
     }
 
-    this.eventEmitter.emit('formulario.desasignado', { 
+    this.eventEmitter.emit('formulario.desasignado', {
+      usuario_id: usuario_id, 
       procesoId: idProceso, 
       tipoFormulario: tipoFormulario 
     });
+    
+    await this.cacheHelper.limpiarCacheGlobal();
 
     return {
       estado: 'exito',
@@ -169,6 +186,12 @@ export class ProcesosService {
     }
     
     return eliminado;
+  }
+
+  @OnEvent('usuario.eliminado')
+  async limpiarProcesosUsuario(usuarioId: string) {
+    await this.procesosRepo.eliminarProcesosDeUsuario(usuarioId);
+    await this.cacheHelper.limpiarCacheGlobal();
   }
 
   @OnEvent('informe.generado')

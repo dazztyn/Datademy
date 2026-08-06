@@ -10,18 +10,23 @@ import { sincronizarPlantillas, configurarCarpetaDestino } from '../../services/
 import { useGooglePicker } from '../../hooks/useGooglePicker'
 import Toast from '../../components/Toast'
 import { useToast } from '../../hooks/useToast'
+import { useAuth } from '../../context/AuthContext'
 import { useProceso } from '../../context/ProcesoContext'
 import iconoCarpeta from '../../assets/FOLDER.png'
 import ModalBienvenida from '../../components/ModalBienvenidainfo'
 import CerrarSesionBtn from '../../components/CerrarSesionBtn'
+import { usePersistedState } from '../../hooks/usePersistentState'
 
 export default function Landing() {
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
   const navigate = useNavigate()
   const { setIdProceso } = useProceso()
+  const { esAdmin } = useAuth()
   const { toast, mostrar, cerrar } = useToast()
   const { formularios, cargando, error, recargar } = useFormularios()
+  const [plantillasConfiguradas, setPlantillasConfiguradas] = usePersistedState('landing_plantillasConfiguradas', false)
+  const [destinoConfigurado, setDestinoConfigurado] = usePersistedState('landing_destinoConfigurado', false)
   const [mostrarBienvenida, setMostrarBienvenida] = useState(() => {
     const yaVisto = localStorage.getItem('datademy_bienvenida_vista')
     return yaVisto !== 'true' 
@@ -35,6 +40,7 @@ export default function Landing() {
     mostrar('Sincronizando plantillas...', 'cargando')
     try {
       await sincronizarPlantillas(idCarpeta)
+      setPlantillasConfiguradas(true)
       mostrar('Carpeta de plantillas configurada correctamente', 'exito')
     } catch {
       mostrar('Error al configurar carpeta de plantillas', 'error')
@@ -47,6 +53,7 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
     mostrar('Configurando carpeta destino...', 'cargando')
     try {
       await configurarCarpetaDestino(idCarpeta)
+      setDestinoConfigurado(true)
       mostrar('Carpeta destino configurada correctamente', 'exito')
     } catch {
       mostrar('Error al configurar carpeta destino', 'error')
@@ -168,6 +175,14 @@ const { abrirPicker: abrirPickerDestino, isReady: isReadyDestino } = useGooglePi
             >
               Ver datos globales
             </button>
+            {esAdmin && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="w-full mt-4 py-3.5 rounded-2xl font-medium text-xl transition-all duration-300 flex items-center justify-center gap-3 bg-black text-white shadow-lg shadow-black/30 opacity-100 cursor-pointer hover:scale-[1.02] hover:shadow-xl hover:bg-slate-900"
+              >
+                Panel de administración
+              </button>
+            )}
           </>
         )}
       </div>

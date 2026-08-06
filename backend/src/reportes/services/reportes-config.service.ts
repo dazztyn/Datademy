@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ReportesRepository } from '../reportes.repository';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ReportesConfigService {
@@ -32,5 +33,10 @@ export class ReportesConfigService {
       carpetaDestinoId: config.id_carpeta_destino_informes,
       plantillaId: config.id_plantilla_informe
     };
+  }
+
+  @OnEvent('usuario.eliminado')
+  async limpiarConfiguracionReportesUsuario(usuarioId: string) {
+    await this.repositorio.borrarConfiguracion(usuarioId);
   }
 }
